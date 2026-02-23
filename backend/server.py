@@ -342,3 +342,4 @@ if __name__ == '__main__':
     print("Ready to analyze game film!\n")
 
     app.run(host=HOST, port=PORT, debug=DEBUG, use_reloader=False)
+# Deployment fix
