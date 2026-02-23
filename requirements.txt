@@ -4,3 +4,4 @@ anthropic
 python-dotenv
 google-api-core
 grpcio-status
+flask-cors
