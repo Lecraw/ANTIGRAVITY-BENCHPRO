@@ -897,7 +897,7 @@ function handleNotifClick(type) {
 }
 
 // ===== BACKEND API INTEGRATION =====
-const BACKEND_URL = 'http://localhost:5050';
+const BACKEND_URL = 'https://antigravity-benchpro.onrender.com';
 
 let _lastBackendState = null;
 async function checkBackendHealth() {
