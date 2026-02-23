@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify, send_from_directory, Response  # type
 from flask_cors import CORS  # type: ignore
 from werkzeug.utils import secure_filename  # type: ignore
 
-from config import (  # type: ignore
+from .config import (  # type: ignore
     HOST, PORT, DEBUG, UPLOAD_DIR, FRONTEND_DIR,
     MAX_CONTENT_LENGTH, ALLOWED_EXTENSIONS, TEAM_CODE, TEAM_NAME
 )
@@ -342,5 +342,6 @@ if __name__ == '__main__':
     print("Ready to analyze game film!\n")
 
     app.run(host=HOST, port=PORT, debug=DEBUG, use_reloader=False)
-# Deployment fix
-# Force Deploy Update
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)# Build Trigger: Sun Feb 22 18:32:26 PST 2026
