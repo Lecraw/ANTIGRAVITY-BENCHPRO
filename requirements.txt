@@ -5,3 +5,4 @@ python-dotenv
 google-api-core
 grpcio-status
 flask-cors
+opencv-python-headless
