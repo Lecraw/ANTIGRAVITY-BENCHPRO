@@ -37,3 +37,4 @@ TEAM_NAME = 'Harker Eagles'
 # Ensure upload directory exists
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 # Final Config Fix
+# Fix: Missing anthropic import
