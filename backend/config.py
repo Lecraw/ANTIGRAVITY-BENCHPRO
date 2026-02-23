@@ -36,3 +36,4 @@ TEAM_NAME = 'Harker Eagles'
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 # Final Config Fix
 # Force Deploy: Sun Feb 22 19:02:38 PST 2026
+# Force Deploy: Sun Feb 22 19:02:38 PST 2026
