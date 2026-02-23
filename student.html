@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>BenchPro — Player View</title>
+    <meta name="description"
+        content="BenchPro student athlete mobile view. View your stats, upload clips, and receive coaching tips.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="student.css">
+    <link rel="icon" href="minilogo.png" type="image/png">
+</head>
+
+<body>
+
+    <!-- ===== AUTH SCREEN ===== -->
+    <div class="auth-screen" id="student-auth">
+        <div class="auth-particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+
+        <div class="auth-container">
+            <div class="auth-logo">
+                <img src="logo.png" alt="BenchPro">
+                <h1 class="auth-brand">BENCH<span>PRO</span></h1>
+                <p class="auth-tagline">Fair Play. Smart Coaching.</p>
+                <div class="auth-role-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Player Portal
+                </div>
+            </div>
+
+            <div class="auth-card">
+                <!-- Auth Tabs -->
+                <div class="student-auth-tabs">
+                    <button class="student-auth-tab active" id="tab-login" onclick="showStudentAuthTab('login')">Sign In</button>
+                    <button class="student-auth-tab" id="tab-signup" onclick="showStudentAuthTab('signup')">Create Account</button>
+                </div>
+
+                <!-- LOGIN VIEW -->
+                <div class="student-auth-view active" id="view-login">
+                    <p class="auth-subtitle">Sign in with your player credentials</p>
+
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <div class="input-icon-wrap">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                <polyline points="22,7 12,13 2,7"></polyline>
+                            </svg>
+                            <input type="email" class="form-input with-icon" id="student-email"
+                                placeholder="your.email@school.edu" autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Team Code</label>
+                        <div class="input-icon-wrap">
+                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                            </svg>
+                            <input type="text" class="form-input with-icon" id="student-code"
+                                placeholder="Team code from your coach" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="student-login-btn" onclick="handleStudentLogin()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"></path>
+                            <polyline points="10 17 15 12 10 7"></polyline>
+                            <line x1="15" y1="12" x2="3" y2="12"></line>
+                        </svg>
+                        Sign In
+                    </button>
+
+                    <p style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:14px;">
+                        Don't have an account? <a href="#" onclick="event.preventDefault();showStudentAuthTab('signup')" style="color:var(--orange);text-decoration:none;font-weight:600">Sign up</a>
+                    </p>
+                </div>
+
+                <!-- SIGNUP VIEW -->
+                <div class="student-auth-view" id="view-signup">
+
+                    <!-- Step 1: Account Info -->
+                    <div class="signup-step active" id="signup-step-1">
+                        <p class="auth-subtitle">Create your player account</p>
+
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <div class="input-icon-wrap">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                                <input type="text" class="form-input with-icon" id="signup-name"
+                                    placeholder="Marcus James" autocomplete="name">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <div class="input-icon-wrap">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                    <polyline points="22,7 12,13 2,7"></polyline>
+                                </svg>
+                                <input type="email" class="form-input with-icon" id="signup-email"
+                                    placeholder="your.email@school.edu" autocomplete="email">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <div class="input-icon-wrap">
+                                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                                </svg>
+                                <input type="password" class="form-input with-icon" id="signup-password"
+                                    placeholder="Create a password" autocomplete="new-password">
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="handleStudentSignupStep1()">
+                            Continue
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:6px">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Step 2: Join Team or Pick Plan -->
+                    <div class="signup-step" id="signup-step-2">
+                        <p class="auth-subtitle">How would you like to get started?</p>
+
+                        <!-- Option A: Join a team -->
+                        <div class="signup-option-card" id="opt-join" onclick="selectSignupOption('join')">
+                            <div class="signup-option-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 010 7.75"></path>
+                                </svg>
+                            </div>
+                            <div class="signup-option-text">
+                                <strong>Join My Team</strong>
+                                <span>I have a team code from my coach</span>
+                            </div>
+                            <div class="signup-option-check"></div>
+                        </div>
+
+                        <!-- Option B: Pick a plan -->
+                        <div class="signup-option-card" id="opt-plan" onclick="selectSignupOption('plan')">
+                            <div class="signup-option-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                </svg>
+                            </div>
+                            <div class="signup-option-text">
+                                <strong>Choose a Plan</strong>
+                                <span>Start training on my own</span>
+                            </div>
+                            <div class="signup-option-check"></div>
+                        </div>
+
+                        <!-- Join Team Input (hidden by default) -->
+                        <div class="signup-detail-panel" id="join-panel" style="display:none">
+                            <div class="form-group" style="margin-bottom:0">
+                                <label class="form-label">Team Code</label>
+                                <div class="input-icon-wrap">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                                    </svg>
+                                    <input type="text" class="form-input with-icon" id="signup-team-code"
+                                        placeholder="e.g. HARKER2026" autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Plan Selection (hidden by default) -->
+                        <div class="signup-detail-panel" id="plan-panel" style="display:none">
+                            <div class="student-plan-cards">
+                                <div class="student-plan-card" id="splan-standard" onclick="selectStudentPlan('standard')">
+                                    <div class="student-plan-name">Standard</div>
+                                    <div class="student-plan-price">$8.99<span>/mo</span></div>
+                                    <ul class="student-plan-perks">
+                                        <li>Personal stat tracking</li>
+                                        <li>Clip uploads (5/mo)</li>
+                                        <li>Coach messages</li>
+                                    </ul>
+                                </div>
+                                <div class="student-plan-card selected" id="splan-elite" onclick="selectStudentPlan('elite')">
+                                    <div class="student-plan-popular">BEST VALUE</div>
+                                    <div class="student-plan-name">Elite</div>
+                                    <div class="student-plan-price">$29.99<span>/mo</span></div>
+                                    <ul class="student-plan-perks">
+                                        <li>Everything in Standard</li>
+                                        <li>Unlimited clip uploads</li>
+                                        <li>AI analysis on your clips</li>
+                                        <li>Personalized drill plans</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-secondary btn-back" onclick="goSignupStep(1)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                                Back
+                            </button>
+                            <button class="btn btn-primary btn-submit" id="signup-finish-btn" onclick="handleStudentSignupFinish()">
+                                Create Account
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="auth-footer">&copy; 2026 BenchPro. All rights reserved.</p>
+        </div>
+    </div>
+
+    <!-- ===== MAIN APP ===== -->
+    <div class="app-shell" id="student-app">
+
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <img src="logo.png" alt="BP" class="top-bar-logo">
+                <span class="top-bar-title" id="top-bar-page-title">BENCHPRO</span>
+            </div>
+            <div class="top-bar-right">
+                <button class="top-bar-btn" onclick="switchTab('messages')" title="Notifications">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 01-3.46 0"></path>
+                    </svg>
+                    <span class="notif-dot"></span>
+                </button>
+                <div class="avatar-sm" onclick="switchTab('profile')">MJ</div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="page-content">
+
+            <!-- ===== HOME TAB ===== -->
+            <div class="tab-page active" id="page-home">
+                <h1 class="page-title" id="home-title">Hey, Marcus!</h1>
+                <p class="page-subtitle">Here's your performance snapshot for this season.</p>
+
+                <!-- Quick Stats (dynamic) -->
+                <div class="stats-row" id="home-stats"></div>
+
+                <!-- Shooting Performance (dynamic) -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="6"></circle>
+                                <circle cx="12" cy="12" r="2"></circle>
+                            </svg>
+                            Shooting Breakdown
+                        </h3>
+                        <span class="badge badge-orange">Season</span>
+                    </div>
+                    <div class="card-body" id="home-shooting"></div>
+                </div>
+
+                <!-- Scoring Trend -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                            Scoring Trend
+                        </h3>
+                        <span class="badge badge-green">Last 10</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="sparkline-container">
+                            <canvas id="trend-canvas"></canvas>
+                        </div>
+                        <div class="trend-chart-labels">
+                            <span>10 games ago</span><span>Latest</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Games (dynamic) -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            Recent Games
+                        </h3>
+                    </div>
+                    <div class="card-body card-body-list" id="home-games"></div>
+                </div>
+
+                <!-- Coach Insights (dynamic) -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
+                                </path>
+                            </svg>
+                            Coach Insights
+                        </h3>
+                        <span class="coach-badge">Coach</span>
+                    </div>
+                    <div class="card-body card-body-stack" id="home-insights"></div>
+                </div>
+
+                <!-- Recommended Drills Preview -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                            Today's Drills
+                        </h3>
+                        <button class="badge badge-orange badge-btn" onclick="switchTab('drills')">View All</button>
+                    </div>
+                    <div class="card-body card-body-list">
+                        <div class="drill-preview-item" onclick="switchTab('drills')">
+                            <div class="drill-preview-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg></div>
+                            <div class="drill-preview-info">
+                                <div class="drill-preview-title">Crossover Speed Dribble</div>
+                                <div class="drill-preview-meta">10 min · Ball Handling</div>
+                            </div>
+                            <span class="badge badge-yellow">Assigned</span>
+                        </div>
+                        <div class="drill-preview-item" onclick="switchTab('drills')">
+                            <div class="drill-preview-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+                            <div class="drill-preview-info">
+                                <div class="drill-preview-title">Elbow Pull-Up Jumper</div>
+                                <div class="drill-preview-meta">15 min · Shooting</div>
+                            </div>
+                            <span class="badge badge-yellow">Assigned</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== DRILLS TAB ===== -->
+            <div class="tab-page" id="page-drills">
+                <h1 class="page-title">Drills</h1>
+                <p class="page-subtitle">Recommended drills from your coaching staff based on your performance.</p>
+
+                <!-- Progress Summary -->
+                <div class="drill-progress-card">
+                    <div class="drill-progress-ring" id="drill-progress-ring">
+                        <svg viewBox="0 0 80 80">
+                            <circle cx="40" cy="40" r="34" fill="none" stroke="var(--border)" stroke-width="6"/>
+                            <circle cx="40" cy="40" r="34" fill="none" stroke="var(--orange)" stroke-width="6"
+                                stroke-dasharray="213.6" stroke-dashoffset="160.2" stroke-linecap="round"
+                                transform="rotate(-90 40 40)" id="drill-ring-fill"/>
+                        </svg>
+                        <div class="drill-progress-text" id="drill-progress-text">1/4</div>
+                    </div>
+                    <div class="drill-progress-info">
+                        <div style="font-size:16px;font-weight:700;">This Week</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">1 of 4 drills completed</div>
+                        <div style="margin-top:8px;display:flex;gap:6px;">
+                            <span class="badge badge-green"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> 1 streak</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Drills -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Assigned Drills
+                        </h3>
+                        <span class="badge badge-orange" id="drills-remaining-badge">3 remaining</span>
+                    </div>
+                    <div class="card-body card-body-flush" id="drills-list">
+                    </div>
+                </div>
+
+                <!-- Completed Drills -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            Completed
+                        </h3>
+                    </div>
+                    <div class="card-body card-body-flush" id="drills-completed-list">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== UPLOAD TAB ===== -->
+            <div class="tab-page" id="page-upload">
+                <h1 class="page-title">Upload Clips</h1>
+                <p class="page-subtitle">Upload short game clips for AI analysis. Highlights, plays, or key moments.</p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            New Clip
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-zone" id="student-upload-zone" onclick="document.getElementById('clip-file-input').click()">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path
+                                    d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z">
+                                </path>
+                                <circle cx="12" cy="13" r="3"></circle>
+                            </svg>
+                            <p><span class="highlight">Tap to select</span> your clip</p>
+                            <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">MP4, MOV, AVI · Max 500MB
+                            </p>
+                        </div>
+                        <input type="file" id="clip-file-input" style="display:none" accept="video/*"
+                            onchange="handleClipFileSelect(this)">
+                        <div id="clip-file-info"
+                            style="display:none;margin-top:12px;padding:10px 12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:var(--radius-sm);align-items:center;gap:8px;flex-wrap:wrap">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6"
+                                stroke-width="2">
+                                <path
+                                    d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z">
+                                </path>
+                                <circle cx="12" cy="13" r="3"></circle>
+                            </svg>
+                            <span id="clip-selected-name" style="font-size:13px;color:var(--text-primary);flex:1"></span>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="clearStudentClipFile()" style="flex-shrink:0">Remove</button>
+                        </div>
+
+                        <div class="form-group" style="margin-top:16px;">
+                            <label class="form-label">Clip Title</label>
+                            <input type="text" class="form-input" id="clip-title-input"
+                                placeholder="e.g. Crossover layup Q3, Fast break assist">
+                        </div>
+
+                        <div class="upload-progress" id="upload-progress">
+                            <div class="upload-progress-header">
+                                <div class="upload-progress-name">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)"
+                                        stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                    </svg>
+                                    <span id="upload-file-name"></span>
+                                </div>
+                                <span class="upload-progress-pct" id="upload-pct">0%</span>
+                            </div>
+                            <div class="upload-bar">
+                                <div class="upload-bar-fill" id="upload-bar-fill"></div>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" style="margin-top:16px;" onclick="handleUploadClipBtn()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Upload & Analyze
+                        </button>
+                    </div>
+                </div>
+
+                <!-- My Clips -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M4 11v8a2 2 0 002 2h12a2 2 0 002-2v-8"></path>
+                                <path d="m4 11 3.5-6A2 2 0 019.2 4h5.6a2 2 0 011.7 1l3.5 6"></path>
+                            </svg>
+                            My Clips
+                        </h3>
+                        <span class="badge badge-blue">3 clips</span>
+                    </div>
+                    <div class="card-body card-body-list" id="my-clips-list">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== MESSAGES TAB ===== -->
+            <div class="tab-page" id="page-messages">
+                <div id="message-list-view">
+                    <h1 class="page-title">Messages</h1>
+                    <p class="page-subtitle">Tips and feedback from your coaching staff.</p>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+                                </svg>
+                                Inbox
+                            </h3>
+                            <span class="badge badge-orange">From Coach</span>
+                        </div>
+                        <div class="card-body card-body-list" id="messages-container">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
+                    <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" style="vertical-align:-3px;margin-right:4px;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        Messages are read-only. Contact your coach in person for questions.
+                    </div>
+                </div>
+
+                <div class="message-detail" id="message-detail-view">
+                    <!-- Rendered by JS when a message is opened -->
+                </div>
+            </div>
+
+            <!-- ===== PROFILE TAB ===== -->
+            <div class="tab-page" id="page-profile">
+                <div class="card" style="margin-bottom:16px">
+                    <div class="profile-hero">
+                        <div class="profile-avatar">MJ</div>
+                        <div class="profile-name">Marcus James</div>
+                        <div class="profile-info">#3 · Point Guard</div>
+                        <div class="profile-team">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M2 12h20"></path>
+                            </svg>
+                            Harker Eagles
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="profile-stats-grid" id="profile-stats"></div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-group-title">Preferences</div>
+                    <div class="settings-item">
+                        <div class="settings-item-left">
+                            <div class="settings-icon orange">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 01-3.46 0"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="settings-item-label">Push Notifications</div>
+                                <div class="settings-item-desc">Get notified for new messages</div>
+                            </div>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" id="notif-toggle" checked onchange="toggleNotifications(this)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <div class="settings-item-left">
+                            <div class="settings-icon purple">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="settings-item-label">Dark Mode</div>
+                                <div class="settings-item-desc">Always on</div>
+                            </div>
+                        </div>
+                        <label class="toggle">
+                            <input type="checkbox" checked disabled>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-group-title">Team</div>
+                    <div class="settings-item" onclick="openSettingsModal('team')">
+                        <div class="settings-item-left">
+                            <div class="settings-icon blue">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 00-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 010 7.75"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="settings-item-label">Harker Eagles</div>
+                                <div class="settings-item-desc">2025–26 Season</div>
+                            </div>
+                        </div>
+                        <svg class="settings-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                    <div class="settings-item" onclick="openSettingsModal('coach')">
+                        <div class="settings-item-left">
+                            <div class="settings-icon green">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="settings-item-label">Coach Wilson</div>
+                                <div class="settings-item-desc">Head Coach</div>
+                            </div>
+                        </div>
+                        <svg class="settings-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-group-title">Account</div>
+                    <div class="settings-item" onclick="openSettingsModal('about')">
+                        <div class="settings-item-left">
+                            <div class="settings-icon blue">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="settings-item-label">About BenchPro</div>
+                                <div class="settings-item-desc">Version 1.0.0</div>
+                            </div>
+                        </div>
+                        <svg class="settings-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                    <div class="settings-item" onclick="handleLogout()"
+                        style="border-radius:0 0 var(--radius) var(--radius);">
+                        <div class="settings-item-left">
+                            <div class="settings-icon red">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="settings-item-label" style="color:var(--red);">Log Out</div>
+                                <div class="settings-item-desc">marcus@school.edu</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p
+                    style="text-align:center;color:var(--text-muted);font-size:11px;margin-top:20px;padding-bottom:20px;">
+                    &copy; 2026 BenchPro. Fair Play. Smart Coaching.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- ===== BOTTOM TAB BAR ===== -->
+        <nav class="tab-bar">
+            <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Home
+            </button>
+            <button class="tab-btn" data-tab="upload" onclick="switchTab('upload')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                Upload
+            </button>
+            <button class="tab-btn" data-tab="drills" onclick="switchTab('drills')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+                Drills
+            </button>
+            <button class="tab-btn" data-tab="messages" onclick="switchTab('messages')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
+                </svg>
+                Messages
+                <span class="tab-badge" id="msg-badge">2</span>
+            </button>
+            <button class="tab-btn" data-tab="profile" onclick="switchTab('profile')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Profile
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal-overlay" id="settings-modal-overlay" onclick="closeSettingsModal()">
+        <div class="settings-modal" onclick="event.stopPropagation()">
+            <div class="settings-modal-header">
+                <h3 id="settings-modal-title">Settings</h3>
+                <button class="settings-modal-close" onclick="closeSettingsModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="settings-modal-body" id="settings-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Game Detail Modal -->
+    <div class="game-detail-overlay" id="game-detail-overlay" onclick="if(event.target===this)closeGameDetail()">
+        <div class="game-detail-modal">
+            <div class="game-detail-header">
+                <h3 id="game-detail-title">Game Details</h3>
+                <button class="btn-icon" onclick="closeGameDetail()" style="background:none;border:none;cursor:pointer;color:var(--text-secondary)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="game-detail-body" id="game-detail-body"></div>
+        </div>
+    </div>
+
+    <script src="student.js"></script>
+</body>
+
+</html>

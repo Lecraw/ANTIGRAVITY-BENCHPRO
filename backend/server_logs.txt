@@ -1,0 +1,88 @@
+
+╔══════════════════════════════════════════════╗
+║       🏀 BenchPro Backend Server 🏀          ║
+╠══════════════════════════════════════════════╣
+║  Team:     Harker Eagles                    ║
+║  Code:     HARKER2026                       ║
+║  Server:   http://localhost:5050                       ║
+║  Student:  http://localhost:5050/student              ║
+╚══════════════════════════════════════════════╝
+    
+⏳ Pre-loading YOLO model...
+🏀 Loading YOLO model: yolov8n.pt
+✅ YOLO model loaded
+Ready to analyze game film!
+
+ * Serving Flask app 'server'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5050
+ * Running on http://192.168.1.80:5050
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [21/Feb/2026 09:21:51] "[36mGET / HTTP/1.1[0m" 304 -
+127.0.0.1 - - [21/Feb/2026 09:21:51] "[36mGET /styles.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [21/Feb/2026 09:21:51] "GET /api/clips HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:22:54] "POST /api/upload_stats HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:18] "[35m[1mPOST /api/upload HTTP/1.1[0m" 201 -
+127.0.0.1 - - [21/Feb/2026 09:23:20] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:21] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:23] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:24] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:26] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:27] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:29] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:30] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:32] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:33] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:35] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:36] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:38] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:39] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:41] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:42] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:44] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:45] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:47] "GET /api/analysis/25/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:48] "GET /api/analysis/25 HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:23:48] "GET /api/clips HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:27:42] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:27:42] "[36mGET /styles.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [21/Feb/2026 09:27:42] "GET /api/clips HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:27:50] "[35m[1mPOST /api/upload HTTP/1.1[0m" 201 -
+127.0.0.1 - - [21/Feb/2026 09:27:51] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:27:53] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:27:54] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:27:56] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:27:57] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:27:59] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:00] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:02] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:03] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:05] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:06] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:08] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:09] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:11] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:12] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:14] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:15] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:17] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:18] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:20] "GET /api/analysis/26/status HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:21] "GET /api/clips HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:31] "GET /api/analysis/26 HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:44] "GET /api/analysis/25 HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:55] "DELETE /api/clips/26 HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:28:55] "GET /api/clips HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:39:14] "GET /api/health HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:39:18] "GET /api/health HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:58:21] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:58:22] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:58:22] "GET /api/clips HTTP/1.1" 200 -
+127.0.0.1 - - [21/Feb/2026 09:58:22] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+127.0.0.1 - - [21/Feb/2026 09:59:54] "[36mGET / HTTP/1.1[0m" 304 -
+127.0.0.1 - - [21/Feb/2026 09:59:54] "[36mGET /styles.css HTTP/1.1[0m" 304 -
+127.0.0.1 - - [21/Feb/2026 09:59:54] "GET /api/clips HTTP/1.1" 200 -
+/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/multiprocessing/resource_tracker.py:301: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-qqc5iglp'}
+  warnings.warn(

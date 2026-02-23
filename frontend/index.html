@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="BenchPro — Upload and analyze basketball game film with AI-powered computer vision">
+    <title>BenchPro — Film Analysis</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- ===== Header ===== -->
+        <header class="header">
+            <div class="header__logo">
+                <span class="header__icon"><i data-lucide="dribbble"></i></span>
+                <h1 class="header__title">BenchPro</h1>
+            </div>
+            <p class="header__subtitle">Upload game film • AI-powered analysis • Instant insights</p>
+        </header>
+
+        <!-- ===== Upload Section ===== -->
+        <section class="card" id="upload-section">
+            <h2 class="card__title"><i data-lucide="video"></i> Upload Game Film</h2>
+
+            <!-- Drop zone -->
+            <div class="upload-zone" id="upload-zone">
+                <span class="upload-zone__icon"><i data-lucide="folder-up"></i></span>
+                <p class="upload-zone__text">Drag & drop your video here</p>
+                <p class="upload-zone__hint">or <strong id="browse-btn">browse files</strong> — MP4, MOV, AVI, MKV, WebM
+                    (max 500 MB)</p>
+            </div>
+            <input type="file" id="file-input" accept=".mp4,.mov,.avi,.mkv,.webm">
+
+            <!-- Selected file pill -->
+            <div class="file-pill" id="file-pill">
+                <i data-lucide="film"></i>
+                <span class="file-pill__name" id="file-name"></span>
+                <span class="file-pill__size" id="file-size"></span>
+                <button class="file-pill__remove" id="file-remove" title="Remove">&times;</button>
+            </div>
+
+            <!-- Optional metadata -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="input-title">Game Title</label>
+                    <input type="text" id="input-title" placeholder="e.g. vs. Lincoln High">
+                </div>
+                <div class="form-group">
+                    <label for="input-opponent">Opponent</label>
+                    <input type="text" id="input-opponent" placeholder="e.g. Lincoln Lions">
+                </div>
+                <div class="form-group">
+                    <label for="input-date">Date</label>
+                    <input type="date" id="input-date">
+                </div>
+            </div>
+
+            <button class="btn btn--primary btn--full btn--lg" id="upload-btn" disabled>
+                <span id="upload-btn-text">Select a video to upload</span>
+                <span class="spinner" id="upload-spinner" style="display:none"></span>
+            </button>
+        </section>
+
+        <!-- ===== Progress Section ===== -->
+        <section class="card progress-section" id="progress-section">
+            <h2 class="card__title"><i data-lucide="settings"></i> Analyzing Film…</h2>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="progress-info">
+                <span class="progress-info__status" id="progress-status">Starting analysis…</span>
+                <span class="progress-info__pct" id="progress-pct">0%</span>
+            </div>
+        </section>
+
+        <!-- ===== Results Section ===== -->
+        <section class="results-section" id="results-section">
+            <div class="results-header">
+                <h2><i data-lucide="bar-chart-2" style="margin-right: 8px;"></i> Analysis Results</h2>
+                <span class="badge badge--success" id="results-badge"><i data-lucide="check"
+                        style="height: 14px; width: 14px;"></i> Complete</span>
+            </div>
+
+            <!-- Stat cards -->
+            <div class="stat-grid" id="stat-grid">
+                <!-- Filled dynamically -->
+            </div>
+
+            <!-- AI Coach Feedback -->
+            <div class="card" id="coach-card" style="margin-bottom: var(--space-xl); display: none;">
+                <h3 class="card__title"><i data-lucide="bot"></i> Coach Carter's Feedback</h3>
+                <p id="coach-feedback-text" style="color: #ffffff; font-weight: 400; font-size: 0.95rem;">
+                </p>
+            </div>
+
+            <!-- Two-column: Events + Heatmap -->
+            <div
+                style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-md); margin-bottom:var(--space-xl);">
+                <div class="card">
+                    <h3 class="card__title"><span class="icon">📋</span> Events</h3>
+                    <ul class="events-list" id="events-list"></ul>
+                </div>
+                <div class="card">
+                    <h3 class="card__title"><span class="icon">📈</span> Player Activity</h3>
+                    <div class="chart-container" style="position: relative; height:200px; width:100%">
+                        <canvas id="activity-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn--primary btn--full" id="new-upload-btn">⬆️ Upload Another Film</button>
+        </section>
+
+        <!-- ===== Stat Sheet Section ===== -->
+        <section class="card" id="stat-sheet-section" style="margin-bottom: var(--space-xl);">
+            <h2 class="card__title"><i data-lucide="file-spreadsheet"></i> Upload Stat Sheet</h2>
+
+            <div class="upload-zone" id="stat-upload-zone"
+                style="padding: var(--space-xl); margin-bottom: var(--space-md);">
+                <span class="upload-zone__icon" style="font-size: 2.5rem;"><i data-lucide="upload-cloud"></i></span>
+                <p class="upload-zone__text">Upload game stat sheet for instant AI analysis</p>
+                <p class="upload-zone__hint">or <strong id="stat-browse-btn">browse files</strong> — JPEG, PNG, or CSV
+                </p>
+            </div>
+            <input type="file" id="stat-file-input" accept=".jpg,.jpeg,.png,.csv" style="display: none;">
+
+            <div class="file-pill" id="stat-file-pill">
+                <i data-lucide="file-text"></i>
+                <span class="file-pill__name" id="stat-file-name"></span>
+                <button class="file-pill__remove" id="stat-file-remove" title="Remove">&times;</button>
+            </div>
+
+            <button class="btn btn--primary btn--full" id="stat-upload-btn" disabled>
+                <span id="stat-upload-btn-text">Analyze Stat Sheet</span>
+                <span class="spinner" id="stat-upload-spinner" style="display:none"></span>
+            </button>
+        </section>
+
+        <!-- ===== Previous Clips ===== -->
+        <section class="clips-section" id="clips-section">
+            <h2 class="card__title"><i data-lucide="folder"></i> Previous Uploads</h2>
+            <div class="clips-list" id="clips-list">
+                <div class="empty-state" id="clips-empty">
+                    <div class="empty-state__icon"><i data-lucide="inbox"></i></div>
+                    <p class="empty-state__text">No uploads yet. Drop a video above to get started!</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Wrap everything in an IIFE to keep scope clean
+        (function () {
+            'use strict';
+
+            // ===== API base =====
+            const API = '';  // Same origin
+
+            // ===== DOM refs =====
+            const uploadZone = document.getElementById('upload-zone');
+            const fileInput = document.getElementById('file-input');
+            const browseBtn = document.getElementById('browse-btn');
+            const filePill = document.getElementById('file-pill');
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            const fileRemove = document.getElementById('file-remove');
+            const uploadBtn = document.getElementById('upload-btn');
+            const uploadBtnText = document.getElementById('upload-btn-text');
+            const uploadSpinner = document.getElementById('upload-spinner');
+            const inputTitle = document.getElementById('input-title');
+            const inputOpponent = document.getElementById('input-opponent');
+            const inputDate = document.getElementById('input-date');
+            const progressSection = document.getElementById('progress-section');
+            const progressBar = document.getElementById('progress-bar');
+            const progressStatus = document.getElementById('progress-status');
+            const progressPct = document.getElementById('progress-pct');
+            const resultsSection = document.getElementById('results-section');
+            const statGrid = document.getElementById('stat-grid');
+            const eventsList = document.getElementById('events-list');
+            const activityChartCanvas = document.getElementById('activity-chart');
+
+            // State
+            let currentPollInterval = null;
+            let activityChartObj = null;
+
+            const coachCard = document.getElementById('coach-card');
+            const coachFeedbackText = document.getElementById('coach-feedback-text');
+            const newUploadBtn = document.getElementById('new-upload-btn');
+
+            // Stat Sheet Elements
+            const statUploadZone = document.getElementById('stat-upload-zone');
+            const statFileInput = document.getElementById('stat-file-input');
+            const statBrowseBtn = document.getElementById('stat-browse-btn');
+            const statFilePill = document.getElementById('stat-file-pill');
+            const statFileName = document.getElementById('stat-file-name');
+            const statFileRemove = document.getElementById('stat-file-remove');
+            const statUploadBtn = document.getElementById('stat-upload-btn');
+            const statUploadBtnText = document.getElementById('stat-upload-btn-text');
+            const statUploadSpinner = document.getElementById('stat-upload-spinner');
+            const clipsList = document.getElementById('clips-list');
+            const clipsEmpty = document.getElementById('clips-empty');
+            const toastContainer = document.getElementById('toast-container');
+
+            let selectedFile = null;
+            let pollingTimer = null;
+
+            // ===== Utility =====
+
+            function formatBytes(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+
+            function formatTime(seconds) {
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return `${m}:${s.toString().padStart(2, '0')}`;
+            }
+
+            function toast(msg, type = 'info') {
+                const icons = { success: 'check-circle', error: 'alert-circle', info: 'info' };
+                const el = document.createElement('div');
+                el.className = `toast toast--${type}`;
+                el.innerHTML = `<span><i data-lucide="${icons[type] || 'info'}" style="width: 18px; height: 18px;"></i></span><span>${msg}</span>`;
+                toastContainer.appendChild(el);
+                lucide.createIcons({ root: el });
+                setTimeout(() => {
+                    el.style.animation = 'toastOut 300ms var(--ease-out) forwards';
+                    setTimeout(() => el.remove(), 300);
+                }, 4000);
+            }
+
+            // ===== File Selection =====
+
+            function selectFile(file) {
+                const allowed = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!allowed.includes(ext)) {
+                    toast('Invalid file type. Use MP4, MOV, AVI, MKV, or WebM.', 'error');
+                    return;
+                }
+                if (file.size > 500 * 1024 * 1024) {
+                    toast('File too large. Maximum is 500 MB.', 'error');
+                    return;
+                }
+                selectedFile = file;
+                fileName.textContent = file.name;
+                fileSize.textContent = formatBytes(file.size);
+                filePill.classList.add('visible');
+                uploadBtn.disabled = false;
+                uploadBtnText.textContent = '🚀 Upload & Analyze';
+            }
+
+            function clearFile() {
+                selectedFile = null;
+                fileInput.value = '';
+                filePill.classList.remove('visible');
+                uploadBtn.disabled = true;
+                uploadBtnText.textContent = 'Select a video to upload';
+            }
+
+            browseBtn.addEventListener('click', () => fileInput.click());
+            uploadZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) selectFile(e.target.files[0]);
+            });
+            fileRemove.addEventListener('click', (e) => {
+                e.stopPropagation();
+                clearFile();
+            });
+
+            // Drag & drop
+            ['dragenter', 'dragover'].forEach(evt => {
+                uploadZone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    uploadZone.classList.add('drag-over');
+                });
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                uploadZone.addEventListener(evt, () => {
+                    uploadZone.classList.remove('drag-over');
+                });
+            });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files.length) selectFile(e.dataTransfer.files[0]);
+            });
+
+            // ===== Stat Sheet Selection =====
+            function selectStatFile(file) {
+                const allowed = ['jpg', 'jpeg', 'png', 'csv'];
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!allowed.includes(ext)) {
+                    toast('Invalid file type. Use JPG, PNG, or CSV.', 'error');
+                    return;
+                }
+                selectedFile = file; // REUSING selectedFile or better just isolated state?
+                // Let's create `selectedStatFile` state locally or reuse safely since the UI is split
+                statFileName.textContent = file.name;
+                statFilePill.classList.add('visible');
+                statUploadBtn.disabled = false;
+                statUploadBtnText.textContent = 'Analyze Stat Sheet';
+            }
+
+            function clearStatFile() {
+                statFileInput.value = '';
+                statFilePill.classList.remove('visible');
+                statUploadBtn.disabled = true;
+                statUploadBtnText.textContent = 'Analyze Stat Sheet';
+            }
+
+            statBrowseBtn.addEventListener('click', () => statFileInput.click());
+            statUploadZone.addEventListener('click', () => statFileInput.click());
+            statFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    selectedFile = e.target.files[0];
+                    selectStatFile(e.target.files[0]);
+                }
+            });
+            statFileRemove.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectedFile = null;
+                clearStatFile();
+            });
+
+            ['dragenter', 'dragover'].forEach(evt => {
+                statUploadZone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    statUploadZone.classList.add('drag-over');
+                });
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                statUploadZone.addEventListener(evt, () => {
+                    statUploadZone.classList.remove('drag-over');
+                });
+            });
+            statUploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files.length) {
+                    selectedFile = e.dataTransfer.files[0];
+                    selectStatFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            // ===== Upload =====
+
+            uploadBtn.addEventListener('click', async () => {
+                if (!selectedFile) return;
+
+                uploadBtn.disabled = true;
+                uploadBtnText.textContent = 'Uploading…';
+                uploadSpinner.style.display = 'inline-block';
+
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('title', inputTitle.value || selectedFile.name);
+                formData.append('opponent', inputOpponent.value);
+                formData.append('date', inputDate.value);
+
+                try {
+                    const res = await fetch(`${API}/api/upload`, { method: 'POST', body: formData });
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.error || `Upload failed (${res.status})`);
+                    }
+                    const data = await res.json();
+                    toast('Video uploaded! Analysis starting…', 'success');
+                    clearFile();
+                    inputTitle.value = '';
+                    inputOpponent.value = '';
+                    inputDate.value = '';
+
+                    // Show progress
+                    progressSection.classList.add('visible');
+                    resultsSection.classList.remove('visible');
+                    startPolling(data.id);
+                } catch (err) {
+                    toast(err.message, 'error');
+                } finally {
+                    uploadBtn.disabled = false;
+                    uploadBtnText.textContent = selectedFile ? '🚀 Upload & Analyze' : 'Select a video to upload';
+                    uploadSpinner.style.display = 'none';
+                }
+            });
+
+            // ===== Stat Sheet Upload =====
+            statUploadBtn.addEventListener('click', async () => {
+                if (!selectedFile) return;
+
+                const uploadedFileName = selectedFile.name;
+                statUploadBtn.disabled = true;
+                statUploadBtnText.textContent = 'Analyzing…';
+                statUploadSpinner.style.display = 'inline-block';
+
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+
+                try {
+                    const res = await fetch(`${API}/api/upload_stats`, { method: 'POST', body: formData });
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.error || `Upload failed (${res.status})`);
+                    }
+                    const data = await res.json();
+
+                    toast('Stat sheet analyzed!', 'success');
+                    selectedFile = null;
+                    clearStatFile();
+
+                    // Add to history list instead of showing inline
+                    addStatSheetToHistory(uploadedFileName, data.analysis || 'No analysis available.');
+
+                } catch (err) {
+                    toast(err.message, 'error');
+                } finally {
+                    statUploadBtn.disabled = false;
+                    statUploadBtnText.textContent = 'Analyze Stat Sheet';
+                    statUploadSpinner.style.display = 'none';
+                }
+            });
+
+            // ===== Stat Sheet History Entry =====
+            function addStatSheetToHistory(fileName, analysisHtml) {
+                clipsEmpty.style.display = 'none';
+
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                const entryId = 'stat-' + Date.now();
+
+                const entryDiv = document.createElement('div');
+                entryDiv.className = 'clip-item';
+                entryDiv.style.flexWrap = 'wrap';
+                entryDiv.innerHTML = `
+                    <div class="clip-item__icon"><i data-lucide="file-spreadsheet"></i></div>
+                    <div class="clip-item__info">
+                        <div class="clip-item__title">${fileName}</div>
+                        <div class="clip-item__meta">Stat Sheet • ${dateStr} at ${timeStr}</div>
+                    </div>
+                    <button class="btn btn--primary" style="padding: 6px 14px; font-size: 12px;" data-view="${entryId}">
+                        <i data-lucide="eye" style="width:14px;height:14px;margin-right:4px;"></i> View Analysis
+                    </button>
+                    <button class="clip-item__delete" data-stat-delete="${entryId}" title="Delete">
+                        <i data-lucide="trash-2" style="height: 18px; width: 18px;"></i>
+                    </button>
+                    <div id="${entryId}" class="stat-analysis-detail" style="display:none; width:100%; padding: 16px 0 8px 0; border-top: 1px solid var(--glass-border, rgba(255,255,255,0.08)); margin-top: 12px;">
+                        <div style="color: #ffffff; font-weight: 400; font-size: 0.95rem; line-height: 1.6;">${analysisHtml}</div>
+                    </div>
+                `;
+
+                // Insert at top of clips list
+                clipsList.insertBefore(entryDiv, clipsList.firstChild);
+                lucide.createIcons({ root: entryDiv });
+
+                // Toggle view analysis
+                const viewBtn = entryDiv.querySelector(`[data-view="${entryId}"]`);
+                const detailPanel = document.getElementById(entryId);
+                viewBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isVisible = detailPanel.style.display !== 'none';
+                    detailPanel.style.display = isVisible ? 'none' : 'block';
+                    viewBtn.innerHTML = isVisible
+                        ? '<i data-lucide="eye" style="width:14px;height:14px;margin-right:4px;"></i> View Analysis'
+                        : '<i data-lucide="eye-off" style="width:14px;height:14px;margin-right:4px;"></i> Hide Analysis';
+                    lucide.createIcons({ root: viewBtn });
+                });
+
+                // Delete button
+                const deleteBtn = entryDiv.querySelector(`[data-stat-delete="${entryId}"]`);
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!confirm('Delete this stat sheet analysis?')) return;
+                    entryDiv.remove();
+                    toast('Analysis deleted.', 'success');
+                    // Show empty state if no items left
+                    if (!clipsList.querySelector('.clip-item')) {
+                        clipsEmpty.style.display = 'block';
+                        clipsList.appendChild(clipsEmpty);
+                    }
+                });
+
+                // Scroll to it
+                entryDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // ===== Polling =====
+
+            function startPolling(gameId) {
+                if (pollingTimer) clearInterval(pollingTimer);
+
+                progressBar.style.width = '0%';
+                progressPct.textContent = '0%';
+                progressStatus.textContent = 'Starting analysis…';
+
+                pollingTimer = setInterval(async () => {
+                    try {
+                        const res = await fetch(`${API}/api/analysis/${gameId}/status`);
+                        const data = await res.json();
+
+                        const pct = Math.round(data.progress || 0);
+                        progressBar.style.width = pct + '%';
+                        progressPct.textContent = pct + '%';
+
+                        if (data.status === 'processing') {
+                            if (pct < 10) progressStatus.textContent = 'Loading YOLO model…';
+                            else if (pct < 85) progressStatus.textContent = 'Analyzing frames — detecting players & ball…';
+                            else if (pct < 95) progressStatus.textContent = 'Classifying teams & detecting events…';
+                            else progressStatus.textContent = 'Saving results…';
+                        }
+
+                        if (data.status === 'complete') {
+                            clearInterval(pollingTimer);
+                            pollingTimer = null;
+                            progressBar.style.width = '100%';
+                            progressPct.textContent = '100%';
+                            progressStatus.textContent = 'Analysis complete!';
+                            toast('Analysis finished!', 'success');
+                            setTimeout(() => {
+                                progressSection.classList.remove('visible');
+                                loadClips();
+                            }, 600);
+                        }
+
+                        if (data.status === 'error') {
+                            clearInterval(pollingTimer);
+                            pollingTimer = null;
+                            progressStatus.textContent = `Error: ${data.error_message || 'Analysis failed'}`;
+                            toast('Analysis failed. ' + (data.error_message || ''), 'error');
+                        }
+                    } catch (err) {
+                        console.error('Polling error:', err);
+                    }
+                }, 1500);
+            }
+
+            // ===== Results (builds inline HTML for a clip) =====
+
+            async function showResults(gameId) {
+                try {
+                    const res = await fetch(`${API}/api/analysis/${gameId}`);
+                    const data = await res.json();
+
+                    progressSection.classList.remove('visible');
+
+                    const analysis = data.analysis || {};
+                    const stats = analysis.stats || {};
+                    const videoStats = stats.video || {};
+                    const playerStats = stats.players || {};
+                    const ballStats = stats.ball || {};
+                    const eventStats = stats.events || {};
+                    const teamStats = stats.teams || {};
+
+                    const durationStr = videoStats.active_seconds ?
+                        `${videoStats.active_seconds}s / ${videoStats.duration_formatted}` :
+                        videoStats.duration_formatted || '0:00';
+
+                    const cards = [
+                        { icon: 'clock', value: durationStr, label: 'Active Playtime' },
+                        { icon: 'film', value: videoStats.frames_analyzed || 0, label: 'Frames Analyzed' },
+                        { icon: 'user', value: playerStats.total_detections || 0, label: 'Player Detections' },
+                        { icon: 'trending-up', value: (playerStats.avg_confidence || 0) + '%', label: 'Avg Confidence' },
+                        { icon: 'dribbble', value: ballStats.total_detections || 0, label: 'Ball Detections' },
+                        { icon: 'clipboard-list', value: eventStats.total || 0, label: 'Events Detected' },
+                        { icon: 'home', value: teamStats.home_detections || 0, label: 'Home Detections' },
+                        { icon: 'bus', value: teamStats.away_detections || 0, label: 'Away Detections' },
+                    ];
+
+                    const statsHtml = `<div class="stat-grid">${cards.map(c => `
+                        <div class="stat-card">
+                            <div class="stat-card__icon"><i data-lucide="${c.icon}"></i></div>
+                            <div class="stat-card__value">${c.value}</div>
+                            <div class="stat-card__label">${c.label}</div>
+                        </div>
+                    `).join('')}</div>`;
+
+                    const coachHtml = analysis.ai_insights ? `
+                        <div class="card" style="margin-top: var(--space-md);">
+                            <h3 class="card__title"><i data-lucide="bot"></i> Coach Carter's Feedback</h3>
+                            <p style="color: #ffffff; font-weight: 400; font-size: 0.95rem; line-height: 1.6;">${analysis.ai_insights}</p>
+                        </div>
+                    ` : '';
+
+                    const events = data.events || [];
+                    const eventsHtml = events.length > 0 ? `
+                        <div class="card" style="margin-top: var(--space-md);">
+                            <h3 class="card__title"><i data-lucide="clipboard-list"></i> Events</h3>
+                            <ul class="events-list">${events.slice(0, 20).map(e => {
+                        const typeLabel = (e.event_type || e.type || '').replace(/_/g, ' ');
+                        return `<li class="event-item">
+                                    <span class="event-item__time">${formatTime(e.timestamp_seconds || 0)}</span>
+                                    <span class="event-item__type">${typeLabel}</span>
+                                </li>`;
+                    }).join('')}</ul>
+                        </div>
+                    ` : '';
+
+                    const fullHtml = statsHtml + coachHtml + eventsHtml;
+
+                    // Find the detail panel for this clip and populate it
+                    const detailPanel = document.getElementById(`video-detail-${gameId}`);
+                    if (detailPanel) {
+                        detailPanel.innerHTML = fullHtml;
+                        detailPanel.style.display = 'block';
+                        lucide.createIcons({ root: detailPanel });
+
+                        // Toggle button text
+                        const viewBtn = clipsList.querySelector(`[data-view-video="${gameId}"]`);
+                        if (viewBtn) {
+                            viewBtn.innerHTML = '<i data-lucide="eye-off" style="width:14px;height:14px;margin-right:4px;"></i> Hide Analysis';
+                            lucide.createIcons({ root: viewBtn });
+                        }
+                    }
+
+                    // Refresh clips list on first load
+                    loadClips();
+                } catch (err) {
+                    console.error('Failed to load results:', err);
+                    toast('Failed to load results.', 'error');
+                }
+            }
+
+            // ===== Clips List =====
+
+            async function loadClips() {
+                try {
+                    const res = await fetch(`${API}/api/clips`);
+                    const clips = await res.json();
+
+                    // Preserve any stat sheet entries already in the list
+                    const existingStatEntries = clipsList.querySelectorAll('[data-stat-entry]');
+                    const statEntriesHtml = [];
+                    existingStatEntries.forEach(el => statEntriesHtml.push(el.outerHTML));
+
+                    if (!clips.length && !statEntriesHtml.length) {
+                        clipsEmpty.style.display = 'block';
+                        clipsList.innerHTML = '';
+                        clipsList.appendChild(clipsEmpty);
+                        return;
+                    }
+
+                    clipsEmpty.style.display = 'none';
+                    clipsList.innerHTML = clips.map(clip => {
+                        const statusClass = `clip-item__status--${clip.status}`;
+                        const statusLabel = clip.status === 'complete' ? '<i data-lucide="check" style="height: 12px; width: 12px; margin-right: 4px;"></i> Done'
+                            : clip.status === 'processing' ? `<i data-lucide="loader" style="height: 12px; width: 12px; margin-right: 4px;"></i> ${clip.progress || 0}%`
+                                : clip.status === 'error' ? '<i data-lucide="x" style="height: 12px; width: 12px; margin-right: 4px;"></i> Error'
+                                    : 'Queued';
+
+                        const mainIcon = clip.status === 'complete' ? 'check-circle-2' : clip.status === 'processing' ? 'hourglass' : clip.status === 'error' ? 'alert-circle' : 'upload-cloud';
+
+                        const viewAnalysisBtn = clip.status === 'complete' ? `
+                            <button class="btn btn--primary" style="padding: 6px 14px; font-size: 12px;" data-view-video="${clip.id}">
+                                <i data-lucide="eye" style="width:14px;height:14px;margin-right:4px;"></i> View Analysis
+                            </button>
+                        ` : `<span class="clip-item__status ${statusClass}" style="display: flex; align-items: center;">${statusLabel}</span>`;
+
+                        return `
+          <div class="clip-item" data-id="${clip.id}" data-status="${clip.status}" style="flex-wrap: wrap;">
+            <div class="clip-item__icon"><i data-lucide="${mainIcon}"></i></div>
+            <div class="clip-item__info">
+              <div class="clip-item__title">${clip.title || clip.file_name || 'Untitled'}</div>
+              <div class="clip-item__meta">${clip.opponent ? 'vs. ' + clip.opponent + ' • ' : ''}${clip.date || ''} ${clip.duration ? '• ' + formatTime(clip.duration) : ''}</div>
+            </div>
+            ${viewAnalysisBtn}
+            <button class="clip-item__delete" data-delete="${clip.id}" title="Delete"><i data-lucide="trash-2" style="height: 18px; width: 18px;"></i></button>
+            <div id="video-detail-${clip.id}" class="stat-analysis-detail" style="display:none; width:100%; padding: 16px 0 8px 0; border-top: 1px solid var(--glass-border, rgba(255,255,255,0.08)); margin-top: 12px;"></div>
+          </div>
+        `;
+                    }).join('');
+                    lucide.createIcons({ root: clipsList });
+
+                    // View Analysis toggle for completed clips
+                    clipsList.querySelectorAll('[data-view-video]').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const gameId = btn.dataset.viewVideo;
+                            const detailPanel = document.getElementById(`video-detail-${gameId}`);
+
+                            if (detailPanel.style.display !== 'none' && detailPanel.innerHTML.trim() !== '') {
+                                // Toggle hide
+                                detailPanel.style.display = 'none';
+                                btn.innerHTML = '<i data-lucide="eye" style="width:14px;height:14px;margin-right:4px;"></i> View Analysis';
+                                lucide.createIcons({ root: btn });
+                            } else {
+                                // Fetch and show
+                                btn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;margin-right:4px;"></i> Loading…';
+                                lucide.createIcons({ root: btn });
+
+                                try {
+                                    const res = await fetch(`${API}/api/analysis/${gameId}`);
+                                    const data = await res.json();
+                                    const analysis = data.analysis || {};
+                                    const stats = analysis.stats || {};
+                                    const videoStats = stats.video || {};
+                                    const playerStats = stats.players || {};
+                                    const ballStats = stats.ball || {};
+                                    const eventStats = stats.events || {};
+                                    const teamStats = stats.teams || {};
+
+                                    const durationStr = videoStats.active_seconds ?
+                                        `${videoStats.active_seconds}s / ${videoStats.duration_formatted}` :
+                                        videoStats.duration_formatted || '0:00';
+
+                                    const cards = [
+                                        { icon: 'clock', value: durationStr, label: 'Active Playtime' },
+                                        { icon: 'film', value: videoStats.frames_analyzed || 0, label: 'Frames Analyzed' },
+                                        { icon: 'user', value: playerStats.total_detections || 0, label: 'Player Detections' },
+                                        { icon: 'trending-up', value: (playerStats.avg_confidence || 0) + '%', label: 'Avg Confidence' },
+                                        { icon: 'dribbble', value: ballStats.total_detections || 0, label: 'Ball Detections' },
+                                        { icon: 'clipboard-list', value: eventStats.total || 0, label: 'Events Detected' },
+                                        { icon: 'home', value: teamStats.home_detections || 0, label: 'Home Detections' },
+                                        { icon: 'bus', value: teamStats.away_detections || 0, label: 'Away Detections' },
+                                    ];
+
+                                    const statsHtml = `<div class="stat-grid">${cards.map(c => `
+                                        <div class="stat-card">
+                                            <div class="stat-card__icon"><i data-lucide="${c.icon}"></i></div>
+                                            <div class="stat-card__value">${c.value}</div>
+                                            <div class="stat-card__label">${c.label}</div>
+                                        </div>
+                                    `).join('')}</div>`;
+
+                                    const coachHtml = analysis.ai_insights ? `
+                                        <div class="card" style="margin-top: var(--space-md);">
+                                            <h3 class="card__title"><i data-lucide="bot"></i> Coach Carter's Feedback</h3>
+                                            <p style="color: #ffffff; font-weight: 400; font-size: 0.95rem; line-height: 1.6;">${analysis.ai_insights}</p>
+                                        </div>
+                                    ` : '';
+
+                                    const events = data.events || [];
+                                    const eventsHtml = events.length > 0 ? `
+                                        <div class="card" style="margin-top: var(--space-md);">
+                                            <h3 class="card__title"><i data-lucide="clipboard-list"></i> Events</h3>
+                                            <ul class="events-list">${events.slice(0, 20).map(ev => {
+                                        const typeLabel = (ev.event_type || ev.type || '').replace(/_/g, ' ');
+                                        return `<li class="event-item">
+                                                    <span class="event-item__time">${formatTime(ev.timestamp_seconds || 0)}</span>
+                                                    <span class="event-item__type">${typeLabel}</span>
+                                                </li>`;
+                                    }).join('')}</ul>
+                                        </div>
+                                    ` : '';
+
+                                    detailPanel.innerHTML = statsHtml + coachHtml + eventsHtml;
+                                    detailPanel.style.display = 'block';
+                                    lucide.createIcons({ root: detailPanel });
+
+                                    btn.innerHTML = '<i data-lucide="eye-off" style="width:14px;height:14px;margin-right:4px;"></i> Hide Analysis';
+                                    lucide.createIcons({ root: btn });
+                                } catch (fetchErr) {
+                                    toast('Failed to load analysis.', 'error');
+                                    btn.innerHTML = '<i data-lucide="eye" style="width:14px;height:14px;margin-right:4px;"></i> View Analysis';
+                                    lucide.createIcons({ root: btn });
+                                }
+                            }
+                        });
+                    });
+
+                    // Processing clips — click to poll
+                    clipsList.querySelectorAll('.clip-item[data-status="processing"]').forEach(el => {
+                        el.addEventListener('click', (e) => {
+                            if (e.target.closest('.clip-item__delete') || e.target.closest('[data-view-video]')) return;
+                            progressSection.classList.add('visible');
+                            startPolling(parseInt(el.dataset.id));
+                        });
+                    });
+
+                    // Delete handlers
+                    clipsList.querySelectorAll('.clip-item__delete').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const id = btn.dataset.delete;
+                            if (!confirm('Delete this clip and its analysis?')) return;
+                            try {
+                                await fetch(`${API}/api/clips/${id}`, { method: 'DELETE' });
+                                toast('Clip deleted.', 'success');
+                                loadClips();
+                            } catch (err) {
+                                toast('Failed to delete.', 'error');
+                            }
+                        });
+                    });
+                } catch (err) {
+                    console.error('Failed to load clips:', err);
+                }
+            }
+
+            // ===== New Upload Button =====
+            newUploadBtn.addEventListener('click', () => {
+                resultsSection.classList.remove('visible');
+                progressSection.classList.remove('visible');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // ===== Init =====
+            loadClips();
+
+        })();
+    </script>
+
+</body>
+
+</html>

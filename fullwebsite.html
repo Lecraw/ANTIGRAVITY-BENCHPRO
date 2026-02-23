@@ -1,0 +1,2552 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BenchPro — Fair Play. Smart Coaching.</title>
+  <meta name="description"
+    content="BenchPro basketball analysis dashboard for high school teams. AI-powered game film analysis, play design, and player development.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="minilogo.png" type="image/png">
+</head>
+
+<body>
+
+  <!-- ===== AUTH SCREEN ===== -->
+  <div class="auth-screen" id="auth-screen">
+    <!-- Animated background particles -->
+    <div class="auth-particles">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+    </div>
+
+    <div class="auth-container">
+      <!-- Logo -->
+      <div class="auth-logo">
+        <img src="logo.png" alt="BenchPro">
+        <h1 class="auth-brand">BENCH<span>PRO</span></h1>
+        <p class="auth-tagline">Fair Play. Smart Coaching.</p>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="auth-card">
+        <!-- Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" onclick="showAuthTab('login')">Log In</button>
+          <button class="auth-tab" onclick="showAuthTab('signup')">Sign Up</button>
+        </div>
+
+        <!-- ===== LOGIN VIEW ===== -->
+        <div class="auth-view active" id="auth-login">
+          <div class="auth-form">
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <polyline points="22,7 12,13 2,7" />
+                </svg>
+                <input type="email" class="form-input with-icon" id="login-email" placeholder="Email or username"
+                  autocomplete="new-email" readonly onfocus="this.removeAttribute('readonly')">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="input-icon-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+                <input type="password" class="form-input with-icon" id="login-password"
+                  placeholder="Enter your password" autocomplete="new-password" readonly
+                  onfocus="this.removeAttribute('readonly')">
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <label
+                style="display:flex;align-items:center;gap:6px;color:var(--text-secondary);font-size:13px;cursor:pointer">
+                <input type="checkbox" style="accent-color:var(--orange)"> Remember me
+              </label>
+              <a href="#" class="auth-link"
+                onclick="event.preventDefault();showToast('Password reset email sent!',IC.mail)">Forgot password?</a>
+            </div>
+            <button class="btn btn-primary auth-btn" id="btn-login-submit">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+              Log In
+            </button>
+            <div class="auth-divider"><span>or continue with</span></div>
+            <div class="social-buttons">
+              <button class="btn btn-secondary social-btn" onclick="socialLogin('Google')">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                  <path
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                    fill="#4285F4" />
+                  <path
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    fill="#34A853" />
+                  <path
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    fill="#FBBC05" />
+                  <path
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    fill="#EA4335" />
+                </svg>
+                Google
+              </button>
+              <button class="btn btn-secondary social-btn" onclick="socialLogin('Apple')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.18 0-.36-.02-.53-.06-.01-.18-.04-.39-.04-.56 0-1.12.535-2.22 1.235-3.02C13.66 1.57 14.98.87 16.12.75c.02.23.04.45.04.68h.205zm3.635 10.44c.03 3.33 2.925 4.44 2.955 4.45-.025.08-.462 1.58-1.525 3.13-.916 1.34-1.866 2.67-3.363 2.7-1.47.03-1.944-.87-3.627-.87-1.683 0-2.208.84-3.597.9-1.445.05-2.545-1.45-3.47-2.79-1.885-2.73-3.325-7.72-1.392-11.09.955-1.67 2.672-2.72 4.53-2.75 1.42-.03 2.758.95 3.625.95.865 0 2.49-1.18 4.195-1.01.715.03 2.718.29 4.005 2.17-.1.07-2.39 1.39-2.365 4.16h.03z" />
+                </svg>
+                Apple
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== SIGNUP VIEW ===== -->
+        <div class="auth-view" id="auth-signup">
+          <!-- Progress Steps -->
+          <div class="signup-progress">
+            <div class="progress-step active" data-step="1">
+              <div class="step-number">1</div>
+              <span class="step-label">Account</span>
+            </div>
+            <div class="progress-line active"></div>
+            <div class="progress-step" data-step="2">
+              <div class="step-number">2</div>
+              <span class="step-label">Team</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step" data-step="3">
+              <div class="step-number">3</div>
+              <span class="step-label">Plan</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step" data-step="4">
+              <div class="step-number">4</div>
+              <span class="step-label">Payment</span>
+            </div>
+          </div>
+
+          <!-- Step 1: Account -->
+          <div class="signup-step active" id="signup-step-1">
+            <h2 class="step-title">Create Your Account</h2>
+            <p class="step-desc">Get started with BenchPro in just a few steps.</p>
+            <div class="auth-form">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <div class="input-icon-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <input type="text" class="form-input with-icon" id="signup-name" placeholder="Coach Wilson">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <div class="input-icon-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <polyline points="22,7 12,13 2,7" />
+                  </svg>
+                  <input type="email" class="form-input with-icon" id="signup-email" placeholder="coach@school.edu">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-icon-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0110 0v4" />
+                  </svg>
+                  <input type="password" class="form-input with-icon" id="signup-password"
+                    placeholder="Create a password">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <div class="input-icon-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  <input type="password" class="form-input with-icon" id="signup-confirm"
+                    placeholder="Confirm your password">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Team -->
+          <div class="signup-step" id="signup-step-2">
+            <h2 class="step-title">Set Up Your Team</h2>
+            <p class="step-desc">Tell us about your basketball program.</p>
+            <div class="auth-form">
+              <div class="form-group">
+                <label class="form-label">School / Organization</label>
+                <div class="input-icon-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                  <input type="text" class="form-input with-icon" id="signup-school" placeholder="Harker High School">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Team Name</label>
+                <div class="input-icon-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 2a14.5 14.5 0 000 20 14.5 14.5 0 000-20" />
+                    <path d="M2 12h20" />
+                  </svg>
+                  <input type="text" class="form-input with-icon" id="signup-team" placeholder="Varsity Lions">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Division</label>
+                  <select class="form-input" id="signup-division">
+                    <option value="varsity">Varsity</option>
+                    <option value="jv">Junior Varsity</option>
+                    <option value="freshman">Freshman</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">State</label>
+                  <select class="form-input" id="signup-state">
+                    <option value="">Select state...</option>
+                    <option>Alabama</option>
+                    <option>Alaska</option>
+                    <option>Arizona</option>
+                    <option>Arkansas</option>
+                    <option>California</option>
+                    <option>Colorado</option>
+                    <option>Connecticut</option>
+                    <option>Delaware</option>
+                    <option>Florida</option>
+                    <option>Georgia</option>
+                    <option>Hawaii</option>
+                    <option>Idaho</option>
+                    <option>Illinois</option>
+                    <option>Indiana</option>
+                    <option>Iowa</option>
+                    <option>Kansas</option>
+                    <option>Kentucky</option>
+                    <option>Louisiana</option>
+                    <option>Maine</option>
+                    <option>Maryland</option>
+                    <option>Massachusetts</option>
+                    <option>Michigan</option>
+                    <option>Minnesota</option>
+                    <option>Mississippi</option>
+                    <option>Missouri</option>
+                    <option>Montana</option>
+                    <option>Nebraska</option>
+                    <option>Nevada</option>
+                    <option>New Hampshire</option>
+                    <option>New Jersey</option>
+                    <option>New Mexico</option>
+                    <option>New York</option>
+                    <option>North Carolina</option>
+                    <option>North Dakota</option>
+                    <option>Ohio</option>
+                    <option>Oklahoma</option>
+                    <option>Oregon</option>
+                    <option>Pennsylvania</option>
+                    <option>Rhode Island</option>
+                    <option>South Carolina</option>
+                    <option>South Dakota</option>
+                    <option>Tennessee</option>
+                    <option>Texas</option>
+                    <option>Utah</option>
+                    <option>Vermont</option>
+                    <option>Virginia</option>
+                    <option>Washington</option>
+                    <option>West Virginia</option>
+                    <option>Wisconsin</option>
+                    <option>Wyoming</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Season</label>
+                <select class="form-input" id="signup-season">
+                  <option value="2025-26">2025–26</option>
+                  <option value="2026-27">2026–27</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Plan -->
+          <div class="signup-step" id="signup-step-3">
+            <h2 class="step-title">Choose Your Plan</h2>
+            <p class="step-desc">Start with a 14-day free trial. Cancel anytime.</p>
+            <div class="signup-plans">
+              <div class="signup-plan-card" data-plan="standard" onclick="selectSignupPlan('standard')">
+                <div class="plan-card-header">
+                  <h3>Standard</h3>
+                  <p>Individual player development</p>
+                </div>
+                <div class="plan-price">$8.99<span>/month</span></div>
+                <ul class="plan-features">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> Up to 5 Player Profiles</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> 10 Game Uploads / Month</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> Basic AI Analysis</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> Play Designer</li>
+                </ul>
+              </div>
+              <div class="signup-plan-card popular selected" data-plan="elite" onclick="selectSignupPlan('elite')">
+                <div class="plan-badge-label">MOST POPULAR</div>
+                <div class="plan-card-header">
+                  <h3>Elite</h3>
+                  <p>Everything for a full team</p>
+                </div>
+                <div class="plan-price">$29.99<span>/month</span></div>
+                <ul class="plan-features">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> Unlimited Player Profiles</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> Unlimited Game Uploads</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> Advanced AI Analysis</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> Fatigue Detection</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> Send Tips to Players</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16"
+                      height="16">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg> Priority Support</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Payment -->
+          <div class="signup-step" id="signup-step-4">
+            <h2 class="step-title">Payment Details</h2>
+            <p class="step-desc">Your 14-day free trial starts today. You won't be charged until it ends.</p>
+            <div class="auth-form">
+              <div class="form-group">
+                <label class="form-label">Card Number</label>
+                <div class="input-icon-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                    <line x1="1" y1="10" x2="23" y2="10" />
+                  </svg>
+                  <input type="text" class="form-input with-icon" id="signup-card" placeholder="1234 5678 9012 3456"
+                    maxlength="19">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Expiry</label>
+                  <input type="text" class="form-input" id="signup-expiry" placeholder="MM/YY" maxlength="5">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">CVC</label>
+                  <input type="text" class="form-input" id="signup-cvc" placeholder="123" maxlength="4">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cardholder Name</label>
+                <div class="input-icon-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <input type="text" class="form-input with-icon" id="signup-cardholder"
+                    placeholder="Full name on card">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Billing ZIP Code</label>
+                <input type="text" class="form-input" id="signup-zip" placeholder="10001" maxlength="10">
+              </div>
+              <div class="trial-notice">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" width="20" height="20">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <div>
+                  <strong>14-day free trial</strong>
+                  <p>You can cancel anytime before the trial ends. No charge until then.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="signup-nav">
+            <button class="btn btn-secondary" id="signup-back-btn" onclick="signupBack()" style="display:none">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+              Back
+            </button>
+            <div style="flex:1"></div>
+            <button class="btn btn-primary auth-btn" id="signup-next-btn" onclick="signupNext()">
+              Continue
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="auth-footer">© 2026 BenchPro. All rights reserved.</p>
+    </div>
+  </div>
+
+  <!-- ===== SOCIAL LOGIN MODAL ===== -->
+  <div class="social-login-overlay" id="social-login-overlay">
+    <div class="social-login-modal">
+      <button class="social-login-close" onclick="closeSocialLogin()">&times;</button>
+      <div class="social-login-header">
+        <div class="social-login-icon" id="social-login-icon"></div>
+        <h2 id="social-login-title">Sign in with Google</h2>
+        <p class="social-login-desc">Enter your account details to continue to BenchPro</p>
+      </div>
+      <div class="social-login-form">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <div class="input-icon-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <input type="text" class="form-input with-icon" id="social-login-name" placeholder="Your full name">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <div class="input-icon-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <polyline points="22,7 12,13 2,7" />
+            </svg>
+            <input type="email" class="form-input with-icon" id="social-login-email" placeholder="your.email@gmail.com">
+          </div>
+        </div>
+        <button class="btn btn-primary auth-btn social-login-submit" id="social-login-submit"
+          onclick="submitSocialLogin()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+            <polyline points="10 17 15 12 10 7" />
+            <line x1="15" y1="12" x2="3" y2="12" />
+          </svg>
+          Continue
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="logo.png" alt="BenchPro">
+      <span>BENCHPRO</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+        <span>Dashboard</span>
+      </button>
+      <button class="nav-item" data-page="upload-film" onclick="navigateTo('upload-film')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <path d="m15 3-3 3-3-3" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        <span>Upload Film</span>
+      </button>
+      <button class="nav-item" data-page="draw-plays" onclick="navigateTo('draw-plays')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z" />
+        </svg>
+        <span>Draw Plays</span>
+      </button>
+      <button class="nav-item" data-page="send-tips" onclick="navigateTo('send-tips')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        </svg>
+        <span>Send Tips</span>
+      </button>
+      <div class="nav-section-label">AI Tools</div>
+      <button class="nav-item" data-page="ai-analysis" onclick="navigateTo('ai-analysis')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a4 4 0 014 4c0 1.1-.9 2-2 2h-4a2 2 0 01-2-2 4 4 0 014-4z" />
+          <path d="M9 8v3M15 8v3" />
+          <circle cx="12" cy="16" r="4" />
+          <path d="M12 12v4" />
+        </svg>
+        <span>Game Analysis</span>
+      </button>
+      <button class="nav-item" data-page="ai-drills" onclick="navigateTo('ai-drills')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+        </svg>
+        <span>AI Drills</span>
+      </button>
+      <div class="nav-section-label">Library</div>
+      <button class="nav-item" data-page="analysis-history" onclick="navigateTo('analysis-history')">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 11v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+          <path d="m4 11 3.5-6A2 2 0 019.2 4h5.6a2 2 0 011.7 1l3.5 6" />
+          <path d="M8 11v4h8v-4" />
+        </svg>
+        <span>Analysis History</span>
+      </button>
+      <button class="nav-item" data-page="player-stats" onclick="navigateTo('player-stats')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 20V10M12 20V4M6 20v-6" />
+        </svg>
+        <span>Player Stats</span>
+      </button>
+      <div class="nav-section-label">Account</div>
+      <button class="nav-item" data-page="plans" onclick="navigateTo('plans')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2 2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg>
+        <span>Plans</span>
+      </button>
+      <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+        </svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="plan-badge" onclick="navigateTo('plans')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2 2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+        </svg>
+        <div class="plan-badge-text">
+          <div class="plan-name">Elite Plan</div>
+          <div class="plan-price">$29.99/mo</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div class="main-content">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="header-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input type="text" placeholder="Search games, players, clips..." id="global-search"
+            oninput="handleSearch(this.value)" autocomplete="off">
+          <div class="search-dropdown" id="search-dropdown"></div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="connection-dot" id="connection-dot" title="Backend: checking..."></div>
+        <div class="notif-wrap">
+          <button class="header-btn" onclick="toggleNotifications()" title="Notifications" id="notif-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            <span class="notif-dot" id="notif-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-dropdown-header">
+              <h4>Notifications</h4>
+              <button class="btn btn-sm btn-secondary" onclick="clearNotifications()">Clear All</button>
+            </div>
+            <div class="notif-list" id="notif-list">
+              <div class="notif-item unread" onclick="handleNotifClick('analysis')">
+                <div class="notif-icon orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v2h2a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2v-8a2 2 0 012-2h2V6a4 4 0 014-4z"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></svg></div>
+                <div class="notif-body">
+                  <div class="notif-text">AI Analysis complete for <strong>Harker vs Westfield</strong></div>
+                  <div class="notif-time">2 hours ago</div>
+                </div>
+              </div>
+              <div class="notif-item unread" onclick="handleNotifClick('tip')">
+                <div class="notif-icon orange"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7V17h8v-2.3A7 7 0 0012 2z"/></svg></div>
+                <div class="notif-body">
+                  <div class="notif-text">Tip delivered to <strong>Marcus James (#3)</strong></div>
+                  <div class="notif-time">3 hours ago</div>
+                </div>
+              </div>
+              <div class="notif-item" onclick="handleNotifClick('drill')">
+                <div class="notif-icon blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                <div class="notif-body">
+                  <div class="notif-text">New AI drill recommendation: <strong>Quarter-Stamina Sprints</strong></div>
+                  <div class="notif-time">Yesterday</div>
+                </div>
+              </div>
+              <div class="notif-item" onclick="handleNotifClick('upload')">
+                <div class="notif-icon purple"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+                <div class="notif-body">
+                  <div class="notif-text">Film upload <strong>Harker vs Oakridge</strong> processed successfully</div>
+                  <div class="notif-time">2 days ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="header-btn" onclick="navigateTo('settings')" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09" />
+          </svg>
+        </button>
+        <div class="avatar-wrap">
+          <div class="avatar" id="user-avatar" onclick="toggleAvatarMenu()" title="Coach Wilson">CW</div>
+          <div class="avatar-menu" id="avatar-menu">
+            <div class="avatar-menu-info" id="avatar-menu-name">Coach Wilson</div>
+            <div class="avatar-menu-email" id="avatar-menu-email">coach@school.edu</div>
+            <button class="avatar-menu-btn" onclick="navigateTo('settings');toggleAvatarMenu()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09" />
+              </svg> Settings
+            </button>
+            <button class="avatar-menu-btn danger" onclick="handleLogout()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg> Log Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== PAGE: DASHBOARD ===== -->
+    <div class="page active" id="page-dashboard">
+      <h1 class="page-title">Welcome back, Coach! 👋</h1>
+      <p class="page-subtitle" id="dashboard-subtitle">Here's what's happening with Harker Eagles today.</p>
+
+      <div style="display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="openModal('upload-modal')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg> Upload Film
+        </button>
+        <button class="btn btn-secondary" onclick="navigateTo('ai-analysis')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+          </svg> Game Analysis
+        </button>
+        <button class="btn btn-secondary" onclick="navigateTo('draw-plays')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z" />
+          </svg>
+          Draw Play
+        </button>
+        <button class="btn btn-secondary" onclick="openModal('tip-modal')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+          </svg>
+          Send Tip
+        </button>
+      </div>
+
+
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon orange"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <circle cx="12" cy="12" r="3" />
+            </svg></div>
+          <div class="stat-label">Games Analyzed</div>
+          <div class="stat-value">47</div>
+          <div class="stat-change up">↑ 12% this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon orange"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z" />
+            </svg></div>
+          <div class="stat-label">Plays Created</div>
+          <div class="stat-value">156</div>
+          <div class="stat-change up">↑ 8% this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg></div>
+          <div class="stat-label">Tips Sent</div>
+          <div class="stat-value">89</div>
+          <div class="stat-change up">↑ 24% this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon purple"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 2a15 15 0 014 10 15 15 0 01-4 10 15 15 0 01-4-10 15 15 0 014-10z" />
+              <path d="M2 12h20" />
+            </svg></div>
+          <div class="stat-label">Win Rate</div>
+          <div class="stat-value">67%</div>
+          <div class="stat-change up">↑ 5% vs last season</div>
+        </div>
+      </div>
+
+      <div class="section-grid">
+        <!-- Recent Game Analysis -->
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 20V10M12 20V4M6 20v-6" />
+                </svg></span> Recent Game Analysis</h3>
+            <button class="btn btn-sm btn-secondary" onclick="navigateTo('analysis-history')">View All</button>
+          </div>
+          <div class="card-body" id="dashboard-recent-games" style="display:flex;flex-direction:column;gap:12px">
+            <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px">Loading recent analyses...</div>
+          </div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2a4 4 0 014 4c0 1.1-.9 2-2 2h-4a2 2 0 01-2-2 4 4 0 014-4z" />
+                  <circle cx="12" cy="16" r="4" />
+                  <path d="M12 12v4" />
+                </svg></span> AI Insights</h3>
+            <button class="btn btn-sm btn-secondary" onclick="navigateTo('ai-analysis')">Full Report</button>
+          </div>
+          <div class="card-body">
+            <div id="tip-history">
+              <div class="timeline-item">
+                <div class="timeline-dot danger"></div>
+                <div class="timeline-time">Q4</div>
+                <div class="timeline-content">
+                  <h4>Fatigue Detected — #7 Wright</h4>
+                  <p>Sprint speed dropped 18% in Q4. Consider earlier substitution for recovery.</p>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot warning"></div>
+                <div class="timeline-time">Q3</div>
+                <div class="timeline-content">
+                  <h4>Turnover Spike</h4>
+                  <p>5 turnovers in 3 minutes during Q3. Ball handling under pressure needs work.</p>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot info"></div>
+                <div class="timeline-time">Q2</div>
+                <div class="timeline-content">
+                  <h4>Defensive Gap on Left Side</h4>
+                  <p>Opponents scored 14 points from left-side drives. Recommend zone adjustment.</p>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot success"></div>
+                <div class="timeline-time">Q1</div>
+                <div class="timeline-content">
+                  <h4>Fast Break Efficiency High</h4>
+                  <p>8/10 fast break conversions in Q1. Transition game is working well.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Team Stats -->
+      <div class="card" style="margin-bottom:28px">
+        <div class="card-header">
+          <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg></span> Season Performance Trend</h3>
+        </div>
+        <div class="card-body" style="display:flex;gap:32px;flex-wrap:wrap;align-items:center">
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Points Per Game (Last 10)</div>
+            <div class="sparkline" data-values="62,71,58,75,68,81,65,72,78,74" style="height:50px"></div>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Opponent PPG (Last 10)</div>
+            <div class="sparkline" data-values="55,68,61,70,59,70,60,65,63,67" style="height:50px"></div>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Team FG% (Last 10)</div>
+            <div class="sparkline" data-values="42,48,39,52,45,51,43,46,50,47" style="height:50px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE: UPLOAD FILM ===== -->
+    <div class="page" id="page-upload-film">
+      <h1 class="page-title">Upload Game Film <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="m15 3-3 3-3-3" />
+            <circle cx="12" cy="12" r="3" />
+          </svg></span></h1>
+      <p class="page-subtitle">Upload your game footage for AI-powered analysis. We support MP4, MOV, and AVI
+        formats.
+      </p>
+
+      <div class="card" style="max-width:100%">
+        <div class="card-body">
+          <div class="upload-zone" id="upload-zone-clip" onclick="document.getElementById('file-input-clip').click()">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p><span class="highlight">Click to browse</span> or drag and drop your game film here</p>
+            <p style="font-size:12px;color:var(--text-muted);margin-top:8px">MP4, MOV, AVI · Max 5GB</p>
+          </div>
+          <input type="file" id="file-input-clip" style="display:none" accept="video/*"
+            onchange="handleClipFileSelect(this)">
+          <div id="clip-file-info"
+            style="display:none;margin-top:12px;padding:12px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:var(--radius);align-items:center;gap:8px;flex-wrap:wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+              <circle cx="12" cy="13" r="3" />
+            </svg>
+            <span id="clip-file-name" style="font-size:13px;color:var(--text-primary);flex:1"></span>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="clearClipFile()" style="flex-shrink:0">Remove</button>
+          </div>
+          <div class="form-group" style="margin-top:16px">
+            <label class="form-label">Title</label>
+            <input type="text" class="form-input" id="upload-clip-title" placeholder="e.g. Harker vs Westfield">
+          </div>
+          <button class="btn btn-primary" style="width:100%" onclick="handleUploadClip()">Upload
+            &amp; Analyze Film</button>
+        </div>
+      </div>
+
+      <!-- ===== STAT SHEET UPLOAD SECTION ===== -->
+      <div class="card" style="max-width:100%;margin-top:20px">
+        <div class="card-header">
+          <h3><span class="inline-icon"><i data-lucide="file-spreadsheet" style="width:20px;height:20px;"></i></span>
+            Upload Stat Sheet</h3>
+          <span class="badge badge-orange">New Feature</span>
+        </div>
+        <div class="card-body">
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Upload a picture of a game stat sheet or
+            box score, and Coach Carter AI will analyze it instantly to give you practice tips.</p>
+          <div class="upload-zone" id="upload-zone-stat" onclick="document.getElementById('file-input-stat').click()">
+            <i data-lucide="upload-cloud"
+              style="width:40px;height:40px;color:var(--text-muted);margin-bottom:12px;"></i>
+            <p><span class="highlight">Click to browse</span> or drag and drop your stat sheet here</p>
+            <p style="font-size:12px;color:var(--text-muted);margin-top:8px">JPG, PNG, PDF, CSV · Max 10MB</p>
+          </div>
+          <input type="file" id="file-input-stat" style="display:none" accept="image/*,.pdf,.csv"
+            onchange="handleStatFileSelect(this)">
+          <div id="stat-file-info"
+            style="display:none;margin-top:12px;padding:12px;background:rgba(240,74,0,0.1);border:1px solid rgba(240,74,0,0.3);border-radius:var(--radius);align-items:center;gap:8px;flex-wrap:wrap">
+            <i data-lucide="file-check-2" style="width:16px;height:16px;color:var(--orange);"></i>
+            <span id="stat-file-name" style="font-size:13px;color:var(--text-primary);flex:1"></span>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="clearStatFile()" style="flex-shrink:0">Remove</button>
+          </div>
+          <div class="form-group" style="margin-top:16px">
+            <label class="form-label">Stat Sheet Title</label>
+            <input type="text" class="form-input" id="upload-stat-title"
+              placeholder="e.g. Harker vs Westfield Box Score">
+          </div>
+          <button class="btn btn-primary" style="width:100%" onclick="handleUploadStatSheet()">Upload &amp; Analyze
+            Stats</button>
+        </div>
+      </div>
+
+      <!-- Coach Notes removed as requested -->
+    </div>
+
+    <!-- ===== PAGE: DRAW PLAYS ===== -->
+    <div class="page" id="page-draw-plays">
+      <h1 class="page-title">Play Designer <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z" />
+          </svg></span></h1>
+      <p class="page-subtitle">Draw plays on the court and share them with your players.</p>
+      <div class="play-canvas-wrap">
+        <div class="play-toolbar">
+          <button class="tool-btn active" data-tool="pen" onclick="setDrawTool('pen')"><svg viewBox="0 0 24 24"
+              width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z" />
+            </svg> Pen</button>
+          <button class="tool-btn" data-tool="arrow" onclick="setDrawTool('arrow')"><svg viewBox="0 0 24 24" width="14"
+              height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg> Arrow</button>
+          <button class="tool-btn" data-tool="player" onclick="setDrawTool('player')"><svg viewBox="0 0 24 24"
+              width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg> Player</button>
+          <button class="tool-btn" data-tool="ball" onclick="setDrawTool('ball')"><svg viewBox="0 0 24 24" width="14"
+              height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M2 12h20" />
+            </svg> Ball</button>
+          <div style="width:1px;height:24px;background:var(--border);margin:0 8px"></div>
+          <div class="color-dot active" data-color="#F04A00" style="background:#F04A00"
+            onclick="setDrawColor('#F04A00')"></div>
+          <div class="color-dot" data-color="#3b82f6" style="background:#3b82f6" onclick="setDrawColor('#3b82f6')">
+          </div>
+          <div class="color-dot" data-color="#22c55e" style="background:#22c55e" onclick="setDrawColor('#22c55e')">
+          </div>
+          <div class="color-dot" data-color="#ffffff" style="background:#ffffff" onclick="setDrawColor('#ffffff')">
+          </div>
+          <div class="color-dot" data-color="#ef4444" style="background:#ef4444" onclick="setDrawColor('#ef4444')">
+          </div>
+          <div style="flex:1"></div>
+          <button class="tool-btn" onclick="undoCanvas()">↩ Undo</button>
+          <button class="tool-btn" onclick="clearCanvas()">🗑 Clear</button>
+          <button class="tool-btn" onclick="savePlay()"
+            style="background:var(--orange);color:#fff;border-color:var(--orange)">💾 Save Play</button>
+        </div>
+        <canvas id="playCanvas"></canvas>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Play Name</label>
+          <input type="text" class="form-input" placeholder="e.g. Pick and Roll Left">
+        </div>
+        <button class="btn btn-primary" style="align-self:flex-end"
+          onclick="sharePlayWithTeam()">Share with Team</button>
+      </div>
+    </div>
+
+    <!-- ===== PAGE: SEND TIPS ===== -->
+    <div class="page" id="page-send-tips">
+      <h1 class="page-title">Send Tips <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+          </svg></span></h1>
+      <p class="page-subtitle">Send personalized coaching tips and feedback to your players.</p>
+      <div class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3>New Tip</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Select Player</label>
+              <select class="form-select" id="tip-player-page">
+                <option value="">Choose a player...</option>
+                <option value="Marcus James (#3)">Marcus James (#3) — PG</option>
+                <option value="Anthony Davis (#11)">Anthony Davis (#11) — SG</option>
+                <option value="DeShawn Wright (#7)">DeShawn Wright (#7) — SF</option>
+                <option value="Jaylen Carter (#23)">Jaylen Carter (#23) — PF</option>
+                <option value="Omar Johnson (#5)">Omar Johnson (#5) — C</option>
+                <option value="Tyrese Mitchell (#10)">Tyrese Mitchell (#10) — SG</option>
+                <option value="Brandon Lewis (#12)">Brandon Lewis (#12) — PF</option>
+                <option value="Kevin Brooks (#15)">Kevin Brooks (#15) — C</option>
+                <option value="Isaiah Thomas (#20)">Isaiah Thomas (#20) — PG</option>
+                <option value="Andre Williams (#22)">Andre Williams (#22) — SF</option>
+                <option value="Chris Patterson (#30)">Chris Patterson (#30) — SG</option>
+                <option value="Malik Henderson (#33)">Malik Henderson (#33) — PF</option>
+                <option value="Entire Team">📢 Entire Team</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select class="form-select">
+                <option>General Feedback</option>
+                <option>Shooting Form</option>
+                <option>Defense</option>
+                <option>Ball Handling</option>
+                <option>Conditioning</option>
+                <option>Game IQ</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Message</label>
+              <textarea class="form-textarea" id="tip-message-page"
+                placeholder="Type your coaching tip here..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Attach Clip (Optional)</label>
+              <select class="form-select">
+                <option value="">No clip attached</option>
+                <option>Harker vs Westfield — Feb 10</option>
+                <option>Harker vs Oakridge — Feb 7</option>
+                <option>Harker vs Riverside — Feb 3</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" style="width:100%" onclick="sendTipFromPage()">Send Tip</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Tip History</h3>
+          </div>
+          <div class="card-body" id="tip-history-container">
+            <div class="timeline-item" style="cursor:pointer" onclick="openPlayerChat('Marcus James (#3)')">
+              <div class="timeline-dot success"></div>
+              <div class="timeline-time">Today</div>
+              <div class="timeline-content">
+                <h4>Sent to Marcus James (#3)</h4>
+                <p>Great ball movement tonight. Keep looking for the extra pass on the pick and roll.</p>
+              </div>
+            </div>
+            <div class="timeline-item" style="cursor:pointer" onclick="openPlayerChat('Entire Team')">
+              <div class="timeline-dot success"></div>
+              <div class="timeline-time">Feb 9</div>
+              <div class="timeline-content">
+                <h4>Sent to Entire Team</h4>
+                <p>Defensive rotations were slow in Q3. Let's focus on communication and quick help-side recovery.
+                </p>
+              </div>
+            </div>
+            <div class="timeline-item" style="cursor:pointer" onclick="openPlayerChat('DeShawn Wright (#7)')">
+              <div class="timeline-dot success"></div>
+              <div class="timeline-time">Feb 8</div>
+              <div class="timeline-content">
+                <h4>Sent to DeShawn Wright (#7)</h4>
+                <p>Your conditioning dropped in the 4th quarter. Let's add extra cardio to your pregame warmup.
+                </p>
+              </div>
+            </div>
+            <div class="timeline-item" style="cursor:pointer" onclick="openPlayerChat('Jaylen Carter (#23)')">
+              <div class="timeline-dot success"></div>
+              <div class="timeline-time">Feb 6</div>
+              <div class="timeline-content">
+                <h4>Sent to Jaylen Carter (#23)</h4>
+                <p>Box out stronger on defensive rebounds. You're giving up too many second-chance points.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE: AI ANALYSIS ===== -->
+    <div class="page" id="page-ai-analysis">
+      <h1 class="page-title">AI Analysis <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M12 2a4 4 0 014 4c0 1.1-.9 2-2 2h-4a2 2 0 01-2-2 4 4 0 014-4z" />
+            <circle cx="12" cy="16" r="4" />
+            <path d="M12 12v4" />
+          </svg></span></h1>
+      <p class="page-subtitle">Machine learning insights from your last 10 games. Data updated after each game
+        upload.
+      </p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon orange"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="6" />
+              <circle cx="12" cy="12" r="2" />
+            </svg></div>
+          <div class="stat-label">Avg Points</div>
+          <div class="stat-value">70.4</div>
+          <div class="stat-change up">↑ 6% vs league avg</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon orange"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg></div>
+          <div class="stat-label">Defensive Rating</div>
+          <div class="stat-value">B+</div>
+          <div class="stat-change up">↑ from B last month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+            </svg></div>
+          <div class="stat-label">Turnovers/Game</div>
+          <div class="stat-value">11.2</div>
+          <div class="stat-change down">↓ Need improvement</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon purple"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg></div>
+          <div class="stat-label">Fast Break Pts</div>
+          <div class="stat-value">14.8</div>
+          <div class="stat-change up">↑ 15% this month</div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-icon orange"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 2a15 15 0 014 10 15 15 0 01-4 10 15 15 0 01-4-10 15 15 0 014-10z" />
+              <path d="M2 12h20" />
+            </svg></div>
+          <div class="stat-label">Rebounds/Game</div>
+          <div class="stat-value">34.2</div>
+          <div class="stat-change up">↑ 9% this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon orange"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="6" />
+              <circle cx="12" cy="12" r="2" />
+            </svg></div>
+          <div class="stat-label">Assists/Game</div>
+          <div class="stat-value">16.8</div>
+          <div class="stat-change up">↑ 11% this season</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+              stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg></div>
+          <div class="stat-label">Steals/Game</div>
+          <div class="stat-value">8.4</div>
+          <div class="stat-change up">↑ 3% vs last month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-icon purple">🚫</div>
+          <div class="stat-label">Blocks/Game</div>
+          <div class="stat-value">4.1</div>
+          <div class="stat-change down">↓ 2% vs last month</div>
+        </div>
+      </div>
+
+      <div class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 20V10M12 20V4M6 20v-6" />
+                </svg></span> Shooting Breakdown</h3>
+          </div>
+          <div class="card-body">
+            <div id="chart-team-shooting" class="chart-container"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 9l6 6 6-6" />
+                  <circle cx="12" cy="12" r="10" />
+                </svg></span> Win Probability</h3>
+          </div>
+          <div class="card-body" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+            <div id="chart-win-rate"></div>
+            <div style="flex:1;min-width:150px">
+              <div style="margin-bottom:12px">
+                <div style="font-size:12px;color:var(--text-muted)">Season Record</div>
+                <div style="font-size:20px;font-weight:800">14 - 7</div>
+              </div>
+              <div style="margin-bottom:12px">
+                <div style="font-size:12px;color:var(--text-muted)">Conference</div>
+                <div style="font-size:20px;font-weight:800">8 - 3</div>
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--text-muted)">Streak</div>
+                <div style="font-size:20px;font-weight:800;color:var(--orange)">W3</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3>📉 Scoring by Quarter</h3>
+          </div>
+          <div class="card-body">
+            <div id="chart-quarters" class="chart-container"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg></span> Fatigue Heatmap (Last Game)</h3>
+          </div>
+          <div class="card-body">
+            <div id="fatigue-heatmap"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg></span> Pace & Efficiency</h3>
+          </div>
+          <div class="card-body">
+            <div id="chart-pace" class="chart-container"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="6" />
+                  <circle cx="12" cy="12" r="2" />
+                </svg></span> Shot Distribution</h3>
+          </div>
+          <div class="card-body">
+            <div id="chart-shot-dist" class="chart-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 20V10M12 20V4M6 20v-6" />
+                </svg></span> Assist-to-Turnover Ratio (Last 10)</h3>
+          </div>
+          <div class="card-body">
+            <div class="sparkline" data-values="1.8,2.1,1.4,2.3,1.9,2.5,1.6,2.0,2.2,1.7" style="height:50px">
+            </div>
+            <div
+              style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:6px">
+              <span>Game 1</span><span>Game 10</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg></span> Opponent Points Allowed Trend</h3>
+          </div>
+          <div class="card-body">
+            <div class="sparkline" data-values="68,72,61,70,59,65,63,58,67,55" style="height:50px"></div>
+            <div
+              style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-top:6px">
+              <span>Game 1</span><span>Game 10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In-Game AI Detections -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-header">
+          <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg></span> In-Game AI Detections — Harker vs Westfield</h3>
+        </div>
+        <div class="card-body">
+          <div class="timeline-item">
+            <div class="timeline-dot danger"></div>
+            <div class="timeline-time">4:32 Q4</div>
+            <div class="timeline-content">
+              <h4>High Fatigue — #7 DeShawn Wright</h4>
+              <p>Sprint speed dropped 22% compared to Q1. Lateral movement noticeably slower. Recommend immediate
+                substitution.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot danger"></div>
+            <div class="timeline-time">6:15 Q4</div>
+            <div class="timeline-content">
+              <h4>High Fatigue — #5 Omar Johnson</h4>
+              <p>Vertical leap decreased 30%. Boxing out effort declining. Post defense compromised.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot warning"></div>
+            <div class="timeline-time">2:10 Q3</div>
+            <div class="timeline-content">
+              <h4>Turnover Cluster Detected</h4>
+              <p>3 turnovers in 90 seconds. Team pressing caused bad passes. Consider timeout or slow-down
+                offense.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot warning"></div>
+            <div class="timeline-time">5:45 Q3</div>
+            <div class="timeline-content">
+              <h4>Defensive Breakdown — Left Wing</h4>
+              <p>Opponents scored on 4 consecutive possessions from left wing drives. #11 losing close-out
+                battles.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot info"></div>
+            <div class="timeline-time">8:00 Q2</div>
+            <div class="timeline-content">
+              <h4>Momentum Shift</h4>
+              <p>12-4 run started after #3 Marcus James entered. Team energy and pace increased significantly.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot success"></div>
+            <div class="timeline-time">3:20 Q1</div>
+            <div class="timeline-content">
+              <h4>Optimal Lineup Detected</h4>
+              <p>Starting 5 lineup had +15 point differential in 8 minutes. This is your best unit this season.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Chat Analysis -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-header">
+          <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              </svg></span> Ask BenchPro AI</h3>
+          <span class="badge badge-orange">Claude AI</span>
+        </div>
+        <div class="card-body">
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Ask questions about your team's
+            performance, get strategic advice, or look up real NBA/NCAA player stats, standings, and news. The AI
+            searches the web for up-to-date
+            data.</p>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="text" class="form-input" id="ai-chat-input"
+              placeholder="e.g. What should we focus on for the next game?" style="flex:1"
+              onkeydown="if(event.key==='Enter')askAIQuestion()">
+            <button class="btn btn-secondary" id="ai-voice-btn" onclick="toggleVoiceInput()" title="Voice input"
+              style="min-width:42px;padding:8px 10px;font-size:18px;position:relative">
+              <svg id="ai-voice-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <rect x="9" y="1" width="6" height="11" rx="3" />
+                <path d="M19 10v1a7 7 0 01-14 0v-1" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+              <span id="ai-voice-pulse"
+                style="display:none;position:absolute;inset:0;border-radius:8px;border:2px solid #ef4444;animation:voicePulse 1s ease infinite"></span>
+            </button>
+            <button class="btn btn-primary" id="ai-chat-send-btn" onclick="askAIQuestion()">Ask AI</button>
+          </div>
+          <div id="ai-chat-results" style="margin-top:16px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE: AI DRILLS ===== -->
+    <div class="page" id="page-ai-drills">
+      <h1 class="page-title">AI Recommended Drills <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg></span></h1>
+      <p class="page-subtitle">Personalized drills based on your team's last 5 games analysis.</p>
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="tab drill-filter-btn active" onclick="filterDrills('all')">All</button>
+        <button class="tab drill-filter-btn" onclick="filterDrills('shooting')">Shooting</button>
+        <button class="tab drill-filter-btn" onclick="filterDrills('offense')">Offense</button>
+        <button class="tab drill-filter-btn" onclick="filterDrills('defense')">Defense</button>
+        <button class="tab drill-filter-btn" onclick="filterDrills('conditioning')">Conditioning</button>
+        <button class="tab drill-filter-btn" onclick="filterDrills('rebounding')">Rebounding</button>
+      </div>
+      <div class="drills-grid">
+        <div class="drill-card" data-category="conditioning">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg></span> Quarter-Stamina Sprints</h4><span class="badge badge-red">AI Priority</span>
+          </div>
+          <p>Fatigue detected in Q4 across 3 of your last 5 games. This drill simulates late-game intensity to
+            build
+            endurance for the final quarter.</p>
+          <div class="drill-meta"><span>⏱ 15 min</span><span>💪 High Intensity</span><span>👥 Full Team</span>
+          </div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Quarter-Stamina Sprints',15)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="offense">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10" />
+                  <polyline points="1 20 1 14 7 14" />
+                  <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                </svg></span> Press Break Ball Handling</h4><span class="badge badge-orange">Recommended</span>
+          </div>
+          <p>Your team averaged 4.2 turnovers against pressing defenses. This drill focuses on composure and smart
+            passing under pressure.</p>
+          <div class="drill-meta"><span>⏱ 20 min</span><span>💪 Medium</span><span>👥 Guards</span></div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Press Break Ball Handling',20)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="defense">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg></span> Close-Out & Recover</h4><span class="badge badge-orange">Recommended</span>
+          </div>
+          <p>AI detected opponents scoring 62% on left-wing drives. This drill improves close-out speed and
+            recovery to
+            help-side position.</p>
+          <div class="drill-meta"><span>⏱ 15 min</span><span>💪 Medium</span><span>👥 Wings</span></div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Close-Out & Recover',15)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="shooting">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="6" />
+                  <circle cx="12" cy="12" r="2" />
+                </svg></span> Mid-Range Rhythm Shooting</h4><span class="badge badge-yellow">Suggested</span>
+          </div>
+          <p>Team mid-range percentage dropped to 38% this month. This drill builds consistent shooting form from
+            the
+            elbow and baseline.</p>
+          <div class="drill-meta"><span>⏱ 12 min</span><span>💪 Low</span><span>👥 All Players</span></div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Mid-Range Rhythm Shooting',12)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="rebounding">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                </svg></span> Box Out Wars</h4><span class="badge badge-orange">Recommended</span>
+          </div>
+          <p>Opponents grabbed 14 offensive rebounds last game. This competitive drill reinforces positioning and
+            effort
+            on the boards.</p>
+          <div class="drill-meta"><span>⏱ 10 min</span><span>💪 High Intensity</span><span>👥 Bigs</span></div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Box Out Wars',10)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="offense">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                </svg></span> Transition 3-on-2 Attack</h4><span class="badge badge-orange">Strength</span>
+          </div>
+          <p>Your fast break efficiency was 80% last game. Keep building on this strength with advanced transition
+            reads
+            and finishes.</p>
+          <div class="drill-meta"><span>⏱ 18 min</span><span>💪 High Intensity</span><span>👥 Full Team</span>
+          </div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Transition 3-on-2 Attack',18)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="shooting">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <circle cx="12" cy="12" r="6" />
+                  <circle cx="12" cy="12" r="2" />
+                </svg></span> Catch-and-Shoot Threes</h4><span class="badge badge-red">AI Priority</span>
+          </div>
+          <p>Team 3PT% on catch-and-shoot attempts was only 28% last game. This drill focuses on quick-release
+            form and
+            footwork off screens.</p>
+          <div class="drill-meta"><span>⏱ 15 min</span><span>💪 Medium</span><span>👥 Guards & Wings</span></div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Catch-and-Shoot Threes',15)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="defense">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg></span> Full-Court Press Rotations</h4><span class="badge badge-orange">Recommended</span>
+          </div>
+          <p>AI detected your press caused 6 turnovers but also gave up 4 open layups. Work on trapping and
+            recovering
+            without leaving gaps.</p>
+          <div class="drill-meta"><span>⏱ 20 min</span><span>💪 High Intensity</span><span>👥 Full Team</span>
+          </div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Full-Court Press Rotations',20)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="conditioning">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg></span> Suicide Ladder Challenge</h4><span class="badge badge-orange">Recommended</span>
+          </div>
+          <p>Players #7 and #5 showed 20%+ fatigue drops by Q4. Progressive conditioning with timed rest intervals
+            builds game-like stamina.</p>
+          <div class="drill-meta"><span>⏱ 12 min</span><span>💪 High Intensity</span><span>👥 Full Team</span>
+          </div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Suicide Ladder Challenge',12)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="shooting">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                </svg></span> Free Throw Under Pressure</h4><span class="badge badge-yellow">Suggested</span>
+          </div>
+          <p>Team FT% drops from 74% to 61% in Q4. Simulate fatigue and crowd noise to build mental toughness at
+            the
+            line.</p>
+          <div class="drill-meta"><span>⏱ 10 min</span><span>💪 Low</span><span>👥 All Players</span></div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Free Throw Under Pressure',10)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="offense">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10" />
+                  <polyline points="1 20 1 14 7 14" />
+                  <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                </svg></span> Motion Offense Reads</h4><span class="badge badge-yellow">Suggested</span>
+          </div>
+          <p>Half-court offense stagnated in Q3 with 4 shot-clock violations. This drill teaches cutting,
+            screening, and
+            reading the defense.</p>
+          <div class="drill-meta"><span>⏱ 25 min</span><span>💪 Medium</span><span>👥 Full Team</span></div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Motion Offense Reads',25)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="rebounding">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                </svg></span> Outlet Pass to Fast Break</h4><span class="badge badge-orange">Strength</span>
+          </div>
+          <p>Converting defensive rebounds to fast break points is your team's top strength. Sharpen outlet
+            passing for
+            even quicker transitions.</p>
+          <div class="drill-meta"><span>⏱ 15 min</span><span>💪 Medium</span><span>👥 Bigs & Guards</span></div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Outlet Pass to Fast Break',15)">▶ Start Drill</button>
+        </div>
+        <div class="drill-card" data-category="defense">
+          <div class="drill-card-header">
+            <h4><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg></span> Help-Side Defense Slides</h4><span class="badge badge-orange">Recommended</span>
+          </div>
+          <p>AI detected delayed help-side rotations in 3 of 5 games. Improve reaction time and communication with
+            this
+            shell drill variation.</p>
+          <div class="drill-meta"><span>⏱ 15 min</span><span>💪 Medium</span><span>👥 Full Team</span></div>
+          <button class="btn btn-sm btn-primary drill-start-btn"
+            onclick="event.stopPropagation();startDrill('Help-Side Defense Slides',15)">▶ Start Drill</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE: ANALYSIS HISTORY ===== -->
+    <div class="page" id="page-analysis-history">
+      <h1 class="page-title">Analysis History <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M4 11v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+            <path d="m4 11 3.5-6A2 2 0 019.2 4h5.6a2 2 0 011.7 1l3.5 6" />
+            <path d="M8 11v4h8v-4" />
+          </svg></span></h1>
+      <p class="page-subtitle">Browse and review all your uploaded game film and stat sheet analyses.</p>
+
+      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+        <div class="header-search" style="flex:1;max-width:400px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <input type="text" placeholder="Search analysis history..."
+            style="border:none;background:transparent;outline:none;width:100%;font-size:14px;color:var(--text-primary)">
+        </div>
+      </div>
+
+      <div id="clips-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+      <div id="clips-empty" class="empty-state" style="display:none;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M2 8h20"/></svg>
+        <h3>No analysis history</h3>
+        <p>Upload a video or stat sheet to get started.</p>
+      </div>
+    </div>
+
+  <!-- ===== PAGE: PLAYER STATS ===== -->
+  <div class="page" id="page-player-stats">
+    <h1 class="page-title">Player Stats <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2">
+          <path d="M18 20V10M12 20V4M6 20v-6" />
+        </svg></span></h1>
+    <p class="page-subtitle">Individual player performance breakdown with AI-generated visuals.</p>
+    <div class="section-grid">
+      <div class="card">
+        <div class="card-header">
+          <h3>Roster</h3>
+        </div>
+        <div class="card-body card-body-flush">
+          <div class="player-row" onclick="switchPlayer('Marcus James (#3)')" style="background:rgba(212,115,26,0.05)">
+            <div class="player-avatar">MJ</div>
+            <div class="player-info">
+              <div class="player-name">Marcus James</div>
+              <div class="player-position">#3 · Point Guard</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">18.4</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Anthony Davis (#11)')">
+            <div class="player-avatar">AD</div>
+            <div class="player-info">
+              <div class="player-name">Anthony Davis</div>
+              <div class="player-position">#11 · Shooting Guard</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">14.7</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('DeShawn Wright (#7)')">
+            <div class="player-avatar">DW</div>
+            <div class="player-info">
+              <div class="player-name">DeShawn Wright</div>
+              <div class="player-position">#7 · Small Forward</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">12.1</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Jaylen Carter (#23)')">
+            <div class="player-avatar">JC</div>
+            <div class="player-info">
+              <div class="player-name">Jaylen Carter</div>
+              <div class="player-position">#23 · Power Forward</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">11.3</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Omar Johnson (#5)')">
+            <div class="player-avatar">OJ</div>
+            <div class="player-info">
+              <div class="player-name">Omar Johnson</div>
+              <div class="player-position">#5 · Center</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">9.8</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Tyrese Mitchell (#10)')">
+            <div class="player-avatar">TM</div>
+            <div class="player-info">
+              <div class="player-name">Tyrese Mitchell</div>
+              <div class="player-position">#10 · Shooting Guard</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">8.6</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Brandon Lewis (#12)')">
+            <div class="player-avatar">BL</div>
+            <div class="player-info">
+              <div class="player-name">Brandon Lewis</div>
+              <div class="player-position">#12 · Power Forward</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">7.4</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Kevin Brooks (#15)')">
+            <div class="player-avatar">KB</div>
+            <div class="player-info">
+              <div class="player-name">Kevin Brooks</div>
+              <div class="player-position">#15 · Center</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">6.9</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Isaiah Thomas (#20)')">
+            <div class="player-avatar">IT</div>
+            <div class="player-info">
+              <div class="player-name">Isaiah Thomas</div>
+              <div class="player-position">#20 · Point Guard</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">6.2</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Andre Williams (#22)')">
+            <div class="player-avatar">AW</div>
+            <div class="player-info">
+              <div class="player-name">Andre Williams</div>
+              <div class="player-position">#22 · Small Forward</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">5.5</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Chris Patterson (#30)')">
+            <div class="player-avatar">CP</div>
+            <div class="player-info">
+              <div class="player-name">Chris Patterson</div>
+              <div class="player-position">#30 · Shooting Guard</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">4.8</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+          <div class="player-row" onclick="switchPlayer('Malik Henderson (#33)')">
+            <div class="player-avatar">MH</div>
+            <div class="player-info">
+              <div class="player-name">Malik Henderson</div>
+              <div class="player-position">#33 · Power Forward</div>
+            </div>
+            <div class="player-stat">
+              <div class="player-stat-value">4.1</div>
+              <div class="player-stat-label">PPG</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <h3 id="selected-player-name">Marcus James (#3)</h3><span class="badge badge-orange">Season
+              Avg</span>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;text-align:center">
+              <div>
+                <div style="font-size:24px;font-weight:800" id="stat-ppg">18.4</div>
+                <div style="font-size:11px;color:var(--text-muted)">PPG</div>
+              </div>
+              <div>
+                <div style="font-size:24px;font-weight:800" id="stat-apg">6.2</div>
+                <div style="font-size:11px;color:var(--text-muted)">APG</div>
+              </div>
+              <div>
+                <div style="font-size:24px;font-weight:800" id="stat-spg">3.1</div>
+                <div style="font-size:11px;color:var(--text-muted)">SPG</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;text-align:center">
+              <div>
+                <div style="font-size:24px;font-weight:800" id="stat-rpg">4.5</div>
+                <div style="font-size:11px;color:var(--text-muted)">RPG</div>
+              </div>
+              <div>
+                <div style="font-size:24px;font-weight:800" id="stat-fg">48%</div>
+                <div style="font-size:11px;color:var(--text-muted)">FG%</div>
+              </div>
+              <div>
+                <div style="font-size:24px;font-weight:800" id="stat-min">28.3</div>
+                <div style="font-size:11px;color:var(--text-muted)">MIN</div>
+              </div>
+            </div>
+            <div id="chart-efficiency"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>Shooting %</h3>
+          </div>
+          <div class="card-body">
+            <div id="chart-shooting" class="chart-container"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <div class="card-header">
+        <h3>Performance Metrics</h3>
+      </div>
+      <div class="card-body">
+        <div id="chart-performance" class="chart-container"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <div class="card-header">
+        <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg></span> Points Per Game Trend (Last 10 Games)</h3>
+      </div>
+      <div class="card-body">
+        <div class="sparkline" data-values="22,16,20,14,18,24,15,21,19,17" style="height:60px"></div>
+      </div>
+    </div>
+
+    <!-- AI Player Analysis -->
+    <div class="card" style="margin-top:20px">
+      <div class="card-header">
+        <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a4 4 0 014 4c0 1.1-.9 2-2 2h-4a2 2 0 01-2-2 4 4 0 014-4z" />
+              <circle cx="12" cy="16" r="4" />
+              <path d="M12 12v4" />
+            </svg></span> AI Player Analysis</h3>
+        <button class="btn btn-sm btn-primary" id="ai-player-analyze-btn" onclick="runAIPlayerAnalysis()">🤖
+          Analyze
+          Player</button>
+      </div>
+      <div class="card-body">
+        <div id="ai-player-analysis-results" style="color:var(--text-secondary);font-size:13px;line-height:1.7">
+          <p style="color:var(--text-muted);text-align:center;padding:20px 0">Click <strong>"🤖 Analyze
+              Player"</strong> to get AI-powered insights on the selected player's performance, strengths, and
+            areas
+            for improvement.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hustle Stats Leaderboard -->
+    <div class="card" style="margin-top:24px">
+      <div class="card-header">
+        <h3>🔥 Hustle Stats Leaderboard</h3>
+        <span class="badge badge-orange">Season</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Tracking the unglamorous stats that
+          win
+          games.</p>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border);text-align:left;color:var(--text-muted)">
+                <th style="padding:8px">Player</th>
+                <th style="padding:8px">Deflections</th>
+                <th style="padding:8px">Screen Assists</th>
+                <th style="padding:8px">Charges Drawn</th>
+                <th style="padding:8px">Loose Balls</th>
+                <th style="padding:8px">Hustle Score</th>
+              </tr>
+            </thead>
+            <tbody id="hustle-stats-body">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===== PAGE: PLANS ===== -->
+  <div class="page" id="page-plans">
+    <h1 class="page-title">Choose Your Plan <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2">
+          <path d="M12 2 2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg></span></h1>
+    <p class="page-subtitle">Select the plan that best fits your coaching needs.</p>
+    <div class="plan-cards">
+      <div class="plan-card" data-plan="standard" onclick="selectPlan('standard')">
+        <h3>Standard</h3>
+        <p class="plan-desc">Perfect for individual player development</p>
+        <div class="plan-price-big">$8.99<span>/month</span></div>
+        <ul class="plan-features">
+          <li>1 Player Profile</li>
+          <li>5 Game Uploads / Month</li>
+          <li>Basic AI Analysis</li>
+          <li>Play Designer</li>
+          <li>3 AI Drill Recommendations</li>
+          <li>Email Support</li>
+        </ul>
+        <button class="btn btn-secondary" style="width:100%;margin-top:18px"
+          onclick="event.stopPropagation();selectPlan('standard')">Select
+          Standard</button>
+      </div>
+      <div class="plan-card popular selected" data-plan="elite" onclick="selectPlan('elite')">
+        <h3 style="color:var(--orange)">Elite</h3>
+        <p class="plan-desc">Everything you need for a full team</p>
+        <div class="plan-price-big" style="color:var(--orange)">$29.99<span>/month</span></div>
+        <ul class="plan-features">
+          <li>Unlimited Player Profiles</li>
+          <li>Unlimited Game Uploads</li>
+          <li>Advanced AI Analysis</li>
+          <li>Play Designer + Sharing</li>
+          <li>Unlimited AI Drills</li>
+          <li>Fatigue Detection</li>
+          <li>Send Tips to Players</li>
+          <li>Priority Support</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%;margin-top:18px"
+          onclick="event.stopPropagation();selectPlan('elite')">Select
+          Elite</button>
+      </div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div style="margin-top:36px">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><span class="inline-icon"><svg viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" />
+            <line x1="1" y1="10" x2="23" y2="10" />
+          </svg></span> Payment Methods</h2>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-body">
+          <div id="payment-methods-list">
+            <div class="player-row" style="border-bottom:1px solid var(--border)">
+              <div
+                style="width:48px;height:32px;background:linear-gradient(135deg,#1a1f71,#2e77bc);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0">
+                VISA</div>
+              <div class="player-info">
+                <div class="player-name">Visa ending in 4242</div>
+                <div class="player-position">Expires 08/2027</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="badge badge-orange">Default</span>
+                <button class="btn btn-sm btn-secondary" onclick="openModal('edit-payment-modal')">Edit</button>
+                <button class="btn btn-sm btn-secondary" onclick="removePaymentMethod(this)">Remove</button>
+              </div>
+            </div>
+            <div class="player-row">
+              <div
+                style="width:48px;height:32px;background:linear-gradient(135deg,#eb001b,#f79e1b);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0">
+                MC</div>
+              <div class="player-info">
+                <div class="player-name">Mastercard ending in 8901</div>
+                <div class="player-position">Expires 12/2026</div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn btn-sm btn-secondary" onclick="setDefaultPayment(this)">Set Default</button>
+                <button class="btn btn-sm btn-secondary" onclick="openModal('edit-payment-modal')">Edit</button>
+                <button class="btn btn-sm btn-secondary" onclick="removePaymentMethod(this)">Remove</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="openModal('add-payment-modal')">+ Add
+            Payment Method</button>
+        </div>
+      </div>
+
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><span class="inline-icon"><svg viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg></span> Billing History</h2>
+      <div class="card">
+        <div class="card-body card-body-flush">
+          <div class="player-row" style="border-bottom:1px solid var(--border)">
+            <div class="player-info">
+              <div class="player-name">Elite Plan — February 2026</div>
+              <div class="player-position">Feb 1, 2026</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
+                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
+                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+          </div>
+          <div class="player-row" style="border-bottom:1px solid var(--border)">
+            <div class="player-info">
+              <div class="player-name">Elite Plan — January 2026</div>
+              <div class="player-position">Jan 1, 2026</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
+                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
+                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+          </div>
+          <div class="player-row" style="border-bottom:1px solid var(--border)">
+            <div class="player-info">
+              <div class="player-name">Elite Plan — December 2025</div>
+              <div class="player-position">Dec 1, 2025</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
+                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
+                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+          </div>
+          <div class="player-row" style="border-bottom:1px solid var(--border)">
+            <div class="player-info">
+              <div class="player-name">Standard Plan — November 2025</div>
+              <div class="player-position">Nov 1, 2025</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$8.99</span><span
+                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
+                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+          </div>
+          <div class="player-row">
+            <div class="player-info">
+              <div class="player-name">Standard Plan — October 2025</div>
+              <div class="player-position">Oct 1, 2025</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$8.99</span><span
+                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
+                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px">
+        <button class="btn btn-secondary" onclick="openManageSubscription()"
+          style="margin-right:12px">Manage Subscription</button>
+        <button class="btn btn-secondary" style="color:var(--red);border-color:rgba(239,68,68,0.3)"
+          onclick="if(confirm('Are you sure you want to cancel your subscription?')) showToast('Subscription cancelled. You will retain access until end of billing period.','❌')">Cancel
+          Subscription</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: SETTINGS ===== -->
+  <div class="page" id="page-settings">
+    <h1 class="page-title">Profile &amp; Settings <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09"/></svg></span></h1>
+    <p class="page-subtitle">Manage your coach profile, notifications, and account preferences.</p>
+
+    <div class="section-grid">
+
+      <!-- Coach Profile -->
+      <div class="card">
+        <div class="card-header">
+          <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Coach Profile</h3>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+            <div id="settings-avatar" style="width:72px;height:72px;border-radius:50%;background:var(--orange-glow);border:3px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:var(--orange);flex-shrink:0;cursor:pointer" onclick="openPhotoUpload()" title="Change photo">CW</div>
+            <div>
+              <div style="font-size:16px;font-weight:700;color:var(--text-primary)">Coach Wilson</div>
+              <div style="font-size:12px;color:var(--text-muted)">Head Coach · Harker High School</div>
+              <button class="btn btn-sm btn-secondary" style="margin-top:6px;font-size:11px" onclick="openPhotoUpload()">Change Photo</button>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="settings-name" value="Coach Wilson"></div>
+          <div class="form-group"><label class="form-label">Email Address</label><input type="email" class="form-input" id="settings-email" value="coach.wilson@harkerhs.edu"></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">School / Organization</label><input type="text" class="form-input" id="settings-school" value="Harker High School"></div>
+            <div class="form-group"><label class="form-label">Team Name</label><input type="text" class="form-input" id="settings-team" value="Harker Eagles"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" class="form-input" id="settings-phone" placeholder="(555) 123-4567"></div>
+            <div class="form-group"><label class="form-label">Sport</label>
+              <select class="form-select" id="settings-sport">
+                <option value="basketball" selected>Basketball</option>
+                <option value="football">Football</option>
+                <option value="soccer">Soccer</option>
+                <option value="volleyball">Volleyball</option>
+                <option value="baseball">Baseball</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label class="form-label">Bio / Coaching Philosophy</label><textarea class="form-textarea" id="settings-bio" rows="3" placeholder="Share your coaching philosophy or a short bio...">Focused on fundamentals, team chemistry, and player development.</textarea></div>
+          <button class="btn btn-primary" onclick="saveSettings()" style="width:100%">Save Profile</button>
+        </div>
+      </div>
+
+      <!-- Student Team Code -->
+      <div class="card" style="border:1px solid rgba(212,115,26,0.25);">
+        <div class="card-header">
+          <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Student Team Code</h3>
+          <span class="badge badge-orange">Share</span>
+        </div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+          <p style="font-size:13px;color:var(--text-secondary);margin:0;">Share this code or QR with your players so they can join the BenchPro student app.</p>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div id="team-code-display" style="flex:1;padding:14px 18px;background:var(--bg-secondary);border:2px dashed rgba(212,115,26,0.4);border-radius:var(--radius);font-size:22px;font-weight:900;letter-spacing:4px;text-align:center;color:var(--orange-light);font-family:'Courier New',monospace;user-select:all;">HARKER2026</div>
+            <button class="btn btn-secondary" onclick="copyTeamCode()" title="Copy Code" style="padding:12px 14px;min-width:auto;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            </button>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" onclick="toggleQRCode()" id="qr-toggle-btn" style="flex:1;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="8" height="8" rx="1"/><rect x="14" y="2" width="8" height="8" rx="1"/><rect x="2" y="14" width="8" height="8" rx="1"/><rect x="14" y="14" width="4" height="4"/><rect x="20" y="14" width="2" height="2"/><rect x="14" y="20" width="2" height="2"/><rect x="20" y="20" width="2" height="2"/></svg>
+              Show QR Code
+            </button>
+            <button class="btn btn-secondary" onclick="shareTeamCode()" style="flex:1;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Share Link
+            </button>
+          </div>
+          <div id="qr-code-container" style="display:none;text-align:center;padding:20px;background:#2a2a2a;border-radius:var(--radius);margin-top:4px;">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Notification Settings -->
+    <h2 style="font-size:20px;font-weight:800;margin-bottom:16px;margin-top:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Notifications</h2>
+    <div class="card" style="margin-bottom:28px">
+      <div class="card-body card-body-flush">
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-label">Push Notifications</div>
+            <div class="settings-toggle-desc">Receive alerts when analysis completes, players join, or tips are read</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-push" checked onchange="toggleSetting('Push Notifications', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-label">Email Notifications</div>
+            <div class="settings-toggle-desc">Get weekly summaries and analysis results delivered to your inbox</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-email-notif" checked onchange="toggleSetting('Email Notifications', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-label">SMS Alerts</div>
+            <div class="settings-toggle-desc">Text message alerts for urgent updates (requires phone number)</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-sms" onchange="toggleSetting('SMS Alerts', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-label">Player Activity Alerts</div>
+            <div class="settings-toggle-desc">Get notified when players view tips or complete drills</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-player-activity" checked onchange="toggleSetting('Player Activity Alerts', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-toggle-row" style="border-bottom:none">
+          <div>
+            <div class="settings-toggle-label">Game Day Reminders</div>
+            <div class="settings-toggle-desc">Automated reminders 24 hours and 2 hours before scheduled games</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-game-remind" checked onchange="toggleSetting('Game Day Reminders', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Preferences -->
+    <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Preferences</h2>
+    <div class="card" style="margin-bottom:28px">
+      <div class="card-body card-body-flush">
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-label">Dark Mode</div>
+            <div class="settings-toggle-desc">Use a darker theme to reduce eye strain (currently active)</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-dark" checked onchange="toggleSetting('Dark Mode', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-label">Auto-Save Plays</div>
+            <div class="settings-toggle-desc">Automatically save play designs as you draw</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-autosave" checked onchange="toggleSetting('Auto-Save', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-label">Sound Effects</div>
+            <div class="settings-toggle-desc">Play sounds for notifications, timers, and completed actions</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-sounds" onchange="toggleSetting('Sound Effects', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-toggle-row">
+          <div style="flex:1">
+            <div class="settings-toggle-label">Video Upload Quality</div>
+            <div class="settings-toggle-desc">Higher quality uses more storage but improves analysis accuracy</div>
+          </div>
+          <select class="form-select" id="setting-quality" style="width:140px;margin:0" onchange="showToast('Video quality set to ' + this.value,'📹')">
+            <option value="Auto" selected>Auto</option>
+            <option value="1080p">1080p</option>
+            <option value="720p">720p</option>
+            <option value="480p">480p</option>
+          </select>
+        </div>
+        <div class="settings-toggle-row" style="border-bottom:none">
+          <div style="flex:1">
+            <div class="settings-toggle-label">Default Analysis Detail</div>
+            <div class="settings-toggle-desc">How detailed AI coaching insights should be by default</div>
+          </div>
+          <select class="form-select" id="setting-detail" style="width:140px;margin:0" onchange="showToast('Analysis detail set to ' + this.value,'🤖')">
+            <option value="Summary">Summary</option>
+            <option value="Standard" selected>Standard</option>
+            <option value="Detailed">Detailed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy & Security -->
+    <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Privacy &amp; Security</h2>
+    <div class="card" style="margin-bottom:28px">
+      <div class="card-body card-body-flush">
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-label">Two-Factor Authentication</div>
+            <div class="settings-toggle-desc">Add an extra layer of security with SMS or authenticator app</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-2fa" onchange="toggleSetting('Two-Factor Auth', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-toggle-row">
+          <div>
+            <div class="settings-toggle-label">Profile Visibility</div>
+            <div class="settings-toggle-desc">Allow other coaches to find and connect with you</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-visible" checked onchange="toggleSetting('Profile Visibility', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-toggle-row" style="border-bottom:none">
+          <div>
+            <div class="settings-toggle-label">Analytics &amp; Usage Data</div>
+            <div class="settings-toggle-desc">Help improve BenchPro by sharing anonymous usage statistics</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="setting-analytics" checked onchange="toggleSetting('Analytics', this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Actions -->
+    <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Account</h2>
+    <div class="card" style="margin-bottom:28px">
+      <div class="card-body card-body-flush">
+        <div class="settings-action-row">
+          <div>
+            <div class="settings-toggle-label">Change Password</div>
+            <div class="settings-toggle-desc">Update your account password</div>
+          </div>
+          <button class="btn btn-sm btn-secondary" onclick="showToast('Password change dialog coming soon','🔑')">Change</button>
+        </div>
+        <div class="settings-action-row">
+          <div>
+            <div class="settings-toggle-label">Export Data</div>
+            <div class="settings-toggle-desc">Download all your analyses, plays, and player data</div>
+          </div>
+          <button class="btn btn-sm btn-secondary" onclick="showToast('Data export started — you will receive an email with a download link','📦')">Export</button>
+        </div>
+        <div class="settings-action-row">
+          <div>
+            <div class="settings-toggle-label">Connected Devices</div>
+            <div class="settings-toggle-desc">3 devices currently signed in</div>
+          </div>
+          <button class="btn btn-sm btn-secondary" onclick="showToast('Device management coming soon','📱')">Manage</button>
+        </div>
+        <div class="settings-action-row">
+          <div>
+            <div class="settings-toggle-label">Log Out</div>
+            <div class="settings-toggle-desc">Sign out from this device</div>
+          </div>
+          <button class="btn btn-sm btn-secondary" onclick="if(confirm('Log out of BenchPro?')) showToast('Logged out successfully','👋')">Log Out</button>
+        </div>
+        <div class="settings-action-row" style="border-bottom:none">
+          <div>
+            <div class="settings-toggle-label" style="color:var(--red)">Delete Account</div>
+            <div class="settings-toggle-desc">Permanently remove your account and all associated data</div>
+          </div>
+          <button class="btn btn-sm btn-secondary" style="color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="if(confirm('Are you sure? This action cannot be undone. All your data will be permanently deleted.')) showToast('Account deletion request submitted. You will receive a confirmation email.','⚠️')">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:12px">BenchPro v2.1.0 · <a href="#" style="color:var(--orange)" onclick="event.preventDefault();showToast('Terms of Service','📄')">Terms of Service</a> · <a href="#" style="color:var(--orange)" onclick="event.preventDefault();showToast('Privacy Policy','📄')">Privacy Policy</a> · <a href="#" style="color:var(--orange)" onclick="event.preventDefault();showToast('Support chat opened','💬')">Contact Support</a></p>
+  </div>
+
+  </div><!-- /main-content -->
+
+  <!-- ===== MODALS ===== -->
+
+  <!-- Upload Modal -->
+  <div class="modal-overlay" id="upload-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Upload Game Film</h2><button class="modal-close" onclick="closeModal('upload-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="upload-zone" id="upload-zone">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <p><span class="highlight">Click to browse</span> or drag & drop</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:6px">MP4, MOV, AVI · Max 5GB</p>
+        </div>
+        <input type="file" id="file-input" accept="video/*" style="display:none">
+        <div class="form-group" style="margin-top:16px"><label class="form-label">Game Title</label><input type="text"
+            class="form-input" placeholder="e.g. Harker vs Westfield"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="handleUploadFromModal()">Upload &amp;
+          Analyze</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tip Modal -->
+  <div class="modal-overlay" id="tip-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Send Quick Tip</h2><button class="modal-close" onclick="closeModal('tip-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Player</label>
+          <select class="form-select" id="tip-player">
+            <option value="">Choose player...</option>
+            <option value="Marcus James (#3)">Marcus James (#3)</option>
+            <option value="Anthony Davis (#11)">Anthony Davis (#11)</option>
+            <option value="DeShawn Wright (#7)">DeShawn Wright (#7)</option>
+            <option value="Jaylen Carter (#23)">Jaylen Carter (#23)</option>
+            <option value="Omar Johnson (#5)">Omar Johnson (#5)</option>
+            <option value="Tyrese Mitchell (#10)">Tyrese Mitchell (#10)</option>
+            <option value="Brandon Lewis (#12)">Brandon Lewis (#12)</option>
+            <option value="Kevin Brooks (#15)">Kevin Brooks (#15)</option>
+            <option value="Isaiah Thomas (#20)">Isaiah Thomas (#20)</option>
+            <option value="Andre Williams (#22)">Andre Williams (#22)</option>
+            <option value="Chris Patterson (#30)">Chris Patterson (#30)</option>
+            <option value="Malik Henderson (#33)">Malik Henderson (#33)</option>
+            <option value="Entire Team">📢 Entire Team</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Message</label><textarea class="form-textarea"
+            id="tip-message" placeholder="Type your coaching tip..."></textarea></div>
+        <button class="btn btn-primary" style="width:100%" onclick="sendTip()">Send Tip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clip Viewer Modal -->
+  <div class="modal-overlay" id="clip-viewer-modal">
+    <div class="modal" style="max-width:800px">
+      <div class="modal-header">
+        <h2 id="clip-viewer-title">Game Clip</h2><button class="modal-close"
+          onclick="closeModal('clip-viewer-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="clip-video-area" id="clip-video-area">
+          <canvas id="clip-court-canvas"></canvas>
+          <p id="clip-viewer-date" style="font-size:12px;color:var(--text-muted);text-align:center;margin-top:8px"></p>
+          <!-- Analysis scanning overlay -->
+          <div class="clip-scan-overlay" id="clip-scan-overlay">
+            <div class="scan-line"></div>
+            <div class="scan-text">🤖 AI Analyzing...</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button class="btn btn-primary btn-sm" id="clip-analyze-btn" onclick="runClipAnalysis()">🤖 Run AI
+            Analysis</button>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Clip downloaded!','💾')">💾
+            Download</button>
+          <button class="btn btn-secondary btn-sm"
+            onclick="navigator.clipboard.writeText('https://benchpro.app/clip/'+Date.now());showToast('Link copied to clipboard!','📋')">📋
+            Share Link</button>
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('clip-viewer-modal');navigateTo('draw-plays')">✏️
+            Draw on Clip</button>
+        </div>
+        <!-- Analysis results (hidden initially) -->
+        <div class="clip-analysis-results" id="clip-analysis-results" style="display:none"></div>
+        <!-- Coach Notes for this clip -->
+        <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin:0">📝 Coach Notes</h4>
+            <div style="display:flex;gap:4px">
+              <button class="btn btn-sm"
+                style="font-size:10px;padding:3px 8px;background:rgba(212,115,26,0.1);border:1px solid rgba(212,115,26,0.3);color:var(--orange);border-radius:20px;cursor:pointer"
+                onclick="addClipTag('Offense')">Offense</button>
+              <button class="btn btn-sm"
+                style="font-size:10px;padding:3px 8px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;border-radius:20px;cursor:pointer"
+                onclick="addClipTag('Defense')">Defense</button>
+              <button class="btn btn-sm"
+                style="font-size:10px;padding:3px 8px;background:rgba(240,74,0,0.1);border:1px solid rgba(240,74,0,0.3);color:var(--orange);border-radius:20px;cursor:pointer"
+                onclick="addClipTag('Key Play')">Key Play</button>
+              <button class="btn btn-sm"
+                style="font-size:10px;padding:3px 8px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;border-radius:20px;cursor:pointer"
+                onclick="addClipTag('Needs Work')">Needs Work</button>
+            </div>
+          </div>
+          <textarea class="form-textarea" id="clip-notes-input" rows="3"
+            placeholder="Add your observations about this clip... What went well? What needs improvement?"
+            style="font-size:13px;resize:vertical"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary btn-sm" onclick="saveClipNote()" style="flex:1">💾 Save Note</button>
+            <button class="btn btn-secondary btn-sm"
+              onclick="document.getElementById('clip-notes-input').value=''">Clear</button>
+          </div>
+          <div id="clip-saved-notes" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Payment Modal -->
+  <div class="modal-overlay" id="add-payment-modal">
+    <div class="modal" style="max-width:500px">
+      <div class="modal-header">
+        <h2>Add Payment Method</h2><button class="modal-close" onclick="closeModal('add-payment-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Card Number</label><input type="text" class="form-input"
+            placeholder="1234 5678 9012 3456" maxlength="19"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Expiry</label><input type="text"
+              class="form-input" placeholder="MM/YY" maxlength="5"></div>
+          <div class="form-group"><label class="form-label">CVC</label><input type="text"
+              class="form-input" placeholder="123" maxlength="4"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Cardholder Name</label><input type="text" class="form-input"
+            placeholder="Coach Wilson"></div>
+        <div class="form-group"><label class="form-label">Billing ZIP Code</label><input type="text" class="form-input"
+            placeholder="10001" maxlength="10"></div>
+        <button class="btn btn-primary" style="width:100%"
+          onclick="showToast('Payment method added!','💳');closeModal('add-payment-modal')">Add Card</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Payment Modal -->
+  <div class="modal-overlay" id="edit-payment-modal">
+    <div class="modal" style="max-width:500px">
+      <div class="modal-header">
+        <h2>Edit Payment Method</h2><button class="modal-close" onclick="closeModal('edit-payment-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group"><label class="form-label">Card Number</label><input type="text" class="form-input"
+            value="•••• •••• •••• 4242" disabled style="opacity:0.6"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Expiry</label><input type="text"
+              class="form-input" value="08/27" maxlength="5"></div>
+          <div class="form-group"><label class="form-label">CVC</label><input type="text"
+              class="form-input" placeholder="•••" maxlength="4"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Cardholder Name</label><input type="text" class="form-input"
+            value="Coach Wilson"></div>
+        <div class="form-group"><label class="form-label">Billing ZIP Code</label><input type="text" class="form-input"
+            value="10001" maxlength="10"></div>
+        <button class="btn btn-primary" style="width:100%"
+          onclick="showToast('Payment method updated!','✅');closeModal('edit-payment-modal')">Save
+          Changes</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Analysis Overlay -->
+  <div class="analysis-overlay" id="analysis-overlay">
+    <div class="analysis-overlay-card">
+      <div class="analysis-overlay-icon">
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--orange)" stroke-width="1.5">
+          <path d="M12 2a4 4 0 014 4c0 1.1-.9 2-2 2h-4a2 2 0 01-2-2 4 4 0 014-4z" />
+          <circle cx="12" cy="16" r="4" />
+          <path d="M12 12v4" />
+        </svg>
+      </div>
+      <h2 id="analysis-overlay-title">Analyzing Game Film</h2>
+      <p id="analysis-overlay-subtitle" style="color:var(--text-muted);margin-bottom:24px">Please wait while our
+        AI
+        processes your footage...</p>
+      <div class="analysis-progress-bar">
+        <div class="analysis-progress-fill" id="analysis-progress-fill"></div>
+      </div>
+      <div class="analysis-progress-label" id="analysis-progress-label">Uploading file...</div>
+      <div class="analysis-stages" id="analysis-stages">
+        <div class="analysis-stage active" id="stage-upload"><span class="stage-dot"></span> Uploading file</div>
+        <div class="analysis-stage" id="stage-detect"><span class="stage-dot"></span> Detecting players</div>
+        <div class="analysis-stage" id="stage-plays"><span class="stage-dot"></span> Analyzing plays</div>
+        <div class="analysis-stage" id="stage-insights"><span class="stage-dot"></span> Generating insights</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drill Complete Popup -->
+  <div class="drill-complete-overlay" id="drill-complete-overlay">
+    <div class="drill-complete-card">
+      <div class="drill-complete-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <h2>Drill completed!</h2>
+      <p>Great work. Want to run it again?</p>
+      <div style="display:flex;gap:12px;margin-top:20px">
+        <button class="btn btn-secondary" onclick="closeDrillComplete()">Done</button>
+        <button class="btn btn-primary" onclick="redoDrill()">Do it again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drill Timer Overlay -->
+  <div class="drill-timer-overlay" id="drill-timer-overlay">
+    <div class="drill-timer-card">
+      <h2 id="drill-timer-name"></h2>
+      <div class="drill-timer-display" id="drill-timer-display">15:00</div>
+      <div class="drill-timer-progress">
+        <svg viewBox="0 0 200 200" width="200" height="200">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="var(--border)" stroke-width="6" />
+          <circle cx="100" cy="100" r="90" fill="none" stroke="var(--orange)" stroke-width="6" id="drill-timer-circle"
+            stroke-dasharray="565.48" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 100 100)" />
+        </svg>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:24px">
+        <button class="btn btn-primary" id="drill-pause-btn" onclick="toggleDrillPause()">⏸ Pause</button>
+        <button class="btn btn-secondary" onclick="skipDrill()">⏭ Skip</button>
+        <button class="btn btn-secondary" style="color:var(--red);border-color:rgba(239,68,68,0.3)"
+          onclick="cancelDrill()">✕ Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-modal">
+      <div class="confirm-icon" id="confirm-icon"></div>
+      <h3 id="confirm-title"></h3>
+      <p id="confirm-message"></p>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+        <button class="btn btn-primary" id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="genai.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

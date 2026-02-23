@@ -1,0 +1,1467 @@
+// ===== CLEAN SVG ICONS =====
+const IC = {
+  ai: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M12 2a4 4 0 014 4v2h2a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2v-8a2 2 0 012-2h2V6a4 4 0 014-4z"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></svg>',
+  search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  chart: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>',
+  bolt: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><polyline points="20 6 9 17 4 12"/></svg>',
+  warn: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  upload: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  user: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  bulb: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7V17h8v-2.3A7 7 0 0012 2z"/></svg>',
+  mail: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,7 12,13 2,7"/></svg>',
+  trash: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>',
+  clock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  star: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  gear: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33"/></svg>',
+  pencil: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  link: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>',
+  brain: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>',
+  wave: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M18.36 6.64A9 9 0 015.64 18.36M19.78 2.22l-2.83 2.83M4.22 19.78l2.83-2.83"/></svg>',
+  clip: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>',
+  login: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block;vertical-align:-3px"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>',
+};
+
+// ===== STATE =====
+let currentPage = 'dashboard';
+let currentPlan = 'elite';
+let drawTool = 'pen';
+let drawColor = '#e8650a';
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let canvasHistory = [];
+
+// ===== NAVIGATION =====
+function navigateTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + page);
+  const navEl = document.querySelector(`[data-page="${page}"]`);
+  if (pageEl) { pageEl.classList.add('active'); currentPage = page; }
+  if (navEl) navEl.classList.add('active');
+  if (page === 'draw-plays') initCanvas();
+  if (page === 'player-stats') renderPlayerCharts();
+  if (page === 'ai-analysis') renderAnalysisCharts();
+}
+
+// ===== TOAST =====
+function showToast(message, icon = '✓') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ===== MODALS =====
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('show');
+  }
+});
+
+// ===== UPLOAD GAME FILM =====
+function initUpload() {
+  const zone = document.getElementById('upload-zone');
+  const fileInput = document.getElementById('file-input');
+  if (!zone) return;
+  zone.addEventListener('click', () => fileInput.click());
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault(); zone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+}
+
+function handleFiles(files) {
+  if (files.length === 0) return;
+  const file = files[0];
+  showToast(`Uploading "${file.name}"...`, '📤');
+  // Simulate upload
+  setTimeout(() => {
+    showToast(`"${file.name}" uploaded successfully!`, '✅');
+    addToClips(file.name);
+    closeModal('upload-modal');
+  }, 1500);
+}
+
+function addToClips(fileName) {
+  const grid = document.getElementById('clips-grid');
+  if (!grid) return;
+  const card = document.createElement('div');
+  card.className = 'clip-card';
+  card.onclick = () => openClipViewer(fileName, 'Just now');
+  card.innerHTML = `
+    <div class="clip-thumb"><div class="court-mini"></div></div>
+    <div class="clip-info">
+      <h4>${fileName}</h4>
+      <div class="clip-date">Just now</div>
+      <span class="badge badge-orange">New</span>
+    </div>`;
+  grid.prepend(card);
+}
+
+// ===== DRAW PLAYS (CANVAS) =====
+function initCanvas() {
+  const canvas = document.getElementById('playCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = 450;
+  drawCourt(ctx, canvas.width, canvas.height);
+  saveCanvasState();
+}
+
+function drawCourt(ctx, w, h) {
+  ctx.fillStyle = '#1a1a0a';
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  // Half court
+  ctx.strokeRect(40, 20, w - 80, h - 40);
+  ctx.beginPath(); ctx.moveTo(w / 2, 20); ctx.lineTo(w / 2, h - 20); ctx.stroke();
+  // Center circle
+  ctx.beginPath(); ctx.arc(w / 2, h / 2, 50, 0, Math.PI * 2); ctx.stroke();
+  // Free throw areas
+  ctx.strokeRect(40, h / 2 - 60, 140, 120);
+  ctx.strokeRect(w - 180, h / 2 - 60, 140, 120);
+  // Three point arcs
+  ctx.beginPath(); ctx.arc(115, h / 2, 130, -Math.PI / 2.5, Math.PI / 2.5); ctx.stroke();
+  ctx.beginPath(); ctx.arc(w - 115, h / 2, 130, Math.PI - Math.PI / 2.5, Math.PI + Math.PI / 2.5); ctx.stroke();
+  // Hoops
+  ctx.beginPath(); ctx.arc(60, h / 2, 8, 0, Math.PI * 2); ctx.strokeStyle = '#e8650a'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(w - 60, h / 2, 8, 0, Math.PI * 2); ctx.stroke();
+  ctx.strokeStyle = '#333';
+}
+
+function saveCanvasState() {
+  const canvas = document.getElementById('playCanvas');
+  if (canvas) canvasHistory.push(canvas.toDataURL());
+}
+
+function setupCanvasEvents() {
+  const canvas = document.getElementById('playCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  canvas.addEventListener('mousedown', (e) => {
+    isDrawing = true;
+    const rect = canvas.getBoundingClientRect();
+    lastX = e.clientX - rect.left;
+    lastY = e.clientY - rect.top;
+    if (drawTool === 'player') {
+      drawPlayerToken(ctx, lastX, lastY, drawColor);
+      saveCanvasState();
+      isDrawing = false;
+    } else if (drawTool === 'ball') {
+      drawBall(ctx, lastX, lastY);
+      saveCanvasState();
+      isDrawing = false;
+    }
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (!isDrawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if (drawTool === 'pen') {
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = drawColor;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    } else if (drawTool === 'arrow') {
+      // Will draw arrow on mouseup
+    }
+    lastX = x; lastY = y;
+  });
+
+  canvas.addEventListener('mouseup', (e) => {
+    if (drawTool === 'arrow' && isDrawing) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      drawArrow(ctx, lastX, lastY, x, y, drawColor);
+    }
+    isDrawing = false;
+    saveCanvasState();
+  });
+}
+
+function drawPlayerToken(ctx, x, y, color) {
+  ctx.beginPath();
+  ctx.arc(x, y, 15, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawBall(ctx, x, y) {
+  ctx.beginPath();
+  ctx.arc(x, y, 10, 0, Math.PI * 2);
+  ctx.fillStyle = '#e8650a';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x, y, 10, 0, Math.PI * 2);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Lines
+  ctx.beginPath(); ctx.moveTo(x - 10, y); ctx.lineTo(x + 10, y); ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y - 10); ctx.lineTo(x, y + 10); ctx.stroke();
+}
+
+function drawArrow(ctx, fromX, fromY, toX, toY, color) {
+  const headLen = 15;
+  const angle = Math.atan2(toY - fromY, toX - fromX);
+  ctx.beginPath();
+  ctx.moveTo(fromX, fromY);
+  ctx.lineTo(toX, toY);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(toX, toY);
+  ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+  ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function setDrawTool(tool) {
+  drawTool = tool;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`[data-tool="${tool}"]`);
+  if (btn) btn.classList.add('active');
+}
+
+function setDrawColor(color) {
+  drawColor = color;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  const dot = document.querySelector(`[data-color="${color}"]`);
+  if (dot) dot.classList.add('active');
+}
+
+function clearCanvas() {
+  const canvas = document.getElementById('playCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  drawCourt(ctx, canvas.width, canvas.height);
+  saveCanvasState();
+  showToast('Canvas cleared', '🗑️');
+}
+
+function undoCanvas() {
+  if (canvasHistory.length <= 1) return;
+  canvasHistory.pop();
+  const canvas = document.getElementById('playCanvas');
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.src = canvasHistory[canvasHistory.length - 1];
+  img.onload = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0); };
+}
+
+function savePlay() {
+  showToast('Play saved successfully!', '💾');
+}
+
+// ===== SEND TIPS =====
+function sendTip() {
+  const player = document.getElementById('tip-player').value;
+  const message = document.getElementById('tip-message').value;
+  if (!player || !message) { showToast('Please select a player and enter a message', '⚠️'); return; }
+  showToast(`Tip sent to ${player}!`, '💡');
+  document.getElementById('tip-message').value = '';
+  closeModal('tip-modal');
+  // Add to tip history
+  const history = document.getElementById('tip-history');
+  if (history) {
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.innerHTML = `
+      <div class="timeline-dot success"></div>
+      <div class="timeline-time">Now</div>
+      <div class="timeline-content">
+        <h4>Tip sent to ${player}</h4>
+        <p>${message}</p>
+      </div>`;
+    history.prepend(item);
+  }
+}
+
+// ===== PLAN SWITCHER =====
+function selectPlan(plan) {
+  currentPlan = plan;
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`[data-plan="${plan}"]`).classList.add('selected');
+  showToast(`Switched to ${plan === 'standard' ? 'Standard' : 'Elite'} plan`, '⚡');
+}
+
+// ===== CLIP VIEWER =====
+let currentClipTitle = '';
+let currentClipDate = '';
+
+const gameAnalysisData = {
+  'Lincoln vs Westfield': {
+    score: '72 - 65', result: 'Win', fg: '47%', threes: '8-22', ft: '18-24', reb: 38, ast: 18, to: 11,
+    moments: [
+      { time: '4:32 Q4', type: 'danger', text: 'High fatigue — #7 DeShawn Wright. Sprint speed dropped 22%.' },
+      { time: '6:15 Q4', type: 'danger', text: 'High fatigue — #5 Omar Johnson. Vertical leap down 30%.' },
+      { time: '2:10 Q3', type: 'warning', text: 'Turnover cluster: 3 turnovers in 90 seconds under press.' },
+      { time: '5:45 Q3', type: 'warning', text: 'Defensive breakdown on left wing — 4 consecutive scores.' },
+      { time: '8:00 Q2', type: 'info', text: 'Momentum shift: 12-4 run after #3 Marcus James entered.' },
+      { time: '3:20 Q1', type: 'success', text: 'Starting 5 had +15 point differential — best unit this season.' }
+    ]
+  },
+  'Lincoln vs Oakridge': {
+    score: '58 - 61', result: 'Loss', fg: '38%', threes: '5-19', ft: '15-22', reb: 30, ast: 11, to: 16,
+    moments: [
+      { time: '1:45 Q4', type: 'danger', text: 'Critical turnover by #3 in final 2 minutes.' },
+      { time: '3:30 Q4', type: 'warning', text: 'Missed 4 consecutive free throws in crunch time.' },
+      { time: '7:00 Q3', type: 'danger', text: 'Fatigue across all starters — pace dropped 24%.' },
+      { time: '5:00 Q2', type: 'info', text: 'Zone defense forced 5 turnovers in Q2.' },
+      { time: '9:00 Q1', type: 'success', text: 'Strong start: 8-0 opening run.' }
+    ]
+  },
+  'Lincoln vs Riverside': {
+    score: '81 - 70', result: 'Win', fg: '51%', threes: '10-24', ft: '21-26', reb: 42, ast: 22, to: 8,
+    moments: [
+      { time: '6:30 Q4', type: 'success', text: 'Fast break efficiency 90% — best game this season.' },
+      { time: '4:00 Q3', type: 'info', text: '#3 Marcus James 28 pts — career high.' },
+      { time: '2:15 Q2', type: 'success', text: 'Defense held opponents to 12 points in Q2.' },
+      { time: '8:00 Q1', type: 'info', text: 'Ball movement excellent: 7 assists on first 8 baskets.' }
+    ]
+  },
+  'Lincoln vs Crestwood': {
+    score: '66 - 54', result: 'Win', fg: '44%', threes: '7-20', ft: '17-22', reb: 36, ast: 15, to: 10,
+    moments: [
+      { time: '5:00 Q4', type: 'success', text: 'Closed on 10-2 run to seal the game.' },
+      { time: '3:00 Q3', type: 'warning', text: 'Offensive stagnation — 3 shot clock violations.' },
+      { time: '7:30 Q2', type: 'info', text: 'Press defense created 4 steals.' },
+      { time: '1:00 Q1', type: 'success', text: '#23 Jaylen Carter dominant: 8 pts, 4 reb in Q1.' }
+    ]
+  },
+};
+
+function getGameData(title) {
+  if (gameAnalysisData[title]) return gameAnalysisData[title];
+  // Generate random data for unknown games
+  const isWin = Math.random() > 0.35;
+  const ourScore = Math.floor(Math.random() * 30) + 55;
+  const theirScore = isWin ? ourScore - Math.floor(Math.random() * 15) - 1 : ourScore + Math.floor(Math.random() * 10) + 1;
+  return {
+    score: `${ourScore} - ${theirScore}`, result: isWin ? 'Win' : 'Loss',
+    fg: `${Math.floor(Math.random() * 15) + 38}%`, threes: `${Math.floor(Math.random() * 8) + 4}-${Math.floor(Math.random() * 10) + 18}`,
+    ft: `${Math.floor(Math.random() * 10) + 14}-${Math.floor(Math.random() * 8) + 20}`,
+    reb: Math.floor(Math.random() * 15) + 28, ast: Math.floor(Math.random() * 12) + 10, to: Math.floor(Math.random() * 10) + 6,
+    moments: [
+      { time: `${Math.floor(Math.random() * 8) + 1}:${String(Math.floor(Math.random() * 59)).padStart(2, '0')} Q4`, type: 'danger', text: 'Fatigue spike in starters — recommend substitution.' },
+      { time: `${Math.floor(Math.random() * 8) + 1}:${String(Math.floor(Math.random() * 59)).padStart(2, '0')} Q3`, type: 'warning', text: 'Turnover rate increased under defensive pressure.' },
+      { time: `${Math.floor(Math.random() * 8) + 1}:${String(Math.floor(Math.random() * 59)).padStart(2, '0')} Q2`, type: 'info', text: 'Momentum shift detected — scoring run initiated.' },
+      { time: `${Math.floor(Math.random() * 8) + 1}:${String(Math.floor(Math.random() * 59)).padStart(2, '0')} Q1`, type: 'success', text: 'Strong opening lineup — positive point differential.' }
+    ]
+  };
+}
+
+function openClipViewer(title, date) {
+  currentClipTitle = title;
+  currentClipDate = date;
+  document.getElementById('clip-viewer-title').textContent = title;
+  document.getElementById('clip-viewer-date').textContent = date;
+  document.getElementById('clip-analysis-results').style.display = 'none';
+  document.getElementById('clip-scan-overlay').classList.remove('show');
+  document.getElementById('clip-analyze-btn').disabled = false;
+  document.getElementById('clip-analyze-btn').innerHTML = '🤖 Run AI Analysis';
+  openModal('clip-viewer-modal');
+  // Draw mini-court on canvas
+  setTimeout(() => {
+    const canvas = document.getElementById('clip-court-canvas');
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    canvas.width = parent.clientWidth;
+    canvas.height = 280;
+    drawClipCourt(canvas);
+  }, 100);
+}
+
+function drawClipCourt(canvas) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  // Background
+  ctx.fillStyle = '#1a2332';
+  ctx.fillRect(0, 0, w, h);
+  // Court
+  const cx = w / 2, cy = h / 2;
+  const cw = w * 0.8, ch = h * 0.75;
+  const cl = cx - cw / 2, ct = cy - ch / 2;
+  ctx.strokeStyle = 'rgba(232,101,10,0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(cl, ct, cw, ch);
+  ctx.beginPath(); ctx.moveTo(cx, ct); ctx.lineTo(cx, ct + ch); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, ch * 0.15, 0, Math.PI * 2); ctx.stroke();
+  // Three-point arcs
+  ctx.beginPath(); ctx.arc(cl + cw * 0.12, cy, ch * 0.35, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+  ctx.beginPath(); ctx.arc(cl + cw * 0.88, cy, ch * 0.35, Math.PI / 2, -Math.PI / 2); ctx.stroke();
+  // Player dots
+  const players = [
+    { x: cl + cw * 0.2, y: cy - ch * 0.1, c: '#e8650a' },
+    { x: cl + cw * 0.15, y: cy + ch * 0.2, c: '#e8650a' },
+    { x: cl + cw * 0.3, y: cy, c: '#e8650a' },
+    { x: cl + cw * 0.25, y: cy - ch * 0.3, c: '#e8650a' },
+    { x: cl + cw * 0.18, y: cy + ch * 0.35, c: '#e8650a' },
+    { x: cl + cw * 0.7, y: cy - ch * 0.15, c: '#3b82f6' },
+    { x: cl + cw * 0.75, y: cy + ch * 0.2, c: '#3b82f6' },
+    { x: cl + cw * 0.8, y: cy, c: '#3b82f6' },
+    { x: cl + cw * 0.65, y: cy - ch * 0.3, c: '#3b82f6' },
+    { x: cl + cw * 0.72, y: cy + ch * 0.35, c: '#3b82f6' }
+  ];
+  players.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+    ctx.fillStyle = p.c;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+  // Movement arrows
+  ctx.strokeStyle = 'rgba(232,101,10,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(cl + cw * 0.2, cy - ch * 0.1); ctx.lineTo(cl + cw * 0.35, cy - ch * 0.2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cl + cw * 0.3, cy); ctx.lineTo(cl + cw * 0.4, cy - ch * 0.15); ctx.stroke();
+  ctx.setLineDash([]);
+  // Film label
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '11px Inter, system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('⏵ Game Film Preview — ' + (currentClipTitle || 'Game Clip'), cx, ct + ch + 16);
+}
+
+function runClipAnalysis() {
+  const scanOverlay = document.getElementById('clip-scan-overlay');
+  const analyzeBtn = document.getElementById('clip-analyze-btn');
+  const resultsArea = document.getElementById('clip-analysis-results');
+
+  analyzeBtn.disabled = true;
+  analyzeBtn.innerHTML = '⏳ Analyzing with Gemini AI...';
+  scanOverlay.classList.add('show');
+
+  const data = getGameData(currentClipTitle);
+  const resultColor = data.result === 'Win' ? 'var(--green)' : 'var(--red)';
+
+  // Start AI analysis in parallel with the scan animation
+  let aiAnalysisHtml = '';
+  const aiPromise = (window.genaiReady && window.analyzeClipWithAI)
+    ? window.analyzeClipWithAI(currentClipTitle, data).then(result => {
+      if (result.success) {
+        aiAnalysisHtml = `
+            <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+              <h3>🧠 Deep AI Coaching Analysis</h3>
+              <div style="border-left:3px solid var(--orange);padding-left:16px;margin:12px 0">
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Powered by Gemini 2.0 Flash</div>
+              </div>
+              <div style="font-size:13px;line-height:1.8;color:var(--text-secondary);max-height:400px;overflow-y:auto">
+                ${window.genaiMarkdownToHtml(result.text)}
+              </div>
+            </div>`;
+      } else {
+        aiAnalysisHtml = `
+            <div style="margin-top:16px;padding:12px;background:rgba(239,68,68,0.08);border-radius:8px;font-size:12px;color:var(--text-muted)">
+              ⚠️ AI deep analysis unavailable: ${result.error}
+            </div>`;
+      }
+    })
+    : Promise.resolve();
+
+  // Also check for stored deep analysis text from upload
+  const storedAnalysis = (window.aiAnalysisTexts && window.aiAnalysisTexts[currentClipTitle]);
+
+  // Wait for scan animation + AI response
+  const scanDelay = 3000;
+  setTimeout(() => {
+    aiPromise.then(() => {
+      scanOverlay.classList.remove('show');
+      analyzeBtn.innerHTML = '✅ Analysis Complete';
+
+      // Use stored upload analysis if available and no fresh AI analysis
+      let deepAnalysisBlock = aiAnalysisHtml;
+      if (!deepAnalysisBlock && storedAnalysis) {
+        deepAnalysisBlock = `
+          <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+            <h3>🧠 Deep AI Coaching Analysis</h3>
+            <div style="border-left:3px solid var(--orange);padding-left:16px;margin:12px 0">
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Generated during film upload • Gemini 2.0 Flash</div>
+            </div>
+            <div style="font-size:13px;line-height:1.8;color:var(--text-secondary);max-height:400px;overflow-y:auto">
+              ${window.genaiMarkdownToHtml ? window.genaiMarkdownToHtml(storedAnalysis) : storedAnalysis}
+            </div>
+          </div>`;
+      }
+
+      resultsArea.innerHTML = `
+        <h3>🤖 AI Analysis Report</h3>
+        <div class="analysis-score-bar">
+          <div class="analysis-score-item"><div class="val" style="color:${resultColor}">${data.score}</div><div class="lbl">${data.result}</div></div>
+          <div class="analysis-score-item"><div class="val">${data.fg}</div><div class="lbl">FG%</div></div>
+          <div class="analysis-score-item"><div class="val">${data.threes}</div><div class="lbl">3PT</div></div>
+          <div class="analysis-score-item"><div class="val">${data.ft}</div><div class="lbl">FT</div></div>
+          <div class="analysis-score-item"><div class="val">${data.reb}</div><div class="lbl">REB</div></div>
+          <div class="analysis-score-item"><div class="val">${data.ast}</div><div class="lbl">AST</div></div>
+          <div class="analysis-score-item"><div class="val">${data.to}</div><div class="lbl">TO</div></div>
+        </div>
+        <h3>⚡ Key Moments Detected</h3>
+        <div class="analysis-moments">
+          ${data.moments.map(m => `
+            <div class="analysis-moment">
+              <div class="moment-time">${m.time}</div>
+              <div><span class="moment-type ${m.type}">${m.type === 'danger' ? 'Alert' : m.type === 'warning' ? 'Caution' : m.type === 'info' ? 'Insight' : 'Positive'}</span>${m.text}</div>
+            </div>
+          `).join('')}
+        </div>
+        ${deepAnalysisBlock}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+          <button class="btn btn-sm btn-primary" onclick="closeModal('clip-viewer-modal');navigateTo('ai-analysis')">📊 View Full Report</button>
+          <button class="btn btn-sm btn-secondary" onclick="closeModal('clip-viewer-modal');navigateTo('ai-drills')">⚡ See Recommended Drills</button>
+        </div>
+      `;
+      resultsArea.style.display = 'block';
+      showToast(`AI Analysis of ${currentClipTitle} complete!`, '🤖');
+      addNotification('🤖', 'orange', `AI Analysis complete for <strong>${currentClipTitle}</strong>`, 'Just now');
+    });
+  }, scanDelay);
+}
+
+// ===== SEARCH =====
+const searchableItems = [
+  { type: 'game', label: 'Lincoln vs Westfield', sub: 'Feb 10, 2026', icon: '🎬', action: () => { navigateTo('old-clips'); setTimeout(() => openClipViewer('Lincoln vs Westfield', 'Feb 10, 2026'), 300); } },
+  { type: 'game', label: 'Lincoln vs Oakridge', sub: 'Feb 7, 2026', icon: '🎬', action: () => { navigateTo('old-clips'); setTimeout(() => openClipViewer('Lincoln vs Oakridge', 'Feb 7, 2026'), 300); } },
+  { type: 'game', label: 'Lincoln vs Riverside', sub: 'Feb 3, 2026', icon: '🎬', action: () => { navigateTo('old-clips'); setTimeout(() => openClipViewer('Lincoln vs Riverside', 'Feb 3, 2026'), 300); } },
+  { type: 'game', label: 'Lincoln vs Crestwood', sub: 'Jan 29, 2026', icon: '🎬', action: () => { navigateTo('old-clips'); setTimeout(() => openClipViewer('Lincoln vs Crestwood', 'Jan 29, 2026'), 300); } },
+  { type: 'game', label: 'Lincoln vs Brookfield', sub: 'Jan 25, 2026', icon: '🎬', action: () => { navigateTo('old-clips'); setTimeout(() => openClipViewer('Lincoln vs Brookfield', 'Jan 25, 2026'), 300); } },
+  { type: 'game', label: 'Lincoln vs Hillcrest', sub: 'Jan 21, 2026', icon: '🎬', action: () => { navigateTo('old-clips'); setTimeout(() => openClipViewer('Lincoln vs Hillcrest', 'Jan 21, 2026'), 300); } },
+  { type: 'player', label: 'Marcus James (#3)', sub: 'Point Guard · 18.4 PPG', icon: '🏀', action: () => { navigateTo('player-stats'); setTimeout(() => switchPlayer('Marcus James (#3)'), 300); } },
+  { type: 'player', label: 'Anthony Davis (#11)', sub: 'Shooting Guard · 14.7 PPG', icon: '🏀', action: () => { navigateTo('player-stats'); setTimeout(() => switchPlayer('Anthony Davis (#11)'), 300); } },
+  { type: 'player', label: 'DeShawn Wright (#7)', sub: 'Small Forward · 12.1 PPG', icon: '🏀', action: () => { navigateTo('player-stats'); setTimeout(() => switchPlayer('DeShawn Wright (#7)'), 300); } },
+  { type: 'player', label: 'Jaylen Carter (#23)', sub: 'Power Forward · 11.3 PPG', icon: '🏀', action: () => { navigateTo('player-stats'); setTimeout(() => switchPlayer('Jaylen Carter (#23)'), 300); } },
+  { type: 'player', label: 'Omar Johnson (#5)', sub: 'Center · 9.8 PPG', icon: '🏀', action: () => { navigateTo('player-stats'); setTimeout(() => switchPlayer('Omar Johnson (#5)'), 300); } },
+  { type: 'page', label: 'Dashboard', sub: 'Home overview', icon: '📊', action: () => navigateTo('dashboard') },
+  { type: 'page', label: 'Upload Film', sub: 'Upload game footage', icon: '📤', action: () => navigateTo('upload-film') },
+  { type: 'page', label: 'Draw Plays', sub: 'Play designer canvas', icon: '✏️', action: () => navigateTo('draw-plays') },
+  { type: 'page', label: 'Send Tips', sub: 'Coaching tips to players', icon: '💬', action: () => navigateTo('send-tips') },
+  { type: 'page', label: 'AI Analysis', sub: 'Machine learning insights', icon: '🤖', action: () => navigateTo('ai-analysis') },
+  { type: 'page', label: 'AI Drills', sub: 'Recommended training', icon: '⚡', action: () => navigateTo('ai-drills') },
+  { type: 'page', label: 'Old Clips', sub: 'Game library', icon: '🎬', action: () => navigateTo('old-clips') },
+  { type: 'page', label: 'Player Stats', sub: 'Individual performance', icon: '📈', action: () => navigateTo('player-stats') },
+  { type: 'page', label: 'Plans', sub: 'Subscription management', icon: '💎', action: () => navigateTo('plans') },
+  { type: 'page', label: 'Settings', sub: 'Account preferences', icon: '⚙️', action: () => navigateTo('settings') },
+];
+
+function handleSearch(query) {
+  const dropdown = document.getElementById('search-dropdown');
+  if (!query.trim()) { dropdown.classList.remove('show'); return; }
+  const q = query.toLowerCase();
+  const matches = searchableItems.filter(item => item.label.toLowerCase().includes(q) || item.sub.toLowerCase().includes(q));
+  if (matches.length === 0) {
+    dropdown.innerHTML = '<div class="search-dropdown-empty">No results for "' + query + '"</div>';
+    dropdown.classList.add('show');
+    return;
+  }
+  // Group by type
+  const groups = {};
+  matches.forEach(m => { if (!groups[m.type]) groups[m.type] = []; groups[m.type].push(m); });
+  const labels = { game: 'Games', player: 'Players', page: 'Pages' };
+  const icons = { game: 'orange', player: 'green', page: 'blue' };
+  let html = '';
+  for (const type of ['game', 'player', 'page']) {
+    if (!groups[type]) continue;
+    html += `<div class="search-dropdown-section">${labels[type]}</div>`;
+    groups[type].slice(0, 5).forEach((item, i) => {
+      html += `<div class="search-dropdown-item" onclick="searchableItems[${searchableItems.indexOf(item)}].action();document.getElementById('search-dropdown').classList.remove('show');document.getElementById('global-search').value='';"><div class="search-icon ${icons[type]}">${item.icon}</div><div><div>${item.label}</div><div style="font-size:11px;color:var(--text-muted)">${item.sub}</div></div></div>`;
+    });
+  }
+  dropdown.innerHTML = html;
+  dropdown.classList.add('show');
+}
+
+// Close search dropdown on outside click
+document.addEventListener('click', (e) => {
+  const search = document.getElementById('search-dropdown');
+  if (search && !e.target.closest('.header-search')) search.classList.remove('show');
+  const notif = document.getElementById('notif-dropdown');
+  if (notif && !e.target.closest('.notif-wrap')) notif.classList.remove('show');
+});
+
+// ===== NOTIFICATIONS =====
+function toggleNotifications() {
+  const dropdown = document.getElementById('notif-dropdown');
+  dropdown.classList.toggle('show');
+  // Mark all as read
+  if (dropdown.classList.contains('show')) {
+    setTimeout(() => {
+      document.querySelectorAll('.notif-item.unread').forEach(n => n.classList.remove('unread'));
+      const dot = document.getElementById('notif-dot');
+      if (dot) dot.style.display = 'none';
+    }, 1000);
+  }
+}
+
+function clearNotifications() {
+  document.getElementById('notif-list').innerHTML = '<div class="search-dropdown-empty">No notifications</div>';
+  document.getElementById('notif-dot').style.display = 'none';
+}
+
+function addNotification(icon, color, text, time) {
+  const list = document.getElementById('notif-list');
+  // Remove "no notifications" message if present
+  const empty = list.querySelector('.search-dropdown-empty');
+  if (empty) empty.remove();
+  const item = document.createElement('div');
+  item.className = 'notif-item unread';
+  item.innerHTML = `<div class="notif-icon ${color}">${icon}</div><div class="notif-body"><div class="notif-text">${text}</div><div class="notif-time">${time}</div></div>`;
+  list.prepend(item);
+  // Show notification dot
+  const dot = document.getElementById('notif-dot');
+  if (dot) dot.style.display = '';
+}
+
+function handleNotifClick(type) {
+  document.getElementById('notif-dropdown').classList.remove('show');
+  if (type === 'analysis') navigateTo('ai-analysis');
+  else if (type === 'tip') navigateTo('send-tips');
+  else if (type === 'drill') navigateTo('ai-drills');
+  else if (type === 'upload') navigateTo('old-clips');
+}
+
+// ===== UPLOAD FILM FUNCTIONS =====
+function handlePageFileSelect(input) {
+  if (input.files.length > 0) {
+    const info = document.getElementById('page-file-info');
+    const name = document.getElementById('page-file-name');
+    info.style.display = 'flex';
+    name.textContent = input.files[0].name + ' (' + (input.files[0].size / (1024 * 1024)).toFixed(1) + ' MB)';
+  }
+}
+
+function handleUploadFilm() {
+  const title = document.getElementById('upload-game-title').value || 'Lincoln vs Unknown — ' + new Date().toLocaleDateString();
+  const opponent = document.getElementById('upload-opponent').value;
+  const date = document.getElementById('upload-date').value;
+  const displayDate = date ? new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Just now';
+  const fileInput = document.querySelector('#page-upload-film input[type="file"]');
+  const fileName = (fileInput && fileInput.files.length > 0) ? fileInput.files[0].name : null;
+
+  // Start the AI analysis in parallel with the overlay animation
+  let aiResult = null;
+  if (window.genaiReady) {
+    window.analyzeUploadedFilm({ title, opponent, date: displayDate, fileName }).then(result => {
+      aiResult = result;
+    });
+  }
+
+  runAnalysisOverlay(title, displayDate, () => {
+    // Store AI-generated stats if available
+    if (aiResult && aiResult.success && aiResult.parsedStats) {
+      gameAnalysisData[title] = aiResult.parsedStats;
+      // Also store the detailed analysis text
+      if (!window.aiAnalysisTexts) window.aiAnalysisTexts = {};
+      window.aiAnalysisTexts[title] = aiResult.analysisText || aiResult.text;
+    }
+    addToClips(title);
+    showToast(`AI Analysis of "${title}" is complete! View your results.`, '🤖');
+    addNotification('📤', 'purple', `Film <strong>${title}</strong> analyzed by Gemini AI`, 'Just now');
+    setTimeout(() => openClipViewer(title, displayDate), 300);
+    // Clear form
+    document.getElementById('upload-game-title').value = '';
+    document.getElementById('upload-opponent').value = '';
+    document.getElementById('upload-date').value = '';
+    const info = document.getElementById('page-file-info');
+    if (info) info.style.display = 'none';
+  });
+}
+
+function handleUploadFromModal() {
+  const titleInput = document.querySelector('#upload-modal .form-input');
+  const title = (titleInput ? titleInput.value : '') || 'Game Film — ' + new Date().toLocaleDateString();
+  closeModal('upload-modal');
+
+  // Start AI analysis in parallel
+  let aiResult = null;
+  if (window.genaiReady) {
+    window.analyzeUploadedFilm({ title, opponent: '', date: 'Just now' }).then(result => {
+      aiResult = result;
+    });
+  }
+
+  runAnalysisOverlay(title, 'Just now', () => {
+    if (aiResult && aiResult.success && aiResult.parsedStats) {
+      gameAnalysisData[title] = aiResult.parsedStats;
+      if (!window.aiAnalysisTexts) window.aiAnalysisTexts = {};
+      window.aiAnalysisTexts[title] = aiResult.analysisText || aiResult.text;
+    }
+    addToClips(title);
+    showToast(`AI Analysis of "${title}" is complete!`, '🤖');
+    addNotification('📤', 'purple', `Film <strong>${title}</strong> analyzed by Gemini AI`, 'Just now');
+    setTimeout(() => openClipViewer(title, 'Just now'), 300);
+    if (titleInput) titleInput.value = '';
+  });
+}
+
+function runAnalysisOverlay(title, date, onComplete) {
+  const overlay = document.getElementById('analysis-overlay');
+  const fill = document.getElementById('analysis-progress-fill');
+  const label = document.getElementById('analysis-progress-label');
+  const titleEl = document.getElementById('analysis-overlay-title');
+
+  titleEl.textContent = 'Analyzing: ' + title;
+  fill.style.width = '0%';
+  overlay.classList.add('show');
+
+  // Reset stages
+  document.querySelectorAll('.analysis-stage').forEach(s => { s.classList.remove('active', 'done'); });
+  document.getElementById('stage-upload').classList.add('active');
+
+  const stages = [
+    { id: 'stage-upload', pct: 20, label: 'Uploading file...', delay: 600 },
+    { id: 'stage-detect', pct: 45, label: 'Detecting players & tracking motion...', delay: 1800 },
+    { id: 'stage-plays', pct: 70, label: 'Analyzing plays & formations with Gemini AI...', delay: 3200 },
+    { id: 'stage-insights', pct: 100, label: 'Generating AI coaching insights...', delay: 5000 },
+  ];
+
+  stages.forEach((stage, i) => {
+    setTimeout(() => {
+      fill.style.width = stage.pct + '%';
+      label.textContent = stage.label;
+      if (i > 0) document.getElementById(stages[i - 1].id).classList.remove('active');
+      if (i > 0) document.getElementById(stages[i - 1].id).classList.add('done');
+      document.getElementById(stage.id).classList.add('active');
+    }, stage.delay);
+  });
+
+  // Complete — extended to 6.5s to give AI more time to respond
+  setTimeout(() => {
+    document.getElementById(stages[3].id).classList.remove('active');
+    document.getElementById(stages[3].id).classList.add('done');
+    overlay.classList.remove('show');
+    if (onComplete) onComplete();
+  }, 6500);
+}
+
+// ===== SEND TIP (from Page) =====
+function sendTipFromPage() {
+  const player = document.getElementById('tip-player-page').value;
+  const message = document.getElementById('tip-message-page').value;
+  if (!player || !message) { showToast('Please select a player and enter a message', '⚠️'); return; }
+  showToast(`Tip sent to ${player}!`, '💡');
+  document.getElementById('tip-message-page').value = '';
+  addNotification('💡', 'green', `Tip delivered to <strong>${player}</strong>`, 'Just now');
+
+  // Add to tip history on sendtips page
+  const historyCards = document.querySelectorAll('#page-send-tips .card-body');
+  const historyDiv = historyCards.length > 1 ? historyCards[1] : null;
+  if (historyDiv) {
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.innerHTML = `
+      <div class="timeline-dot success"></div>
+      <div class="timeline-time">Now</div>
+      <div class="timeline-content">
+        <h4>Sent to ${player}</h4>
+        <p>${message}</p>
+      </div>`;
+    historyDiv.prepend(item);
+  }
+  // Also add to dashboard tip history
+  const dashHistory = document.getElementById('tip-history');
+  if (dashHistory) {
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.innerHTML = `
+      <div class="timeline-dot success"></div>
+      <div class="timeline-time">Now</div>
+      <div class="timeline-content">
+        <h4>Tip sent to ${player}</h4>
+        <p>${message}</p>
+      </div>`;
+    dashHistory.prepend(item);
+  }
+}
+
+// ===== DRILL TIMER =====
+let drillInterval = null;
+let drillTimeLeft = 0;
+let drillTotalTime = 0;
+let drillPaused = false;
+let drillName = '';
+
+function startDrill(name, minutes) {
+  drillName = name;
+  drillTotalTime = minutes * 60;
+  drillTimeLeft = drillTotalTime;
+  drillPaused = false;
+
+  document.getElementById('drill-timer-name').textContent = name;
+  document.getElementById('drill-pause-btn').innerHTML = '⏸ Pause';
+  updateDrillDisplay();
+
+  document.getElementById('drill-timer-overlay').classList.add('show');
+
+  drillInterval = setInterval(() => {
+    if (!drillPaused) {
+      drillTimeLeft--;
+      updateDrillDisplay();
+      if (drillTimeLeft <= 0) {
+        completeDrill();
+      }
+    }
+  }, 1000);
+}
+
+function updateDrillDisplay() {
+  const mins = Math.floor(drillTimeLeft / 60);
+  const secs = drillTimeLeft % 60;
+  document.getElementById('drill-timer-display').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  // Update circle progress
+  const circle = document.getElementById('drill-timer-circle');
+  const circumference = 565.48;
+  const progress = 1 - (drillTimeLeft / drillTotalTime);
+  circle.setAttribute('stroke-dashoffset', circumference * (1 - progress));
+}
+
+function toggleDrillPause() {
+  drillPaused = !drillPaused;
+  document.getElementById('drill-pause-btn').innerHTML = drillPaused ? '▶ Resume' : '⏸ Pause';
+}
+
+function skipDrill() {
+  drillTimeLeft = 0;
+  completeDrill();
+}
+
+function cancelDrill() {
+  clearInterval(drillInterval);
+  document.getElementById('drill-timer-overlay').classList.remove('show');
+  showToast(`${drillName} cancelled`, '❌');
+}
+
+function completeDrill() {
+  clearInterval(drillInterval);
+  document.getElementById('drill-timer-overlay').classList.remove('show');
+  showToast(`${drillName} completed! Great work! 💪`, '✅');
+  addNotification('✅', 'green', `Drill <strong>${drillName}</strong> completed`, 'Just now');
+  // Mark the drill card as completed
+  document.querySelectorAll('.drill-card').forEach(card => {
+    const h4 = card.querySelector('h4');
+    if (h4 && h4.textContent.includes(drillName)) {
+      const btn = card.querySelector('.drill-start-btn');
+      if (btn) { btn.textContent = '✅ Completed'; btn.disabled = true; btn.style.opacity = '0.6'; }
+      const badge = card.querySelector('.badge');
+      if (badge) { badge.className = 'badge badge-green'; badge.textContent = 'Completed'; }
+    }
+  });
+}
+
+
+// ===== PLAYER DATA =====
+const playerData = {
+  'Marcus James (#3)': { ppg: 18.4, apg: 6.2, spg: 3.1, rpg: 4.5, fg: '48%', min: 28.3, eff: 72, shoots: [78, 52, 34, 81, 15], perf: [68, 55, 42, 28, 23], trend: '22,16,20,14,18,24,15,21,19,17' },
+  'Anthony Davis (#11)': { ppg: 14.7, apg: 3.8, spg: 1.4, rpg: 3.2, fg: '44%', min: 26.1, eff: 65, shoots: [72, 48, 38, 75, 8], perf: [52, 40, 30, 15, 31], trend: '12,16,14,18,11,15,17,14,16,13' },
+  'DeShawn Wright (#7)': { ppg: 12.1, apg: 2.1, spg: 1.8, rpg: 6.8, fg: '45%', min: 30.5, eff: 58, shoots: [68, 42, 30, 78, 22], perf: [38, 72, 35, 45, 28], trend: '10,14,12,16,8,15,11,13,10,12' },
+  'Jaylen Carter (#23)': { ppg: 11.3, apg: 1.5, spg: 0.9, rpg: 8.4, fg: '51%', min: 27.8, eff: 61, shoots: [65, 55, 18, 82, 30], perf: [25, 80, 18, 52, 20], trend: '12,10,14,8,13,11,15,9,12,11' },
+  'Omar Johnson (#5)': { ppg: 9.8, apg: 1.2, spg: 0.6, rpg: 9.1, fg: '54%', min: 24.6, eff: 55, shoots: [62, 50, 10, 85, 35], perf: [20, 85, 12, 60, 18], trend: '8,12,10,14,7,11,9,10,8,10' },
+  'Tyrese Mitchell (#10)': { ppg: 8.6, apg: 2.8, spg: 1.6, rpg: 2.1, fg: '41%', min: 18.4, eff: 52, shoots: [75, 38, 35, 68, 5], perf: [42, 28, 32, 8, 25], trend: '6,10,8,12,7,11,9,8,10,6' },
+  'Brandon Lewis (#12)': { ppg: 7.4, apg: 0.8, spg: 0.5, rpg: 6.2, fg: '49%', min: 16.2, eff: 48, shoots: [58, 52, 12, 80, 28], perf: [15, 65, 10, 38, 15], trend: '8,6,10,5,9,7,8,6,9,7' },
+  'Kevin Brooks (#15)': { ppg: 6.9, apg: 0.4, spg: 0.3, rpg: 7.5, fg: '52%', min: 15.8, eff: 46, shoots: [55, 45, 5, 88, 32], perf: [8, 78, 6, 55, 12], trend: '5,8,6,10,4,9,7,6,8,5' },
+  'Isaiah Thomas (#20)': { ppg: 6.2, apg: 4.5, spg: 2.0, rpg: 1.8, fg: '39%', min: 14.5, eff: 50, shoots: [70, 35, 32, 60, 2], perf: [58, 22, 38, 5, 30], trend: '4,8,5,10,6,7,5,8,4,6' },
+  'Andre Williams (#22)': { ppg: 5.5, apg: 1.1, spg: 1.2, rpg: 3.6, fg: '42%', min: 13.2, eff: 44, shoots: [65, 40, 28, 72, 12], perf: [20, 42, 25, 18, 22], trend: '6,4,7,3,8,5,6,4,7,5' },
+  'Chris Patterson (#30)': { ppg: 4.8, apg: 1.8, spg: 0.8, rpg: 1.5, fg: '38%', min: 11.6, eff: 40, shoots: [72, 32, 30, 55, 0], perf: [30, 18, 15, 3, 20], trend: '3,6,4,8,3,5,4,7,5,4' },
+  'Malik Henderson (#33)': { ppg: 4.1, apg: 0.5, spg: 0.4, rpg: 5.0, fg: '47%', min: 10.3, eff: 38, shoots: [50, 48, 8, 75, 20], perf: [10, 55, 8, 30, 10], trend: '4,3,6,2,5,4,3,5,4,3' },
+};
+let selectedPlayer = 'Marcus James (#3)';
+
+// ===== PLAYER STATS BAR CHARTS =====
+function renderPlayerCharts() {
+  const d = playerData[selectedPlayer] || playerData['Marcus James (#3)'];
+  const sl = ['Free Throws', 'Mid-Range', 'Three-Point', 'Layups', 'Dunks'];
+  const sc = ['#e8650a', '#ff8c38', '#c45500', '#22c55e', '#3b82f6'];
+  renderBarChart('chart-shooting', sl.map((l, i) => ({ label: l, value: d.shoots[i], color: sc[i] })));
+  const pl = ['Assists', 'Rebounds', 'Steals', 'Blocks', 'Turnovers'];
+  const pc = ['#3b82f6', '#a855f7', '#22c55e', '#eab308', '#ef4444'];
+  renderBarChart('chart-performance', pl.map((l, i) => ({ label: l, value: d.perf[i], color: pc[i] })));
+  renderDonutChart('chart-efficiency', d.eff, 'Efficiency');
+  // Update sparkline with player data
+  const sparkEl = document.querySelector('#page-player-stats .sparkline');
+  if (sparkEl) sparkEl.dataset.values = d.trend;
+  renderSparklines();
+}
+
+function renderBarChart(containerId, data) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  data.forEach(item => {
+    const group = document.createElement('div');
+    group.className = 'chart-bar-group';
+    group.innerHTML = `
+      <div class="chart-bar-label"><span>${item.label}</span><span style="font-weight:700">${item.value}%</span></div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:0%;background:${item.color}"></div></div>`;
+    container.appendChild(group);
+    setTimeout(() => {
+      group.querySelector('.chart-bar-fill').style.width = item.value + '%';
+    }, 100);
+  });
+}
+
+function renderDonutChart(containerId, value, label) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const circumference = 2 * Math.PI * 45;
+  const offset = circumference - (value / 100) * circumference;
+  container.innerHTML = `
+    <div class="donut-chart">
+      <svg viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="45" fill="none" stroke="#222" stroke-width="10"/>
+        <circle cx="60" cy="60" r="45" fill="none" stroke="#e8650a" stroke-width="10"
+          stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
+          stroke-linecap="round" style="transition:stroke-dashoffset 1s ease"/>
+      </svg>
+      <div class="center-text">
+        <span class="center-value">${value}%</span>
+        <span class="center-label">${label}</span>
+      </div>
+    </div>`;
+}
+
+function renderSparklines() {
+  document.querySelectorAll('.sparkline').forEach(el => {
+    const values = el.dataset.values ? el.dataset.values.split(',').map(Number) : [];
+    const max = Math.max(...values);
+    el.innerHTML = values.map(v =>
+      `<div class="sparkline-bar" style="height:${(v / max) * 100}%" title="${v}"></div>`
+    ).join('');
+  });
+}
+
+// ===== AI ANALYSIS CHARTS =====
+function renderAnalysisCharts() {
+  renderBarChart('chart-team-shooting', [
+    { label: 'Team FG%', value: 46, color: '#e8650a' },
+    { label: 'Team 3PT%', value: 33, color: '#ff8c38' },
+    { label: 'Team FT%', value: 72, color: '#22c55e' },
+    { label: 'Opp FG%', value: 41, color: '#ef4444' },
+  ]);
+  renderBarChart('chart-quarters', [
+    { label: 'Q1 Points', value: 75, color: '#e8650a' },
+    { label: 'Q2 Points', value: 60, color: '#ff8c38' },
+    { label: 'Q3 Points', value: 85, color: '#22c55e' },
+    { label: 'Q4 Points', value: 45, color: '#ef4444' },
+  ]);
+  renderDonutChart('chart-win-rate', 67, 'Win Rate');
+  renderFatigueHeatmap();
+  renderPaceChart();
+  renderShotDistChart();
+  renderSparklines();
+}
+
+function renderPaceChart() {
+  renderBarChart('chart-pace', [
+    { label: 'Possessions/Game', value: 72, color: '#e8650a' },
+    { label: 'Points/Possession', value: 65, color: '#22c55e' },
+    { label: 'Pace Rating', value: 78, color: '#3b82f6' },
+    { label: 'Half-Court Eff.', value: 54, color: '#ff8c38' },
+    { label: 'Transition Eff.', value: 82, color: '#a855f7' },
+  ]);
+}
+
+function renderShotDistChart() {
+  renderBarChart('chart-shot-dist', [
+    { label: 'At Rim', value: 38, color: '#22c55e' },
+    { label: 'Short Mid', value: 18, color: '#ff8c38' },
+    { label: 'Long Mid', value: 12, color: '#eab308' },
+    { label: '3PT Corner', value: 14, color: '#3b82f6' },
+    { label: '3PT Above Break', value: 18, color: '#a855f7' },
+  ]);
+}
+
+function renderFatigueHeatmap() {
+  const container = document.getElementById('fatigue-heatmap');
+  if (!container) return;
+  const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+  const players = ['#3 James', '#11 Davis', '#7 Wright', '#23 Carter', '#5 Johnson'];
+  // fatigue levels 1-5 (5 = high fatigue)
+  const data = [
+    [1, 2, 3, 4],
+    [1, 1, 2, 3],
+    [2, 3, 4, 5],
+    [1, 2, 2, 3],
+    [1, 1, 3, 5],
+  ];
+  const colors = ['#22c55e', '#86efac', '#eab308', '#f97316', '#ef4444'];
+  let html = '<div style="display:flex;gap:8px;margin-bottom:8px;padding-left:90px">';
+  quarters.forEach(q => { html += `<div style="width:28px;text-align:center;font-size:11px;color:var(--text-muted)">${q}</div>`; });
+  html += '</div>';
+  players.forEach((player, pi) => {
+    html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">`;
+    html += `<div style="width:82px;font-size:11px;color:var(--text-secondary);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${player}">${player}</div>`;
+    html += '<div class="heatmap-row">';
+    data[pi].forEach(level => {
+      html += `<div class="heatmap-cell" style="background:${colors[level - 1]}" title="Fatigue: ${level}/5">${level}</div>`;
+    });
+    html += '</div></div>';
+  });
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11px;color:var(--text-muted)"><span>Low</span>';
+  colors.forEach(c => { html += `<div style="width:16px;height:12px;border-radius:2px;background:${c}"></div>`; });
+  html += '<span>High</span></div>';
+  container.innerHTML = html;
+}
+
+// ===== DRILL FILTER =====
+function filterDrills(category) {
+  document.querySelectorAll('.drill-filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.drill-card').forEach(card => {
+    if (category === 'all' || card.dataset.category === category) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// ===== PLAYER SWITCHER =====
+function switchPlayer(name) {
+  selectedPlayer = name;
+  document.getElementById('selected-player-name').textContent = name;
+  document.querySelectorAll('#page-player-stats .player-row').forEach(r => r.style.background = '');
+  if (event && event.currentTarget) event.currentTarget.style.background = 'rgba(232,101,10,0.05)';
+  const d = playerData[name];
+  if (d) {
+    const s = id => document.getElementById(id);
+    if (s('stat-ppg')) s('stat-ppg').textContent = d.ppg;
+    if (s('stat-apg')) s('stat-apg').textContent = d.apg;
+    if (s('stat-spg')) s('stat-spg').textContent = d.spg;
+    if (s('stat-rpg')) s('stat-rpg').textContent = d.rpg;
+    if (s('stat-fg')) s('stat-fg').textContent = d.fg;
+    if (s('stat-min')) s('stat-min').textContent = d.min;
+  }
+  showToast(`Viewing stats for ${name}`, '👤');
+  renderPlayerCharts();
+}
+
+// ===== PAYMENT METHODS =====
+function removePaymentMethod(btn) {
+  if (!confirm('Remove this payment method?')) return;
+  const row = btn.closest('.player-row');
+  if (row) row.remove();
+  showToast('Payment method removed', '🗑️');
+}
+
+function setDefaultPayment(btn) {
+  document.querySelectorAll('#payment-methods-list .badge-green').forEach(b => b.remove());
+  document.querySelectorAll('#payment-methods-list .player-row').forEach(row => {
+    const btns = row.querySelectorAll('.btn');
+    btns.forEach(b => { if (b.textContent === 'Set Default') b.style.display = ''; });
+  });
+  const row = btn.closest('.player-row');
+  const badgeArea = row.querySelector('div[style*="display:flex"]');
+  const badge = document.createElement('span');
+  badge.className = 'badge badge-green';
+  badge.textContent = 'Default';
+  badgeArea.prepend(badge);
+  btn.style.display = 'none';
+  showToast('Default payment method updated', '✅');
+}
+
+// ===== AUTH SCREEN =====
+let signupStep = 1;
+let selectedSignupPlan = 'elite';
+
+function showAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.auth-view').forEach(v => v.classList.remove('active'));
+  document.querySelector(`.auth-tab:${tab === 'login' ? 'first-child' : 'last-child'}`).classList.add('active');
+  document.getElementById(`auth-${tab}`).classList.add('active');
+  // Reset signup to step 1 when switching tabs
+  if (tab === 'signup') {
+    signupStep = 1;
+    updateSignupStep();
+  }
+}
+
+function updateSignupStep() {
+  // Update step content
+  document.querySelectorAll('.signup-step').forEach(s => s.classList.remove('active'));
+  const stepEl = document.getElementById(`signup-step-${signupStep}`);
+  if (stepEl) stepEl.classList.add('active');
+
+  // Update progress indicators
+  document.querySelectorAll('.progress-step').forEach(ps => {
+    const step = parseInt(ps.dataset.step);
+    ps.classList.remove('active', 'completed');
+    if (step === signupStep) ps.classList.add('active');
+    else if (step < signupStep) ps.classList.add('completed');
+  });
+
+  // Update progress lines
+  const lines = document.querySelectorAll('.progress-line');
+  lines.forEach((line, i) => {
+    line.classList.remove('active', 'completed');
+    if (i < signupStep - 1) line.classList.add('completed');
+    if (i === signupStep - 1) line.classList.add('active');
+  });
+
+  // Update buttons
+  const backBtn = document.getElementById('signup-back-btn');
+  const nextBtn = document.getElementById('signup-next-btn');
+  backBtn.style.display = signupStep === 1 ? 'none' : 'flex';
+
+  if (signupStep === 4) {
+    nextBtn.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Start Free Trial
+    `;
+  } else {
+    nextBtn.innerHTML = `
+      Continue
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    `;
+  }
+}
+
+function signupNext() {
+  if (signupStep < 4) {
+    signupStep++;
+    updateSignupStep();
+  } else {
+    handleSignupComplete();
+  }
+}
+
+function signupBack() {
+  if (signupStep > 1) {
+    signupStep--;
+    updateSignupStep();
+  }
+}
+
+function selectSignupPlan(plan) {
+  selectedSignupPlan = plan;
+  document.querySelectorAll('.signup-plan-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.plan === plan);
+  });
+}
+
+function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  // Validate credentials
+  const validAccounts = window.benchproAccounts || {};
+  // Default demo account
+  validAccounts['coachw@gmail.com'] = { password: '12345', name: 'Coach Wilson' };
+
+  if (!email || !password) {
+    showAuthError('Please enter both email and password.');
+    return;
+  }
+
+  const account = validAccounts[email.toLowerCase()];
+  if (!account || account.password !== password) {
+    showAuthError('Incorrect email or password. Please try again.');
+    // Shake the login button for visual feedback
+    const btn = document.querySelector('#auth-login .auth-btn');
+    if (btn) {
+      btn.style.animation = 'shake 0.4s ease';
+      setTimeout(() => btn.style.animation = '', 400);
+    }
+    return;
+  }
+
+  // Successful login — update UI with user info
+  const userName = account.name || 'Coach';
+  const initials = userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+  updateUserUI(userName, initials, email);
+
+  const authScreen = document.getElementById('auth-screen');
+  authScreen.classList.add('hidden');
+  setTimeout(() => {
+    authScreen.style.display = 'none';
+    navigateTo('dashboard');
+    initUpload();
+    setupCanvasEvents();
+    renderSparklines();
+    showToast(`Welcome back, ${userName}!`, '👋');
+  }, 500);
+}
+
+function showAuthError(message) {
+  // Remove any existing error
+  const existing = document.querySelector('.auth-error-popup');
+  if (existing) existing.remove();
+
+  const popup = document.createElement('div');
+  popup.className = 'auth-error-popup';
+  popup.style.cssText = 'position:fixed;top:32px;left:50%;transform:translateX(-50%);background:#1a1a1a;border:1px solid rgba(239,68,68,0.4);color:#ef4444;padding:14px 24px;border-radius:12px;font-size:14px;font-weight:600;z-index:100001;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:fadeInDown 0.3s ease';
+  popup.innerHTML = `<span style="font-size:20px">⚠️</span> ${message}`;
+  document.body.appendChild(popup);
+
+  setTimeout(() => {
+    popup.style.animation = 'fadeOut 0.3s ease forwards';
+    setTimeout(() => popup.remove(), 300);
+  }, 3000);
+}
+
+function updateUserUI(name, initials, email) {
+  // Update avatar
+  const avatar = document.querySelector('.avatar');
+  if (avatar) {
+    avatar.textContent = initials;
+    avatar.title = name;
+    avatar.onclick = () => showToast(`Profile: ${name}`, '👤');
+  }
+
+  // Update dashboard greeting
+  const dashTitle = document.querySelector('#page-dashboard .page-title');
+  if (dashTitle) dashTitle.innerHTML = `Welcome back, ${name.split(' ')[0]}! 👋`;
+
+  // Update tip sender fields
+  const tipSenderInputs = document.querySelectorAll('input[value="Coach Wilson"]');
+  tipSenderInputs.forEach(input => { input.value = name; });
+
+  // Update any placeholder tip sender references
+  const tipSenderPlaceholders = document.querySelectorAll('input[placeholder="Coach Wilson"]');
+  tipSenderPlaceholders.forEach(input => { input.placeholder = name; });
+}
+
+function handleSignupComplete() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  const confirm = document.getElementById('signup-confirm').value;
+
+  // Validate
+  if (!name) { showAuthError('Please enter your full name.'); return; }
+  if (!email) { showAuthError('Please enter your email address.'); return; }
+  if (!email.includes('@') || !email.includes('.')) { showAuthError('Please enter a valid email address.'); return; }
+  if (!password) { showAuthError('Please create a password.'); return; }
+  if (password.length < 4) { showAuthError('Password must be at least 4 characters.'); return; }
+  if (password !== confirm) { showAuthError('Passwords do not match. Please try again.'); return; }
+
+  // Register the account so they can log in later
+  if (!window.benchproAccounts) window.benchproAccounts = {};
+  window.benchproAccounts[email.toLowerCase()] = { password, name };
+
+  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+
+  updateUserUI(name, initials, email);
+
+  const authScreen = document.getElementById('auth-screen');
+  authScreen.classList.add('hidden');
+  setTimeout(() => {
+    authScreen.style.display = 'none';
+    currentPlan = selectedSignupPlan;
+    // Update the plan badge in sidebar
+    const planBadge = document.querySelector('.plan-badge');
+    if (planBadge) {
+      const planName = selectedSignupPlan === 'elite' ? 'Elite' : 'Standard';
+      const price = selectedSignupPlan === 'elite' ? '$29.99' : '$8.99';
+      planBadge.querySelector('strong').textContent = planName + ' Plan';
+      planBadge.querySelector('small').textContent = price + '/mo';
+    }
+    navigateTo('dashboard');
+    initUpload();
+    setupCanvasEvents();
+    renderSparklines();
+    showToast(`Welcome to BenchPro, ${name}! Your 14-day free trial has started.`, '🎉');
+    addNotification('🎉', 'green', `Account created for <strong>${name}</strong> (${email})`, 'Just now');
+  }, 500);
+}
+
+// ===== AI-POWERED ANALYSIS (Google GenAI SDK) =====
+
+function runAIPlayerAnalysis() {
+  if (!window.genaiReady) {
+    showToast('AI module is loading, please wait...', '⏳');
+    return;
+  }
+  const btn = document.getElementById('ai-player-analyze-btn');
+  const resultsDiv = document.getElementById('ai-player-analysis-results');
+  const stats = playerData[selectedPlayer];
+  if (!stats) { showToast('No player selected.', '⚠️'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Analyzing...';
+  resultsDiv.innerHTML = `
+    <div style="text-align:center;padding:30px 0">
+      <div style="font-size:32px;animation:pulse 1.5s infinite">🤖</div>
+      <p style="color:var(--text-muted);margin-top:8px">Analyzing <strong>${selectedPlayer}</strong> with Gemini AI...</p>
+      <div style="width:200px;height:4px;background:var(--border);border-radius:4px;margin:12px auto;overflow:hidden">
+        <div style="width:60%;height:100%;background:var(--orange);border-radius:4px;animation:loading-bar 2s ease-in-out infinite"></div>
+      </div>
+    </div>`;
+
+  window.analyzePlayerStats(selectedPlayer, stats).then(result => {
+    btn.disabled = false;
+    btn.innerHTML = '🤖 Analyze Player';
+    if (result.success) {
+      resultsDiv.innerHTML = `
+        <div style="border-left:3px solid var(--orange);padding-left:16px;margin-bottom:12px">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">🤖 Gemini AI Analysis — ${selectedPlayer}</div>
+        </div>
+        <div style="font-size:13px;line-height:1.8;color:var(--text-secondary)">
+          ${window.genaiMarkdownToHtml(result.text)}
+        </div>`;
+      showToast(`AI analysis for ${selectedPlayer} complete!`, '🤖');
+      addNotification('🤖', 'orange', `AI analysis complete for <strong>${selectedPlayer}</strong>`, 'Just now');
+    } else {
+      resultsDiv.innerHTML = `
+        <div style="text-align:center;padding:20px;color:var(--red)">
+          <div style="font-size:24px;margin-bottom:8px">⚠️</div>
+          <p><strong>Analysis failed:</strong> ${result.error}</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px">Please check your API key and internet connection, then try again.</p>
+        </div>`;
+      showToast('AI analysis failed. Check console for details.', '⚠️');
+    }
+  });
+}
+
+function askAIQuestion() {
+  if (!window.genaiReady) {
+    showToast('AI module is loading, please wait...', '⏳');
+    return;
+  }
+  const input = document.getElementById('ai-chat-input');
+  const sendBtn = document.getElementById('ai-chat-send-btn');
+  const resultsDiv = document.getElementById('ai-chat-results');
+  const question = input.value.trim();
+  if (!question) { showToast('Please type a question first.', '⚠️'); return; }
+
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = '⏳';
+  input.disabled = true;
+
+  // Build context from app data
+  const context = {
+    playerData: playerData,
+    recentGames: gameAnalysisData,
+  };
+
+  // Add the question bubble
+  const questionBubble = document.createElement('div');
+  questionBubble.style.cssText = 'background:rgba(232,101,10,0.1);border:1px solid rgba(232,101,10,0.2);border-radius:12px;padding:12px 16px;margin-bottom:12px;font-size:13px;color:var(--text-primary)';
+  questionBubble.innerHTML = `<strong>You:</strong> ${question}`;
+  resultsDiv.appendChild(questionBubble);
+
+  // Add loading indicator with search animation
+  const loadingDiv = document.createElement('div');
+  loadingDiv.id = 'ai-chat-loading';
+  loadingDiv.style.cssText = 'text-align:center;padding:16px;color:var(--text-muted);font-size:13px';
+  loadingDiv.innerHTML = '<div style="font-size:24px;animation:pulse 1.5s infinite">🔍</div><p style="margin-top:4px">Searching the web & thinking...</p>';
+  resultsDiv.appendChild(loadingDiv);
+  resultsDiv.scrollTop = resultsDiv.scrollHeight;
+
+  window.askBenchProAI(question, context).then(result => {
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = 'Ask AI';
+    input.disabled = false;
+    input.value = '';
+
+    const loading = document.getElementById('ai-chat-loading');
+    if (loading) loading.remove();
+
+    const responseBubble = document.createElement('div');
+    responseBubble.style.cssText = 'background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;line-height:1.7;color:var(--text-secondary)';
+    if (result.success) {
+      // Build search indicator
+      const searchBadge = result.usedSearch
+        ? '<span style="display:inline-block;background:rgba(59,130,246,0.12);color:#3b82f6;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px">🔍 Google Search</span>'
+        : '';
+
+      // Build sources list if available
+      let sourcesHtml = '';
+      if (result.groundingSources && result.groundingSources.length > 0) {
+        const uniqueSources = result.groundingSources.filter((s, i, arr) => arr.findIndex(x => x.uri === s.uri) === i).slice(0, 5);
+        sourcesHtml = `
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;color:var(--text-muted);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">📎 Sources</div>
+            ${uniqueSources.map(s => `
+              <a href="${s.uri}" target="_blank" rel="noopener" style="display:block;font-size:11px;color:var(--orange);text-decoration:none;padding:3px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.title || s.uri}">
+                🔗 ${s.title || s.uri}
+              </a>
+            `).join('')}
+          </div>`;
+      }
+
+      // Show search queries if available
+      let queriesHtml = '';
+      if (result.searchQueries && result.searchQueries.length > 0) {
+        queriesHtml = `
+          <div style="margin-top:8px;font-size:10px;color:var(--text-muted)">
+            <span style="font-weight:600">Searched:</span> ${result.searchQueries.map(q => `"${q}"`).join(', ')}
+          </div>`;
+      }
+
+      responseBubble.innerHTML = `
+        <div style="font-size:11px;color:var(--orange);margin-bottom:8px;font-weight:600">🤖 BenchPro AI (Gemini 2.0 Flash)${searchBadge}</div>
+        ${window.genaiMarkdownToHtml(result.text)}
+        ${queriesHtml}
+        ${sourcesHtml}`;
+    } else {
+      responseBubble.innerHTML = `
+        <div style="color:var(--red)">
+          <strong>⚠️ Error:</strong> ${result.error}
+          <p style="font-size:12px;color:var(--text-muted);margin-top:4px">Please check your API key and try again.</p>
+        </div>`;
+    }
+    resultsDiv.appendChild(responseBubble);
+    resultsDiv.scrollTop = resultsDiv.scrollHeight;
+    input.focus();
+  });
+}
+
+// Listen for genai loading state changes for UI feedback
+document.addEventListener('genai-loading', (e) => {
+  const { key, isLoading } = e.detail;
+  // Update any relevant buttons based on loading state
+  if (key === 'ai-chat' && isLoading) {
+    const btn = document.getElementById('ai-chat-send-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '⏳'; }
+  }
+});
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  // Auth screen is shown by default — don't navigate to dashboard yet
+  // Dashboard init happens after login/signup
+
+  // Enter key submits login
+  ['login-email', 'login-password'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleLogin(); });
+  });
+
+  // Close modals with Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    }
+  });
+});

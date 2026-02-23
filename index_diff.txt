@@ -1,0 +1,1575 @@
+--- index.html	2026-02-21 10:53:25
++++ BENCHPRO APP/index.html	2026-02-20 22:50:32
+@@ -516,16 +516,7 @@
+         </svg>
+         <span>Send Tips</span>
+       </button>
+-      <div class="nav-section-label">Lineup</div>
+-      <button class="nav-item" data-page="lineup-manager" onclick="navigateTo('lineup-manager')">
+-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+-          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+-          <circle cx="9" cy="7" r="4" />
+-          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+-          <path d="M16 3.13a4 4 0 010 7.75" />
+-        </svg>
+-        <span>Lineup Manager</span>
+-      </button>
++
+       <div class="nav-section-label">AI Tools</div>
+       <button class="nav-item" data-page="ai-analysis" onclick="navigateTo('ai-analysis')">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+@@ -550,13 +541,13 @@
+         <span>Opponent Scout</span>
+       </button>
+       <div class="nav-section-label">Library</div>
+-      <button class="nav-item" data-page="analysis-history" onclick="navigateTo('analysis-history')">
+-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
++      <button class="nav-item" data-page="old-clips" onclick="navigateTo('old-clips')">
++        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+           <path d="M4 11v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+           <path d="m4 11 3.5-6A2 2 0 019.2 4h5.6a2 2 0 011.7 1l3.5 6" />
+           <path d="M8 11v4h8v-4" />
+         </svg>
+-        <span>Analysis History</span>
++        <span>Old Clips</span>
+       </button>
+       <button class="nav-item" data-page="player-stats" onclick="navigateTo('player-stats')">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+@@ -564,12 +555,7 @@
+         </svg>
+         <span>Player Stats</span>
+       </button>
+-      <button class="nav-item" data-page="live-game" onclick="navigateTo('live-game')">
+-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+-        </svg>
+-        <span>Live Game</span>
+-      </button>
++
+       <div class="nav-section-label">Account</div>
+       <button class="nav-item" data-page="plans" onclick="navigateTo('plans')">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+@@ -736,7 +722,64 @@
+         </button>
+       </div>
+ 
+-
++      <!-- Team Code Card -->
++      <div class="card" style="margin-bottom:24px;border:1px solid rgba(212,115,26,0.25);">
++        <div class="card-header">
++          <h3>
++            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
++              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
++              <path d="M7 11V7a5 5 0 0110 0v4"></path>
++            </svg>
++            Student Team Code
++          </h3>
++          <span class="badge badge-orange">Share</span>
++        </div>
++        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
++          <p style="font-size:13px;color:var(--text-secondary);margin:0;">Share this code or QR with your players so
++            they can join the BenchPro student app.</p>
++          <div style="display:flex;align-items:center;gap:12px;">
++            <div id="team-code-display"
++              style="flex:1;padding:14px 18px;background:var(--bg-secondary);border:2px dashed rgba(212,115,26,0.4);border-radius:var(--radius);font-size:22px;font-weight:900;letter-spacing:4px;text-align:center;color:var(--orange-light);font-family:'Courier New',monospace;user-select:all;">
++              HARKER2026</div>
++            <button class="btn btn-secondary" onclick="copyTeamCode()" title="Copy Code"
++              style="padding:12px 14px;min-width:auto;">
++              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
++                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
++                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
++              </svg>
++            </button>
++          </div>
++          <div style="display:flex;gap:10px;">
++            <button class="btn btn-primary" onclick="toggleQRCode()" id="qr-toggle-btn" style="flex:1;">
++              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
++                <rect x="2" y="2" width="8" height="8" rx="1"></rect>
++                <rect x="14" y="2" width="8" height="8" rx="1"></rect>
++                <rect x="2" y="14" width="8" height="8" rx="1"></rect>
++                <rect x="14" y="14" width="4" height="4"></rect>
++                <rect x="20" y="14" width="2" height="2"></rect>
++                <rect x="14" y="20" width="2" height="2"></rect>
++                <rect x="20" y="20" width="2" height="2"></rect>
++              </svg>
++              Show QR Code
++            </button>
++            <button class="btn btn-secondary" onclick="shareTeamCode()" style="flex:1;">
++              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
++                <circle cx="18" cy="5" r="3"></circle>
++                <circle cx="6" cy="12" r="3"></circle>
++                <circle cx="18" cy="19" r="3"></circle>
++                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
++                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
++              </svg>
++              Share Link
++            </button>
++          </div>
++          <!-- QR Code Container -->
++          <div id="qr-code-container"
++            style="display:none;text-align:center;padding:20px;background:#2a2a2a;border-radius:var(--radius);margin-top:4px;">
++            <canvas id="qr-canvas" width="200" height="200"></canvas>
++          </div>
++        </div>
++      </div>
+ 
+       <div class="stats-grid">
+         <div class="stat-card">
+@@ -788,7 +831,7 @@
+             <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                   <path d="M18 20V10M12 20V4M6 20v-6" />
+                 </svg></span> Recent Game Analysis</h3>
+-            <button class="btn btn-sm btn-secondary" onclick="navigateTo('analysis-history')">View All</button>
++            <button class="btn btn-sm btn-secondary" onclick="navigateTo('old-clips')">View All</button>
+           </div>
+           <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+             <div class="game-card" onclick="openClipViewer('Harker vs Westfield','Feb 10, 2026')">
+@@ -919,10 +962,9 @@
+       <p class="page-subtitle">Upload your game footage for AI-powered analysis. We support MP4, MOV, and AVI
+         formats.
+       </p>
+-
+       <div class="card" style="max-width:100%">
+         <div class="card-body">
+-          <div class="upload-zone" id="upload-zone-clip" onclick="document.getElementById('file-input-clip').click()">
++          <div class="upload-zone" id="upload-zone-page" onclick="document.getElementById('file-input-page').click()">
+             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+               <polyline points="17 8 12 3 7 8" />
+@@ -931,6 +973,56 @@
+             <p><span class="highlight">Click to browse</span> or drag and drop your game film here</p>
+             <p style="font-size:12px;color:var(--text-muted);margin-top:8px">MP4, MOV, AVI · Max 5GB</p>
+           </div>
++          <input type="file" id="file-input-page" style="display:none" accept="video/*"
++            onchange="handlePageFileSelect(this)">
++          <div id="page-file-info"
++            style="display:none;margin-top:12px;padding:12px;background:rgba(212,115,26,0.1);border:1px solid rgba(212,115,26,0.3);border-radius:var(--radius);display:flex;align-items:center;gap:8px">
++            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2">
++              <rect x="2" y="4" width="20" height="16" rx="2" />
++              <circle cx="12" cy="12" r="3" />
++            </svg>
++            <span id="page-file-name" style="font-size:13px;color:var(--text-primary)"></span>
++          </div>
++          <div class="form-group" style="margin-top:20px">
++            <label class="form-label">Game Title</label>
++            <input type="text" class="form-input" id="upload-game-title"
++              placeholder="e.g. Harker vs Westfield - Feb 15">
++          </div>
++          <div style="display:flex;gap:12px">
++            <div class="form-group" style="flex:1">
++              <label class="form-label">Opponent</label>
++              <input type="text" class="form-input" id="upload-opponent" placeholder="e.g. Westfield Eagles">
++            </div>
++            <div class="form-group" style="flex:1">
++              <label class="form-label">Date</label>
++              <input type="date" class="form-input" id="upload-date">
++            </div>
++          </div>
++          <button class="btn btn-primary" style="width:100%" onclick="handleUploadFilm()">Upload &amp;
++            Analyze</button>
++        </div>
++      </div>
++
++      <!-- ===== CLIP UPLOAD SECTION ===== -->
++      <div class="card" style="max-width:100%;margin-top:20px">
++        <div class="card-header">
++          <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
++                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
++                <circle cx="12" cy="13" r="3" />
++              </svg></span> Upload Clips</h3>
++          <span class="badge badge-blue">Short Clips</span>
++        </div>
++        <div class="card-body">
++          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Upload short game clips for quick AI
++            analysis. Great for reviewing specific plays, highlights, or moments.</p>
++          <div class="upload-zone" id="upload-zone-clip" onclick="document.getElementById('file-input-clip').click()">
++            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
++              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
++              <circle cx="12" cy="13" r="3" />
++            </svg>
++            <p><span class="highlight">Click to browse</span> or drag and drop your clip here</p>
++            <p style="font-size:12px;color:var(--text-muted);margin-top:8px">MP4, MOV, AVI · Max 500MB</p>
++          </div>
+           <input type="file" id="file-input-clip" style="display:none" accept="video/*"
+             onchange="handleClipFileSelect(this)">
+           <div id="clip-file-info"
+@@ -942,48 +1034,56 @@
+             <span id="clip-file-name" style="font-size:13px;color:var(--text-primary)"></span>
+           </div>
+           <div class="form-group" style="margin-top:16px">
+-            <label class="form-label">Title</label>
+-            <input type="text" class="form-input" id="upload-clip-title" placeholder="e.g. Harker vs Westfield">
++            <label class="form-label">Clip Title</label>
++            <input type="text" class="form-input" id="upload-clip-title"
++              placeholder="e.g. Fast break play Q3, Defensive rotation highlight">
+           </div>
+           <button class="btn btn-primary" style="width:100%" onclick="handleUploadClip()">Upload
+-            &amp; Analyze Film</button>
++            &amp; Analyze Clip</button>
+         </div>
+       </div>
+ 
+-      <!-- ===== STAT SHEET UPLOAD SECTION ===== -->
+-      <div class="card" style="max-width:100%;margin-top:20px">
+-        <div class="card-header">
+-          <h3><span class="inline-icon"><i data-lucide="file-spreadsheet" style="width:20px;height:20px;"></i></span>
+-            Upload Stat Sheet</h3>
+-          <span class="badge badge-green">New Feature</span>
++      <!-- Coach Notes Section -->
++      <div class="card" style="max-width:700px;margin-top:20px">
++        <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
++          <h3>📝 Coach Notes</h3>
++          <span class="badge badge-orange" id="notes-count-badge">0 Notes</span>
+         </div>
+         <div class="card-body">
+-          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Upload a picture of a game stat sheet or
+-            box score, and Coach Carter AI will analyze it instantly to give you practice tips.</p>
+-          <div class="upload-zone" id="upload-zone-stat" onclick="document.getElementById('file-input-stat').click()">
+-            <i data-lucide="upload-cloud"
+-              style="width:40px;height:40px;color:var(--text-muted);margin-bottom:12px;"></i>
+-            <p><span class="highlight">Click to browse</span> or drag and drop your stat sheet here</p>
+-            <p style="font-size:12px;color:var(--text-muted);margin-top:8px">JPG, PNG, PDF, CSV · Max 10MB</p>
++          <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Add general observations, practice
++            notes,
++            scouting reports, or anything you want to reference later.</p>
++          <div class="form-group">
++            <input type="text" class="form-input" id="general-note-title"
++              placeholder="Note title (e.g. Pre-game scouting, Practice plan)" style="margin-bottom:8px">
+           </div>
+-          <input type="file" id="file-input-stat" style="display:none" accept="image/*,.pdf,.csv"
+-            onchange="handleStatFileSelect(this)">
+-          <div id="stat-file-info"
+-            style="display:none;margin-top:12px;padding:12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:var(--radius);align-items:center;gap:8px">
+-            <i data-lucide="file-check-2" style="width:16px;height:16px;color:#10b981;"></i>
+-            <span id="stat-file-name" style="font-size:13px;color:var(--text-primary)"></span>
++          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
++            <button class="btn btn-sm"
++              style="font-size:10px;padding:3px 10px;background:rgba(212,115,26,0.1);border:1px solid rgba(212,115,26,0.3);color:var(--orange);border-radius:20px;cursor:pointer"
++              onclick="addGeneralTag('Game Plan')" id="tag-game-plan">🏀 Game Plan</button>
++            <button class="btn btn-sm"
++              style="font-size:10px;padding:3px 10px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;border-radius:20px;cursor:pointer"
++              onclick="addGeneralTag('Scouting')" id="tag-scouting">🔍 Scouting</button>
++            <button class="btn btn-sm"
++              style="font-size:10px;padding:3px 10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;border-radius:20px;cursor:pointer"
++              onclick="addGeneralTag('Practice')" id="tag-practice">🏋️ Practice</button>
++            <button class="btn btn-sm"
++              style="font-size:10px;padding:3px 10px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);color:#8b5cf6;border-radius:20px;cursor:pointer"
++              onclick="addGeneralTag('Player Dev')" id="tag-player-dev">📈 Player Dev</button>
++            <button class="btn btn-sm"
++              style="font-size:10px;padding:3px 10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;border-radius:20px;cursor:pointer"
++              onclick="addGeneralTag('Injury')" id="tag-injury">🩺 Injury</button>
+           </div>
+-          <div class="form-group" style="margin-top:16px">
+-            <label class="form-label">Stat Sheet Title</label>
+-            <input type="text" class="form-input" id="upload-stat-title"
+-              placeholder="e.g. Harker vs Westfield Box Score">
++          <div id="selected-tags" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px"></div>
++          <textarea class="form-textarea" id="general-note-content" rows="4" placeholder="Write your notes here..."
++            style="font-size:13px;resize:vertical"></textarea>
++          <div style="display:flex;gap:8px;margin-top:10px">
++            <button class="btn btn-primary" onclick="saveGeneralNote()" style="flex:1">💾 Save Note</button>
++            <button class="btn btn-secondary" onclick="clearGeneralNoteForm()">Clear</button>
+           </div>
+-          <button class="btn btn-primary" style="width:100%" onclick="handleUploadStatSheet()">Upload &amp; Analyze
+-            Stats</button>
++          <div id="general-notes-list" style="margin-top:16px"></div>
+         </div>
+       </div>
+-
+-      <!-- Coach Notes removed as requested -->
+     </div>
+ 
+     <!-- ===== PAGE: DRAW PLAYS ===== -->
+@@ -1662,646 +1762,633 @@
+       </div>
+     </div>
+ 
+-    <!-- ===== PAGE: ANALYSIS HISTORY ===== -->
+-    <div class="page" id="page-analysis-history">
+-      <h1 class="page-title">Analysis History <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
++    <!-- ===== PAGE: OLD CLIPS ===== -->
++    <div class="page" id="page-old-clips">
++      <h1 class="page-title">Game Library <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+             <path d="M4 11v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+             <path d="m4 11 3.5-6A2 2 0 019.2 4h5.6a2 2 0 011.7 1l3.5 6" />
+             <path d="M8 11v4h8v-4" />
+           </svg></span></h1>
+-      <p class="page-subtitle">Browse and review all your uploaded game film and stat sheet analyses.</p>
+-
++      <p class="page-subtitle">Browse and review all your uploaded game film and AI analysis.</p>
+       <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+         <div class="header-search" style="flex:1;max-width:400px">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+             <circle cx="11" cy="11" r="8" />
+             <path d="m21 21-4.3-4.3" />
+           </svg>
+-          <input type="text" placeholder="Search analysis history..."
+-            style="border:none;background:transparent;outline:none;width:100%;font-size:14px;color:var(--text-primary)">
++          <input type="text" placeholder="Search clips...">
+         </div>
++        <button class="btn btn-primary" onclick="openModal('upload-modal')">+ Upload New</button>
+       </div>
+-
+-      <div id="clips-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+-      <div id="clips-empty"
+-        style="display:none; text-align:center; padding:40px; color:var(--text-muted); background:var(--bg-card); border-radius:var(--radius); border:1px solid var(--border)">
+-        <i data-lucide="inbox" style="width: 32px; height: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+-        <p>No analysis history found. Upload a video or stat sheet to get started.</p>
+-      </div>
+-    </div>
+-  </div>
+-
+-  <!-- ===== PAGE: PLAYER STATS ===== -->
+-  <div class="page" id="page-player-stats">
+-    <h1 class="page-title">Player Stats <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+-          stroke="currentColor" stroke-width="2">
+-          <path d="M18 20V10M12 20V4M6 20v-6" />
+-        </svg></span></h1>
+-    <p class="page-subtitle">Individual player performance breakdown with AI-generated visuals.</p>
+-    <div class="section-grid">
+-      <div class="card">
+-        <div class="card-header">
+-          <h3>Roster</h3>
+-        </div>
+-        <div class="card-body" style="padding:0">
+-          <div class="player-row" onclick="switchPlayer('Marcus James (#3)')" style="background:rgba(212,115,26,0.05)">
+-            <div class="player-avatar">MJ</div>
+-            <div class="player-info">
+-              <div class="player-name">Marcus James</div>
+-              <div class="player-position">#3 · Point Guard</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">18.4</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++      <div class="clips-grid" id="clips-grid">
++        <div class="clip-card" onclick="openClipViewer('Harker vs Westfield','Feb 10, 2026')">
++          <div class="clip-thumb">
++            <div class="court-mini"></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Anthony Davis (#11)')">
+-            <div class="player-avatar">AD</div>
+-            <div class="player-info">
+-              <div class="player-name">Anthony Davis</div>
+-              <div class="player-position">#11 · Shooting Guard</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">14.7</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++          <div class="clip-info">
++            <h4>Harker vs Westfield</h4>
++            <div class="clip-date">Feb 10, 2026 · Varsity</div>
++            <div style="display:flex;gap:4px"><span class="badge badge-green">Win 72-65</span><span
++                class="badge badge-orange">AI Analyzed</span></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('DeShawn Wright (#7)')">
+-            <div class="player-avatar">DW</div>
+-            <div class="player-info">
+-              <div class="player-name">DeShawn Wright</div>
+-              <div class="player-position">#7 · Small Forward</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">12.1</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++        </div>
++        <div class="clip-card" onclick="openClipViewer('Harker vs Oakridge','Feb 7, 2026')">
++          <div class="clip-thumb">
++            <div class="court-mini"></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Jaylen Carter (#23)')">
+-            <div class="player-avatar">JC</div>
+-            <div class="player-info">
+-              <div class="player-name">Jaylen Carter</div>
+-              <div class="player-position">#23 · Power Forward</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">11.3</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++          <div class="clip-info">
++            <h4>Harker vs Oakridge</h4>
++            <div class="clip-date">Feb 7, 2026 · Varsity</div>
++            <div style="display:flex;gap:4px"><span class="badge badge-red">Loss 58-61</span><span
++                class="badge badge-orange">AI Analyzed</span></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Omar Johnson (#5)')">
+-            <div class="player-avatar">OJ</div>
+-            <div class="player-info">
+-              <div class="player-name">Omar Johnson</div>
+-              <div class="player-position">#5 · Center</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">9.8</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++        </div>
++        <div class="clip-card" onclick="openClipViewer('Harker vs Riverside','Feb 3, 2026')">
++          <div class="clip-thumb">
++            <div class="court-mini"></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Tyrese Mitchell (#10)')">
+-            <div class="player-avatar">TM</div>
+-            <div class="player-info">
+-              <div class="player-name">Tyrese Mitchell</div>
+-              <div class="player-position">#10 · Shooting Guard</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">8.6</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++          <div class="clip-info">
++            <h4>Harker vs Riverside</h4>
++            <div class="clip-date">Feb 3, 2026 · Varsity</div>
++            <div style="display:flex;gap:4px"><span class="badge badge-green">Win 81-70</span><span
++                class="badge badge-orange">AI Analyzed</span></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Brandon Lewis (#12)')">
+-            <div class="player-avatar">BL</div>
+-            <div class="player-info">
+-              <div class="player-name">Brandon Lewis</div>
+-              <div class="player-position">#12 · Power Forward</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">7.4</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++        </div>
++        <div class="clip-card" onclick="openClipViewer('Harker vs Crestwood','Jan 29, 2026')">
++          <div class="clip-thumb">
++            <div class="court-mini"></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Kevin Brooks (#15)')">
+-            <div class="player-avatar">KB</div>
+-            <div class="player-info">
+-              <div class="player-name">Kevin Brooks</div>
+-              <div class="player-position">#15 · Center</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">6.9</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++          <div class="clip-info">
++            <h4>Harker vs Crestwood</h4>
++            <div class="clip-date">Jan 29, 2026 · Varsity</div>
++            <div style="display:flex;gap:4px"><span class="badge badge-green">Win 66-54</span><span
++                class="badge badge-orange">AI Analyzed</span></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Isaiah Thomas (#20)')">
+-            <div class="player-avatar">IT</div>
+-            <div class="player-info">
+-              <div class="player-name">Isaiah Thomas</div>
+-              <div class="player-position">#20 · Point Guard</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">6.2</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++        </div>
++        <div class="clip-card" onclick="openClipViewer('Harker vs Brookfield','Jan 25, 2026')">
++          <div class="clip-thumb">
++            <div class="court-mini"></div>
++          </div>
++          <div class="clip-info">
++            <h4>Harker vs Brookfield</h4>
++            <div class="clip-date">Jan 25, 2026 · Varsity</div>
++            <div style="display:flex;gap:4px"><span class="badge badge-red">Loss 55-62</span><span
++                class="badge badge-orange">AI Analyzed</span></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Andre Williams (#22)')">
+-            <div class="player-avatar">AW</div>
+-            <div class="player-info">
+-              <div class="player-name">Andre Williams</div>
+-              <div class="player-position">#22 · Small Forward</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">5.5</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++        </div>
++        <div class="clip-card" onclick="openClipViewer('Harker vs Hillcrest','Jan 21, 2026')">
++          <div class="clip-thumb">
++            <div class="court-mini"></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Chris Patterson (#30)')">
+-            <div class="player-avatar">CP</div>
+-            <div class="player-info">
+-              <div class="player-name">Chris Patterson</div>
+-              <div class="player-position">#30 · Shooting Guard</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">4.8</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++          <div class="clip-info">
++            <h4>Harker vs Hillcrest</h4>
++            <div class="clip-date">Jan 21, 2026 · Varsity</div>
++            <div style="display:flex;gap:4px"><span class="badge badge-green">Win 75-68</span><span
++                class="badge badge-orange">AI Analyzed</span></div>
+           </div>
+-          <div class="player-row" onclick="switchPlayer('Malik Henderson (#33)')">
+-            <div class="player-avatar">MH</div>
+-            <div class="player-info">
+-              <div class="player-name">Malik Henderson</div>
+-              <div class="player-position">#33 · Power Forward</div>
+-            </div>
+-            <div class="player-stat">
+-              <div class="player-stat-value">4.1</div>
+-              <div class="player-stat-label">PPG</div>
+-            </div>
++        </div>
++        <div class="clip-card" onclick="openClipViewer('Harker vs Maplewood','Jan 17, 2026')">
++          <div class="clip-thumb">
++            <div class="court-mini"></div>
+           </div>
++          <div class="clip-info">
++            <h4>Harker vs Maplewood</h4>
++            <div class="clip-date">Jan 17, 2026 · JV</div>
++            <div style="display:flex;gap:4px"><span class="badge badge-green">Win 60-48</span><span
++                class="badge badge-blue">Reviewed</span></div>
++          </div>
+         </div>
++        <div class="clip-card" onclick="openClipViewer('Harker vs Valley Central','Jan 13, 2026')">
++          <div class="clip-thumb">
++            <div class="court-mini"></div>
++          </div>
++          <div class="clip-info">
++            <h4>Harker vs Valley Central</h4>
++            <div class="clip-date">Jan 13, 2026 · Varsity</div>
++            <div style="display:flex;gap:4px"><span class="badge badge-green">Win 70-63</span><span
++                class="badge badge-orange">AI Analyzed</span></div>
++          </div>
++        </div>
+       </div>
+-      <div>
+-        <div class="card" style="margin-bottom:16px">
++    </div>
++
++    <!-- ===== PAGE: PLAYER STATS ===== -->
++    <div class="page" id="page-player-stats">
++      <h1 class="page-title">Player Stats <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
++            stroke="currentColor" stroke-width="2">
++            <path d="M18 20V10M12 20V4M6 20v-6" />
++          </svg></span></h1>
++      <p class="page-subtitle">Individual player performance breakdown with AI-generated visuals.</p>
++      <div class="section-grid">
++        <div class="card">
+           <div class="card-header">
+-            <h3 id="selected-player-name">Marcus James (#3)</h3><span class="badge badge-orange">Season
+-              Avg</span>
++            <h3>Roster</h3>
+           </div>
+-          <div class="card-body">
+-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;text-align:center">
+-              <div>
+-                <div style="font-size:24px;font-weight:800" id="stat-ppg">18.4</div>
+-                <div style="font-size:11px;color:var(--text-muted)">PPG</div>
++          <div class="card-body" style="padding:0">
++            <div class="player-row" onclick="switchPlayer('Marcus James (#3)')"
++              style="background:rgba(212,115,26,0.05)">
++              <div class="player-avatar">MJ</div>
++              <div class="player-info">
++                <div class="player-name">Marcus James</div>
++                <div class="player-position">#3 · Point Guard</div>
+               </div>
+-              <div>
+-                <div style="font-size:24px;font-weight:800" id="stat-apg">6.2</div>
+-                <div style="font-size:11px;color:var(--text-muted)">APG</div>
++              <div class="player-stat">
++                <div class="player-stat-value">18.4</div>
++                <div class="player-stat-label">PPG</div>
+               </div>
+-              <div>
+-                <div style="font-size:24px;font-weight:800" id="stat-spg">3.1</div>
+-                <div style="font-size:11px;color:var(--text-muted)">SPG</div>
++            </div>
++            <div class="player-row" onclick="switchPlayer('Anthony Davis (#11)')">
++              <div class="player-avatar">AD</div>
++              <div class="player-info">
++                <div class="player-name">Anthony Davis</div>
++                <div class="player-position">#11 · Shooting Guard</div>
+               </div>
++              <div class="player-stat">
++                <div class="player-stat-value">14.7</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
+             </div>
+-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;text-align:center">
+-              <div>
+-                <div style="font-size:24px;font-weight:800" id="stat-rpg">4.5</div>
+-                <div style="font-size:11px;color:var(--text-muted)">RPG</div>
++            <div class="player-row" onclick="switchPlayer('DeShawn Wright (#7)')">
++              <div class="player-avatar">DW</div>
++              <div class="player-info">
++                <div class="player-name">DeShawn Wright</div>
++                <div class="player-position">#7 · Small Forward</div>
+               </div>
+-              <div>
+-                <div style="font-size:24px;font-weight:800" id="stat-fg">48%</div>
+-                <div style="font-size:11px;color:var(--text-muted)">FG%</div>
++              <div class="player-stat">
++                <div class="player-stat-value">12.1</div>
++                <div class="player-stat-label">PPG</div>
+               </div>
+-              <div>
+-                <div style="font-size:24px;font-weight:800" id="stat-min">28.3</div>
+-                <div style="font-size:11px;color:var(--text-muted)">MIN</div>
++            </div>
++            <div class="player-row" onclick="switchPlayer('Jaylen Carter (#23)')">
++              <div class="player-avatar">JC</div>
++              <div class="player-info">
++                <div class="player-name">Jaylen Carter</div>
++                <div class="player-position">#23 · Power Forward</div>
+               </div>
++              <div class="player-stat">
++                <div class="player-stat-value">11.3</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
+             </div>
+-            <div id="chart-efficiency"></div>
++            <div class="player-row" onclick="switchPlayer('Omar Johnson (#5)')">
++              <div class="player-avatar">OJ</div>
++              <div class="player-info">
++                <div class="player-name">Omar Johnson</div>
++                <div class="player-position">#5 · Center</div>
++              </div>
++              <div class="player-stat">
++                <div class="player-stat-value">9.8</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
++            </div>
++            <div class="player-row" onclick="switchPlayer('Tyrese Mitchell (#10)')">
++              <div class="player-avatar">TM</div>
++              <div class="player-info">
++                <div class="player-name">Tyrese Mitchell</div>
++                <div class="player-position">#10 · Shooting Guard</div>
++              </div>
++              <div class="player-stat">
++                <div class="player-stat-value">8.6</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
++            </div>
++            <div class="player-row" onclick="switchPlayer('Brandon Lewis (#12)')">
++              <div class="player-avatar">BL</div>
++              <div class="player-info">
++                <div class="player-name">Brandon Lewis</div>
++                <div class="player-position">#12 · Power Forward</div>
++              </div>
++              <div class="player-stat">
++                <div class="player-stat-value">7.4</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
++            </div>
++            <div class="player-row" onclick="switchPlayer('Kevin Brooks (#15)')">
++              <div class="player-avatar">KB</div>
++              <div class="player-info">
++                <div class="player-name">Kevin Brooks</div>
++                <div class="player-position">#15 · Center</div>
++              </div>
++              <div class="player-stat">
++                <div class="player-stat-value">6.9</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
++            </div>
++            <div class="player-row" onclick="switchPlayer('Isaiah Thomas (#20)')">
++              <div class="player-avatar">IT</div>
++              <div class="player-info">
++                <div class="player-name">Isaiah Thomas</div>
++                <div class="player-position">#20 · Point Guard</div>
++              </div>
++              <div class="player-stat">
++                <div class="player-stat-value">6.2</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
++            </div>
++            <div class="player-row" onclick="switchPlayer('Andre Williams (#22)')">
++              <div class="player-avatar">AW</div>
++              <div class="player-info">
++                <div class="player-name">Andre Williams</div>
++                <div class="player-position">#22 · Small Forward</div>
++              </div>
++              <div class="player-stat">
++                <div class="player-stat-value">5.5</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
++            </div>
++            <div class="player-row" onclick="switchPlayer('Chris Patterson (#30)')">
++              <div class="player-avatar">CP</div>
++              <div class="player-info">
++                <div class="player-name">Chris Patterson</div>
++                <div class="player-position">#30 · Shooting Guard</div>
++              </div>
++              <div class="player-stat">
++                <div class="player-stat-value">4.8</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
++            </div>
++            <div class="player-row" onclick="switchPlayer('Malik Henderson (#33)')">
++              <div class="player-avatar">MH</div>
++              <div class="player-info">
++                <div class="player-name">Malik Henderson</div>
++                <div class="player-position">#33 · Power Forward</div>
++              </div>
++              <div class="player-stat">
++                <div class="player-stat-value">4.1</div>
++                <div class="player-stat-label">PPG</div>
++              </div>
++            </div>
+           </div>
+         </div>
+-        <div class="card">
+-          <div class="card-header">
+-            <h3>Shooting %</h3>
++        <div>
++          <div class="card" style="margin-bottom:16px">
++            <div class="card-header">
++              <h3 id="selected-player-name">Marcus James (#3)</h3><span class="badge badge-orange">Season
++                Avg</span>
++            </div>
++            <div class="card-body">
++              <div
++                style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;text-align:center">
++                <div>
++                  <div style="font-size:24px;font-weight:800" id="stat-ppg">18.4</div>
++                  <div style="font-size:11px;color:var(--text-muted)">PPG</div>
++                </div>
++                <div>
++                  <div style="font-size:24px;font-weight:800" id="stat-apg">6.2</div>
++                  <div style="font-size:11px;color:var(--text-muted)">APG</div>
++                </div>
++                <div>
++                  <div style="font-size:24px;font-weight:800" id="stat-spg">3.1</div>
++                  <div style="font-size:11px;color:var(--text-muted)">SPG</div>
++                </div>
++              </div>
++              <div
++                style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;text-align:center">
++                <div>
++                  <div style="font-size:24px;font-weight:800" id="stat-rpg">4.5</div>
++                  <div style="font-size:11px;color:var(--text-muted)">RPG</div>
++                </div>
++                <div>
++                  <div style="font-size:24px;font-weight:800" id="stat-fg">48%</div>
++                  <div style="font-size:11px;color:var(--text-muted)">FG%</div>
++                </div>
++                <div>
++                  <div style="font-size:24px;font-weight:800" id="stat-min">28.3</div>
++                  <div style="font-size:11px;color:var(--text-muted)">MIN</div>
++                </div>
++              </div>
++              <div id="chart-efficiency"></div>
++            </div>
+           </div>
+-          <div class="card-body">
+-            <div id="chart-shooting" class="chart-container"></div>
++          <div class="card">
++            <div class="card-header">
++              <h3>Shooting %</h3>
++            </div>
++            <div class="card-body">
++              <div id="chart-shooting" class="chart-container"></div>
++            </div>
+           </div>
+         </div>
+       </div>
+-    </div>
+-    <div class="card" style="margin-top:20px">
+-      <div class="card-header">
+-        <h3>Performance Metrics</h3>
+-      </div>
+-      <div class="card-body">
+-        <div id="chart-performance" class="chart-container"></div>
+-      </div>
+-    </div>
+-    <div class="card" style="margin-top:20px">
+-      <div class="card-header">
+-        <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+-            </svg></span> Points Per Game Trend (Last 10 Games)</h3>
+-      </div>
+-      <div class="card-body">
+-        <div class="sparkline" data-values="22,16,20,14,18,24,15,21,19,17" style="height:60px"></div>
+-      </div>
+-    </div>
+-
+-    <!-- AI Player Analysis -->
+-    <div class="card" style="margin-top:20px">
+-      <div class="card-header">
+-        <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+-              <path d="M12 2a4 4 0 014 4c0 1.1-.9 2-2 2h-4a2 2 0 01-2-2 4 4 0 014-4z" />
+-              <circle cx="12" cy="16" r="4" />
+-              <path d="M12 12v4" />
+-            </svg></span> AI Player Analysis</h3>
+-        <button class="btn btn-sm btn-primary" id="ai-player-analyze-btn" onclick="runAIPlayerAnalysis()">🤖
+-          Analyze
+-          Player</button>
+-      </div>
+-      <div class="card-body">
+-        <div id="ai-player-analysis-results" style="color:var(--text-secondary);font-size:13px;line-height:1.7">
+-          <p style="color:var(--text-muted);text-align:center;padding:20px 0">Click <strong>"🤖 Analyze
+-              Player"</strong> to get AI-powered insights on the selected player's performance, strengths, and
+-            areas
+-            for improvement.</p>
++      <div class="card" style="margin-top:20px">
++        <div class="card-header">
++          <h3>Performance Metrics</h3>
+         </div>
++        <div class="card-body">
++          <div id="chart-performance" class="chart-container"></div>
++        </div>
+       </div>
+-    </div>
+-
+-    <!-- Hustle Stats Leaderboard -->
+-    <div class="card" style="margin-top:24px">
+-      <div class="card-header">
+-        <h3>🔥 Hustle Stats Leaderboard</h3>
+-        <span class="badge badge-orange">Season</span>
+-      </div>
+-      <div class="card-body">
+-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Tracking the unglamorous stats that
+-          win
+-          games.</p>
+-        <div style="overflow-x:auto">
+-          <table style="width:100%;border-collapse:collapse;font-size:13px">
+-            <thead>
+-              <tr style="border-bottom:1px solid var(--border);text-align:left;color:var(--text-muted)">
+-                <th style="padding:8px">Player</th>
+-                <th style="padding:8px">Deflections</th>
+-                <th style="padding:8px">Screen Assists</th>
+-                <th style="padding:8px">Charges Drawn</th>
+-                <th style="padding:8px">Loose Balls</th>
+-                <th style="padding:8px">Hustle Score</th>
+-              </tr>
+-            </thead>
+-            <tbody id="hustle-stats-body">
+-              <!-- Populated by JS -->
+-            </tbody>
+-          </table>
+-        </div>
+-      </div>
+-    </div>
+-  </div>
+-
+-  <!-- ===== PAGE: LIVE GAME ===== -->
+-  <div class="page" id="page-live-game">
+-    <h1 class="page-title">Live Game Assistant <span class="badge badge-red"
+-        style="vertical-align:middle;margin-left:8px">LIVE</span></h1>
+-    <p class="page-subtitle">Real-time tools for game management.</p>
+-
+-    <div class="section-grid">
+-      <!-- Fatigue Monitor -->
+-      <div class="card">
++      <div class="card" style="margin-top:20px">
+         <div class="card-header">
+-          <h3>😓 Fatigue Monitor</h3>
+-          <button class="btn btn-sm btn-secondary" onclick="resetFatigue()">Reset All</button>
++          <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
++                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
++              </svg></span> Points Per Game Trend (Last 10 Games)</h3>
+         </div>
+         <div class="card-body">
+-          <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Tap a player when they look
+-            tired. AI
+-            suggests optimal subs.</p>
+-          <div id="fatigue-grid"
+-            style="display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));gap:12px">
+-            <!-- Populated by JS -->
+-          </div>
+-          <div id="sub-suggestion"
+-            style="display:none;margin-top:16px;padding:12px;background:rgba(59,130,246,0.1);border-radius:8px;border:1px solid rgba(59,130,246,0.2)">
+-          </div>
++          <div class="sparkline" data-values="22,16,20,14,18,24,15,21,19,17" style="height:60px"></div>
+         </div>
+       </div>
+ 
+-      <!-- Voice Tagging -->
+-      <div class="card">
++      <!-- AI Player Analysis -->
++      <div class="card" style="margin-top:20px">
+         <div class="card-header">
+-          <h3>🎙️ Voice Tagging</h3>
++          <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
++                <path d="M12 2a4 4 0 014 4c0 1.1-.9 2-2 2h-4a2 2 0 01-2-2 4 4 0 014-4z" />
++                <circle cx="12" cy="16" r="4" />
++                <path d="M12 12v4" />
++              </svg></span> AI Player Analysis</h3>
++          <button class="btn btn-sm btn-primary" id="ai-player-analyze-btn" onclick="runAIPlayerAnalysis()">🤖
++            Analyze
++            Player</button>
+         </div>
+-        <div class="card-body" style="text-align:center;padding:32px 16px">
+-          <div onclick="toggleGameVoiceTag()" id="game-voice-btn"
+-            style="width:80px;height:80px;border-radius:50%;background:rgba(239,68,68,0.1);border:2px solid #ef4444;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;cursor:pointer;transition:all 0.2s">
+-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+-              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+-              <path d="M19 10v1a7 7 0 01-14 0v-1" />
+-              <line x1="12" y1="19" x2="12" y2="23" />
+-              <line x1="8" y1="23" x2="16" y2="23" />
+-            </svg>
+-          </div>
+-          <p style="font-weight:600;margin-bottom:4px">Tap to Tag Event</p>
+-          <p style="font-size:12px;color:var(--text-muted)">Say "Turnover #3", "Great hustle #11", etc.</p>
+-          <div id="last-voice-tag" style="margin-top:16px;font-size:13px;min-height:20px;color:var(--text-secondary)">
+-          </div>
+-        </div>
+-      </div>
+-    </div>
+-  </div>
+-
+-  <!-- ===== PAGE: LINEUP MANAGER ===== -->
+-  <div class="page" id="page-lineup-manager">
+-    <h1 class="page-title">Lineup Manager <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+-          stroke="currentColor" stroke-width="2">
+-          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+-          <circle cx="9" cy="7" r="4" />
+-          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+-          <path d="M16 3.13a4 4 0 010 7.75" />
+-        </svg></span></h1>
+-    <p class="page-subtitle">Manage rotations, analyze starting units, and optimize for crunch time.</p>
+-
+-    <div class="section-grid">
+-      <!-- Lineup Analysis Widget -->
+-      <div class="card" style="margin-bottom:24px">
+-        <div class="card-header">
+-          <h3>📋 Starting 5 Analysis</h3>
+-          <button class="btn btn-sm btn-secondary" onclick="generateLineupAnalysis()">✨ Analyze Lineup</button>
+-        </div>
+         <div class="card-body">
+-          <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Current projected starters based
+-            on recent performance.</p>
+-          <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px">
+-            <div class="player-chip">MJ · PG</div>
+-            <div class="player-chip">AD · SG</div>
+-            <div class="player-chip">DW · SF</div>
+-            <div class="player-chip">JC · PF</div>
+-            <div class="player-chip">OJ · C</div>
++          <div id="ai-player-analysis-results" style="color:var(--text-secondary);font-size:13px;line-height:1.7">
++            <p style="color:var(--text-muted);text-align:center;padding:20px 0">Click <strong>"🤖 Analyze
++                Player"</strong> to get AI-powered insights on the selected player's performance, strengths, and
++              areas
++              for improvement.</p>
+           </div>
+-          <div id="lineup-analysis-result"
+-            style="display:none;margin-top:16px;padding:12px;background:rgba(212,115,26,0.1);border-radius:8px;border:1px solid rgba(212,115,26,0.2)">
+-          </div>
+         </div>
+       </div>
+ 
+-      <!-- Clutch Time Simulator -->
+-      <div class="card">
++      <!-- Hustle Stats Leaderboard -->
++      <div class="card" style="margin-top:24px">
+         <div class="card-header">
+-          <h3>⏱️ Clutch Time Simulator</h3>
+-          <span class="badge badge-red">Final 2 Min</span>
++          <h3>🔥 Hustle Stats Leaderboard</h3>
++          <span class="badge badge-orange">Season</span>
+         </div>
+         <div class="card-body">
+-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+-            <p style="font-size:13px;color:var(--text-muted);margin:0">Optimize lineup for FT% and Ball
+-              Security.</p>
+-            <button class="btn btn-secondary btn-sm" onclick="runClutchSimulation()">🔮 Simulate Crunch
+-              Time</button>
++          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Tracking the unglamorous stats that
++            win
++            games.</p>
++          <div style="overflow-x:auto">
++            <table style="width:100%;border-collapse:collapse;font-size:13px">
++              <thead>
++                <tr style="border-bottom:1px solid var(--border);text-align:left;color:var(--text-muted)">
++                  <th style="padding:8px">Player</th>
++                  <th style="padding:8px">Deflections</th>
++                  <th style="padding:8px">Screen Assists</th>
++                  <th style="padding:8px">Charges Drawn</th>
++                  <th style="padding:8px">Loose Balls</th>
++                  <th style="padding:8px">Hustle Score</th>
++                </tr>
++              </thead>
++              <tbody id="hustle-stats-body">
++                <!-- Populated by JS -->
++              </tbody>
++            </table>
+           </div>
+-          <div id="clutch-sim-result"
+-            style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:16px">
+-          </div>
+         </div>
+       </div>
+     </div>
+-  </div>
+ 
+-  <!-- ===== PAGE: OPPONENT SCOUT ===== -->
+-  <div class="page" id="page-opponent-scout">
+-    <h1 class="page-title">AI Opponent Scout <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+-          stroke="currentColor" stroke-width="2">
+-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+-          <circle cx="12" cy="12" r="3" />
+-        </svg></span></h1>
+-    <p class="page-subtitle">Advanced scouting reports and tendency analysis for upcoming opponents.</p>
++    <!-- Live Game section removed -->
+ 
+-    <!-- AI Opponent Scout Card -->
+-    <div class="card" style="margin-bottom:24px;max-width:100%">
+-      <div class="card-header">
+-        <h3>🕵️ Westfield HS Scouting Report</h3>
+-        <span class="badge badge-orange">Next Opponent</span>
+-      </div>
+-      <div class="card-body">
+-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">AI analysis generated from last 3
+-          game films.</p>
+-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+-          <div style="background:rgba(255,255,255,0.03);padding:16px;border-radius:8px;border:1px solid var(--border)">
++    <!-- Lineup Manager section removed -->
++
++
++
++    <!-- ===== PAGE: OPPONENT SCOUT ===== -->
++    <div class="page" id="page-opponent-scout">
++      <h1 class="page-title">AI Opponent Scout <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
++            stroke="currentColor" stroke-width="2">
++            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
++            <circle cx="12" cy="12" r="3" />
++          </svg></span></h1>
++      <p class="page-subtitle">Advanced scouting reports and tendency analysis for upcoming opponents.</p>
++
++      <!-- AI Opponent Scout Card -->
++      <div class="card" style="margin-bottom:24px;max-width:100%">
++        <div class="card-header">
++          <h3>🕵️ Westfield HS Scouting Report</h3>
++          <span class="badge badge-orange">Next Opponent</span>
++        </div>
++        <div class="card-body">
++          <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">AI analysis generated from last 3
++            game films.</p>
++          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+             <div
+-              style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
+-              Primary Defense</div>
+-            <div style="font-weight:700;font-size:18px;color:var(--orange)">2-3 Zone (78%)</div>
+-            <div style="font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.4">
+-              <strong>Weakness:</strong> Vulnerable to corner 3s and high-post entry passes. Defenders slow to
+-              close out on skip passes.
++              style="background:rgba(255,255,255,0.03);padding:16px;border-radius:8px;border:1px solid var(--border)">
++              <div
++                style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
++                Primary Defense</div>
++              <div style="font-weight:700;font-size:18px;color:var(--orange)">2-3 Zone (78%)</div>
++              <div style="font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.4">
++                <strong>Weakness:</strong> Vulnerable to corner 3s and high-post entry passes. Defenders slow to
++                close out on skip passes.
++              </div>
+             </div>
+-          </div>
+-          <div style="background:rgba(255,255,255,0.03);padding:16px;border-radius:8px;border:1px solid var(--border)">
+             <div
+-              style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
+-              Offensive Identity</div>
+-            <div style="font-weight:700;font-size:18px;color:var(--orange)">Pace & Space</div>
+-            <div style="font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.4"><strong>Key
+-                Stat:</strong> 42% of shots are mostly transition 3s. They leak out early on rebounds.</div>
++              style="background:rgba(255,255,255,0.03);padding:16px;border-radius:8px;border:1px solid var(--border)">
++              <div
++                style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">
++                Offensive Identity</div>
++              <div style="font-weight:700;font-size:18px;color:var(--orange)">Pace & Space</div>
++              <div style="font-size:13px;color:var(--text-secondary);margin-top:8px;line-height:1.4"><strong>Key
++                  Stat:</strong> 42% of shots are mostly transition 3s. They leak out early on rebounds.</div>
++            </div>
+           </div>
+-        </div>
+ 
+-        <h4 style="font-size:14px;margin-bottom:12px">🚨 Key Personnel Alert</h4>
+-        <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);padding:16px;border-radius:8px">
+-          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+-            <strong>#4 J. Smith (PG)</strong>
+-            <span style="font-size:12px;opacity:0.8">18.5 PPG / 6.2 APG</span>
++          <h4 style="font-size:14px;margin-bottom:12px">🚨 Key Personnel Alert</h4>
++          <div
++            style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);padding:16px;border-radius:8px">
++            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
++              <strong>#4 J. Smith (PG)</strong>
++              <span style="font-size:12px;opacity:0.8">18.5 PPG / 6.2 APG</span>
++            </div>
++            <div style="font-size:13px;color:var(--text-primary)">
++              ⚠️ <strong>Strong Right Hand Drive:</strong> Drives right 85% of time. Finishes with floater. <br>
++              🛡 <strong>Strategy:</strong> Force left, go under screens (28% 3PT shooter).
++            </div>
+           </div>
+-          <div style="font-size:13px;color:var(--text-primary)">
+-            ⚠️ <strong>Strong Right Hand Drive:</strong> Drives right 85% of time. Finishes with floater. <br>
+-            🛡 <strong>Strategy:</strong> Force left, go under screens (28% 3PT shooter).
+-          </div>
+         </div>
+       </div>
+     </div>
+-  </div>
+ 
+-  <!-- ===== PAGE: PLANS ===== -->
+-  <div class="page" id="page-plans">
+-    <h1 class="page-title">Choose Your Plan <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
+-          stroke="currentColor" stroke-width="2">
+-          <path d="M12 2 2 7l10 5 10-5-10-5z" />
+-          <path d="M2 17l10 5 10-5" />
+-          <path d="M2 12l10 5 10-5" />
+-        </svg></span></h1>
+-    <p class="page-subtitle">Select the plan that best fits your coaching needs.</p>
+-    <div class="plan-cards">
+-      <div class="plan-card" data-plan="standard" onclick="selectPlan('standard')">
+-        <h3>Standard</h3>
+-        <p class="plan-desc">Perfect for individual player development</p>
+-        <div class="plan-price-big">$8.99<span>/month</span></div>
+-        <ul class="plan-features">
+-          <li>1 Player Profile</li>
+-          <li>5 Game Uploads / Month</li>
+-          <li>Basic AI Analysis</li>
+-          <li>Play Designer</li>
+-          <li>3 AI Drill Recommendations</li>
+-          <li>Email Support</li>
+-        </ul>
+-        <button class="btn btn-secondary" style="width:100%;margin-top:18px"
+-          onclick="event.stopPropagation();selectPlan('standard')">Select
+-          Standard</button>
+-      </div>
+-      <div class="plan-card popular selected" data-plan="elite" onclick="selectPlan('elite')">
+-        <h3 style="color:var(--orange)">Elite</h3>
+-        <p class="plan-desc">Everything you need for a full team</p>
+-        <div class="plan-price-big" style="color:var(--orange)">$29.99<span>/month</span></div>
+-        <ul class="plan-features">
+-          <li>Unlimited Player Profiles</li>
+-          <li>Unlimited Game Uploads</li>
+-          <li>Advanced AI Analysis</li>
+-          <li>Play Designer + Sharing</li>
+-          <li>Unlimited AI Drills</li>
+-          <li>Fatigue Detection</li>
+-          <li>Send Tips to Players</li>
+-          <li>Priority Support</li>
+-        </ul>
+-        <button class="btn btn-primary" style="width:100%;margin-top:18px"
+-          onclick="event.stopPropagation();selectPlan('elite')">Select
+-          Elite</button>
+-      </div>
+-    </div>
+-
+-    <!-- Payment Methods -->
+-    <div style="margin-top:36px;max-width:700px">
+-      <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><span class="inline-icon"><svg viewBox="0 0 24 24"
+-            fill="none" stroke="currentColor" stroke-width="2">
+-            <rect x="1" y="4" width="22" height="16" rx="2" />
+-            <line x1="1" y1="10" x2="23" y2="10" />
+-          </svg></span> Payment Methods</h2>
+-      <div class="card" style="margin-bottom:16px">
+-        <div class="card-body">
+-          <div id="payment-methods-list">
+-            <div class="player-row" style="border-bottom:1px solid var(--border)">
+-              <div
+-                style="width:48px;height:32px;background:linear-gradient(135deg,#1a1f71,#2e77bc);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0">
+-                VISA</div>
+-              <div class="player-info">
+-                <div class="player-name">Visa ending in 4242</div>
+-                <div class="player-position">Expires 08/2027</div>
+-              </div>
+-              <div style="display:flex;gap:8px;align-items:center">
+-                <span class="badge badge-green">Default</span>
+-                <button class="btn btn-sm btn-secondary" onclick="openModal('edit-payment-modal')">Edit</button>
+-                <button class="btn btn-sm btn-secondary" onclick="removePaymentMethod(this)">Remove</button>
++    <!-- ===== PAGE: PLANS ===== -->
++    <div class="page" id="page-plans">
++      <h1 class="page-title">Choose Your Plan <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
++            stroke="currentColor" stroke-width="2">
++            <path d="M12 2 2 7l10 5 10-5-10-5z" />
++            <path d="M2 17l10 5 10-5" />
++            <path d="M2 12l10 5 10-5" />
++          </svg></span></h1>
++      <p class="page-subtitle">Select the plan that best fits your coaching needs.</p>
++      <div class="plan-cards">
++        <div class="plan-card" data-plan="standard" onclick="selectPlan('standard')">
++          <h3>Standard</h3>
++          <p class="plan-desc">Perfect for individual player development</p>
++          <div class="plan-price-big">$8.99<span>/month</span></div>
++          <ul class="plan-features">
++            <li>1 Player Profile</li>
++            <li>5 Game Uploads / Month</li>
++            <li>Basic AI Analysis</li>
++            <li>Play Designer</li>
++            <li>3 AI Drill Recommendations</li>
++            <li>Email Support</li>
++          </ul>
++          <button class="btn btn-secondary" style="width:100%;margin-top:18px"
++            onclick="event.stopPropagation();selectPlan('standard')">Select
++            Standard</button>
++        </div>
++        <div class="plan-card popular selected" data-plan="elite" onclick="selectPlan('elite')">
++          <h3 style="color:var(--orange)">Elite</h3>
++          <p class="plan-desc">Everything you need for a full team</p>
++          <div class="plan-price-big" style="color:var(--orange)">$29.99<span>/month</span></div>
++          <ul class="plan-features">
++            <li>Unlimited Player Profiles</li>
++            <li>Unlimited Game Uploads</li>
++            <li>Advanced AI Analysis</li>
++            <li>Play Designer + Sharing</li>
++            <li>Unlimited AI Drills</li>
++            <li>Fatigue Detection</li>
++            <li>Send Tips to Players</li>
++            <li>Priority Support</li>
++          </ul>
++          <button class="btn btn-primary" style="width:100%;margin-top:18px"
++            onclick="event.stopPropagation();selectPlan('elite')">Select
++            Elite</button>
++        </div>
++      </div>
++
++      <!-- Payment Methods -->
++      <div style="margin-top:36px;max-width:700px">
++        <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><span class="inline-icon"><svg viewBox="0 0 24 24"
++              fill="none" stroke="currentColor" stroke-width="2">
++              <rect x="1" y="4" width="22" height="16" rx="2" />
++              <line x1="1" y1="10" x2="23" y2="10" />
++            </svg></span> Payment Methods</h2>
++        <div class="card" style="margin-bottom:16px">
++          <div class="card-body">
++            <div id="payment-methods-list">
++              <div class="player-row" style="border-bottom:1px solid var(--border)">
++                <div
++                  style="width:48px;height:32px;background:linear-gradient(135deg,#1a1f71,#2e77bc);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0">
++                  VISA</div>
++                <div class="player-info">
++                  <div class="player-name">Visa ending in 4242</div>
++                  <div class="player-position">Expires 08/2027</div>
++                </div>
++                <div style="display:flex;gap:8px;align-items:center">
++                  <span class="badge badge-green">Default</span>
++                  <button class="btn btn-sm btn-secondary" onclick="openModal('edit-payment-modal')">Edit</button>
++                  <button class="btn btn-sm btn-secondary" onclick="removePaymentMethod(this)">Remove</button>
++                </div>
+               </div>
+-            </div>
+-            <div class="player-row">
+-              <div
+-                style="width:48px;height:32px;background:linear-gradient(135deg,#eb001b,#f79e1b);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0">
+-                MC</div>
+-              <div class="player-info">
+-                <div class="player-name">Mastercard ending in 8901</div>
+-                <div class="player-position">Expires 12/2026</div>
++              <div class="player-row">
++                <div
++                  style="width:48px;height:32px;background:linear-gradient(135deg,#eb001b,#f79e1b);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0">
++                  MC</div>
++                <div class="player-info">
++                  <div class="player-name">Mastercard ending in 8901</div>
++                  <div class="player-position">Expires 12/2026</div>
++                </div>
++                <div style="display:flex;gap:8px;align-items:center">
++                  <button class="btn btn-sm btn-secondary" onclick="setDefaultPayment(this)">Set Default</button>
++                  <button class="btn btn-sm btn-secondary" onclick="openModal('edit-payment-modal')">Edit</button>
++                  <button class="btn btn-sm btn-secondary" onclick="removePaymentMethod(this)">Remove</button>
++                </div>
+               </div>
+-              <div style="display:flex;gap:8px;align-items:center">
+-                <button class="btn btn-sm btn-secondary" onclick="setDefaultPayment(this)">Set Default</button>
+-                <button class="btn btn-sm btn-secondary" onclick="openModal('edit-payment-modal')">Edit</button>
+-                <button class="btn btn-sm btn-secondary" onclick="removePaymentMethod(this)">Remove</button>
+-              </div>
+             </div>
++            <button class="btn btn-primary" style="margin-top:16px" onclick="openModal('add-payment-modal')">+ Add
++              Payment Method</button>
+           </div>
+-          <button class="btn btn-primary" style="margin-top:16px" onclick="openModal('add-payment-modal')">+ Add
+-            Payment Method</button>
+         </div>
+-      </div>
+ 
+-      <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><span class="inline-icon"><svg viewBox="0 0 24 24"
+-            fill="none" stroke="currentColor" stroke-width="2">
+-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+-            <polyline points="14 2 14 8 20 8" />
+-            <line x1="16" y1="13" x2="8" y2="13" />
+-            <line x1="16" y1="17" x2="8" y2="17" />
+-          </svg></span> Billing History</h2>
+-      <div class="card">
+-        <div class="card-body" style="padding:0">
+-          <div class="player-row" style="border-bottom:1px solid var(--border)">
+-            <div class="player-info">
+-              <div class="player-name">Elite Plan — February 2026</div>
+-              <div class="player-position">Feb 1, 2026</div>
++        <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><span class="inline-icon"><svg viewBox="0 0 24 24"
++              fill="none" stroke="currentColor" stroke-width="2">
++              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
++              <polyline points="14 2 14 8 20 8" />
++              <line x1="16" y1="13" x2="8" y2="13" />
++              <line x1="16" y1="17" x2="8" y2="17" />
++            </svg></span> Billing History</h2>
++        <div class="card">
++          <div class="card-body" style="padding:0">
++            <div class="player-row" style="border-bottom:1px solid var(--border)">
++              <div class="player-info">
++                <div class="player-name">Elite Plan — February 2026</div>
++                <div class="player-position">Feb 1, 2026</div>
++              </div>
++              <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
++                  class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
++                  onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+             </div>
+-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
+-                class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
+-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+-          </div>
+-          <div class="player-row" style="border-bottom:1px solid var(--border)">
+-            <div class="player-info">
+-              <div class="player-name">Elite Plan — January 2026</div>
+-              <div class="player-position">Jan 1, 2026</div>
++            <div class="player-row" style="border-bottom:1px solid var(--border)">
++              <div class="player-info">
++                <div class="player-name">Elite Plan — January 2026</div>
++                <div class="player-position">Jan 1, 2026</div>
++              </div>
++              <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
++                  class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
++                  onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+             </div>
+-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
+-                class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
+-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+-          </div>
+-          <div class="player-row" style="border-bottom:1px solid var(--border)">
+-            <div class="player-info">
+-              <div class="player-name">Elite Plan — December 2025</div>
+-              <div class="player-position">Dec 1, 2025</div>
++            <div class="player-row" style="border-bottom:1px solid var(--border)">
++              <div class="player-info">
++                <div class="player-name">Elite Plan — December 2025</div>
++                <div class="player-position">Dec 1, 2025</div>
++              </div>
++              <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
++                  class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
++                  onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+             </div>
+-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
+-                class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
+-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+-          </div>
+-          <div class="player-row" style="border-bottom:1px solid var(--border)">
+-            <div class="player-info">
+-              <div class="player-name">Standard Plan — November 2025</div>
+-              <div class="player-position">Nov 1, 2025</div>
++            <div class="player-row" style="border-bottom:1px solid var(--border)">
++              <div class="player-info">
++                <div class="player-name">Standard Plan — November 2025</div>
++                <div class="player-position">Nov 1, 2025</div>
++              </div>
++              <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$8.99</span><span
++                  class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
++                  onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+             </div>
+-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$8.99</span><span
+-                class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
+-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+-          </div>
+-          <div class="player-row">
+-            <div class="player-info">
+-              <div class="player-name">Standard Plan — October 2025</div>
+-              <div class="player-position">Oct 1, 2025</div>
++            <div class="player-row">
++              <div class="player-info">
++                <div class="player-name">Standard Plan — October 2025</div>
++                <div class="player-position">Oct 1, 2025</div>
++              </div>
++              <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$8.99</span><span
++                  class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
++                  onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+             </div>
+-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$8.99</span><span
+-                class="badge badge-green">Paid</span><button class="btn btn-sm btn-secondary"
+-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
+           </div>
+         </div>
+-      </div>
+ 
+-      <div style="margin-top:24px">
+-        <button class="btn btn-secondary" onclick="showToast('Subscription management opened','⚙️')"
+-          style="margin-right:12px">Manage Subscription</button>
+-        <button class="btn btn-secondary" style="color:var(--red);border-color:rgba(239,68,68,0.3)"
+-          onclick="if(confirm('Are you sure you want to cancel your subscription?')) showToast('Subscription cancelled. You will retain access until end of billing period.','❌')">Cancel
+-          Subscription</button>
++        <div style="margin-top:24px">
++          <button class="btn btn-secondary" onclick="showToast('Subscription management opened','⚙️')"
++            style="margin-right:12px">Manage Subscription</button>
++          <button class="btn btn-secondary" style="color:var(--red);border-color:rgba(239,68,68,0.3)"
++            onclick="if(confirm('Are you sure you want to cancel your subscription?')) showToast('Subscription cancelled. You will retain access until end of billing period.','❌')">Cancel
++            Subscription</button>
++        </div>
+       </div>
+     </div>
+-  </div>
+ 
+-  <!-- ===== PAGE: SETTINGS ===== -->
+-  <div class="page" id="page-settings">
+-    <h1 class="page-title">Settings <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+-          stroke-width="2">
+-          <circle cx="12" cy="12" r="3" />
+-          <path
+-            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06" />
+-        </svg></span></h1>
+-    <p class="page-subtitle">Manage your account and preferences.</p>
+-    <div class="card" style="max-width:600px">
+-      <div class="card-header">
+-        <h3>Profile</h3>
++    <!-- ===== PAGE: SETTINGS ===== -->
++    <div class="page" id="page-settings">
++      <h1 class="page-title">Settings <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
++            stroke="currentColor" stroke-width="2">
++            <circle cx="12" cy="12" r="3" />
++            <path
++              d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06" />
++          </svg></span></h1>
++      <p class="page-subtitle">Manage your account and preferences.</p>
++      <div class="card" style="max-width:600px">
++        <div class="card-header">
++          <h3>Profile</h3>
++        </div>
++        <div class="card-body">
++          <div class="form-group"><label class="form-label">Coach Name</label><input type="text" class="form-input"
++              id="settings-name" value="Coach Wilson"></div>
++          <div class="form-group"><label class="form-label">School</label><input type="text" class="form-input"
++              id="settings-school" value="Harker High School"></div>
++          <div class="form-group"><label class="form-label">Team Name</label><input type="text" class="form-input"
++              id="settings-team" value="Harker Lions"></div>
++          <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input"
++              id="settings-email" value="coach.wilson@lincolnhs.edu"></div>
++          <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
++        </div>
+       </div>
+-      <div class="card-body">
+-        <div class="form-group"><label class="form-label">Coach Name</label><input type="text" class="form-input"
+-            id="settings-name" value="Coach Wilson"></div>
+-        <div class="form-group"><label class="form-label">School</label><input type="text" class="form-input"
+-            id="settings-school" value="Harker High School"></div>
+-        <div class="form-group"><label class="form-label">Team Name</label><input type="text" class="form-input"
+-            id="settings-team" value="Harker Lions"></div>
+-        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input"
+-            id="settings-email" value="coach.wilson@lincolnhs.edu"></div>
+-        <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+-      </div>
+     </div>
+-  </div>
+ 
+   </div><!-- /main-content -->
+ 
+@@ -2479,101 +2566,6 @@
+     </div>
+   </div>
+ 
+-  <!-- ===== PAGE: SETTINGS ===== -->
+-  <div class="page" id="page-settings">
+-    <h1 class="page-title">Profile &amp; Settings <span class="inline-icon">
+-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+-          <circle cx="12" cy="12" r="3" />
+-          <path
+-            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09" />
+-        </svg></span></h1>
+-    <p class="page-subtitle">Manage your coach profile, team roster code, and account settings.</p>
+-
+-    <div class="section-grid">
+-      <!-- Team Code Card -->
+-      <div class="card" style="border:1px solid rgba(212,115,26,0.25);">
+-        <div class="card-header">
+-          <h3>
+-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+-              <path d="M7 11V7a5 5 0 0110 0v4"></path>
+-            </svg>
+-            Student Team Code
+-          </h3>
+-          <span class="badge badge-orange">Share</span>
+-        </div>
+-        <div class="card-body" style="display:flex;flex-direction:column;gap:16px;">
+-          <p style="font-size:13px;color:var(--text-secondary);margin:0;">Share this code or QR with your players so
+-            they can join the BenchPro student app.</p>
+-          <div style="display:flex;align-items:center;gap:12px;">
+-            <div id="team-code-display"
+-              style="flex:1;padding:14px 18px;background:var(--bg-secondary);border:2px dashed rgba(212,115,26,0.4);border-radius:var(--radius);font-size:22px;font-weight:900;letter-spacing:4px;text-align:center;color:var(--orange-light);font-family:'Courier New',monospace;user-select:all;">
+-              HARKER2026</div>
+-            <button class="btn btn-secondary" onclick="copyTeamCode()" title="Copy Code"
+-              style="padding:12px 14px;min-width:auto;">
+-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+-                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+-              </svg>
+-            </button>
+-          </div>
+-          <div style="display:flex;gap:10px;">
+-            <button class="btn btn-primary" onclick="toggleQRCode()" id="qr-toggle-btn" style="flex:1;">
+-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+-                <rect x="2" y="2" width="8" height="8" rx="1"></rect>
+-                <rect x="14" y="2" width="8" height="8" rx="1"></rect>
+-                <rect x="2" y="14" width="8" height="8" rx="1"></rect>
+-                <rect x="14" y="14" width="4" height="4"></rect>
+-                <rect x="20" y="14" width="2" height="2"></rect>
+-                <rect x="14" y="20" width="2" height="2"></rect>
+-                <rect x="20" y="20" width="2" height="2"></rect>
+-              </svg>
+-              Show QR Code
+-            </button>
+-            <button class="btn btn-secondary" onclick="shareTeamCode()" style="flex:1;">
+-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+-                <circle cx="18" cy="5" r="3"></circle>
+-                <circle cx="6" cy="12" r="3"></circle>
+-                <circle cx="18" cy="19" r="3"></circle>
+-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+-              </svg>
+-              Share Link
+-            </button>
+-          </div>
+-          <!-- QR Code Container -->
+-          <div id="qr-code-container"
+-            style="display:none;text-align:center;padding:20px;background:#2a2a2a;border-radius:var(--radius);margin-top:4px;">
+-            <canvas id="qr-canvas" width="200" height="200"></canvas>
+-          </div>
+-        </div>
+-      </div>
+-
+-      <!-- Coach Profile Setup -->
+-      <div class="card">
+-        <div class="card-header">
+-          <h3><i data-lucide="user" style="width:16px;height:16px;margin-right:8px;"></i> Coach Profile</h3>
+-        </div>
+-        <div class="card-body">
+-          <div class="form-group">
+-            <label class="form-label">Full Name</label>
+-            <input type="text" class="form-input" value="Coach Wilson">
+-          </div>
+-          <div class="form-group">
+-            <label class="form-label">Email</label>
+-            <input type="email" class="form-input" value="coach@school.edu">
+-          </div>
+-          <div class="form-group">
+-            <label class="form-label">Team Name</label>
+-            <input type="text" class="form-input" value="Harker Eagles">
+-          </div>
+-          <button class="btn btn-primary" style="width:100%" onclick="showToast('Profile Updated', '✅')">Save
+-            Profile</button>
+-        </div>
+-      </div>
+-    </div>
+-  </div>
+-
+   <!-- Analysis Overlay -->
+   <div class="analysis-overlay" id="analysis-overlay">
+     <div class="analysis-overlay-card">
+@@ -2615,7 +2607,11 @@
+       </div>
+       <div style="display:flex;gap:12px;margin-top:24px">
+         <button class="btn btn-primary" id="drill-pause-btn" onclick="toggleDrillPause()">⏸ Pause</button>
+-        <button class="btn btn-secondary" onclick="skipDrill()">⏭ Skip</button>
++        <button class="btn btn-secondary" onclick="skipDrill()"><svg width="14" height="14" viewBox="0 0 24 24"
++            fill="none" stroke="currentColor" stroke-width="2">
++            <polygon points="5 4 15 12 5 20" />
++            <line x1="19" y1="5" x2="19" y2="19" />
++          </svg> Skip</button>
+         <button class="btn btn-secondary" style="color:var(--red);border-color:rgba(239,68,68,0.3)"
+           onclick="cancelDrill()">✕ Cancel</button>
+       </div>
