@@ -7,3 +7,5 @@ grpcio-status
 flask-cors
 opencv-python-headless
 ultralytics
+numpy
+werkzeug
