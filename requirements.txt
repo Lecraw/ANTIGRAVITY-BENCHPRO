@@ -6,3 +6,4 @@ google-api-core
 grpcio-status
 flask-cors
 opencv-python-headless
+ultralytics
