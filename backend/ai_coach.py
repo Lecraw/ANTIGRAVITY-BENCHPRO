@@ -1,7 +1,7 @@
 import os
 import base64
 from anthropic import Anthropic  # type: ignore
-from config import ANTHROPIC_API_KEY  # type: ignore
+from .config import ANTHROPIC_API_KEY  # type: ignore
 
 # Ensure your ANTHROPIC_API_KEY is ideally set via environment variables.
 # Using a dummy client for now if key isn't provided.

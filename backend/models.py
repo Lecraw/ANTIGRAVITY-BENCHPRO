@@ -5,7 +5,7 @@ import sqlite3
 import json
 import os
 from datetime import datetime
-from config import DB_PATH
+from .config import DB_PATH
 
 
 def get_db():
