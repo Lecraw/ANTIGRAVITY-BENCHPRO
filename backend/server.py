@@ -15,6 +15,11 @@ from .config import (  # type: ignore
     HOST, PORT, DEBUG, UPLOAD_DIR, FRONTEND_DIR,
     MAX_CONTENT_LENGTH, ALLOWED_EXTENSIONS, TEAM_CODE, TEAM_NAME
 )
+from . import models  # type: ignore
+from .analyzer import get_analyzer  # type: ignore
+from .ai_coach import generate_coach_feedback, analyze_stat_sheet  # type: ignore
+from .swish_analyzer import analyze_basketball_shot  # type: ignore
+
 import models  # type: ignore
 from analyzer import get_analyzer  # type: ignore
 from ai_coach import generate_coach_feedback, analyze_stat_sheet  # type: ignore
@@ -345,4 +350,4 @@ if __name__ == '__main__':
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)# Build Trigger: Sun Feb 22 18:32:26 PST 2026
-# Final deployment pathing fix
+# Final Deployment Pathing: Sun Feb 22 19:21:10 PST 2026
