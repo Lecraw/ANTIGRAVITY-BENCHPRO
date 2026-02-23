@@ -10,7 +10,7 @@ import time
 import os
 import json
 
-from config import (  # type: ignore
+from .config import (  # type: ignore
     YOLO_MODEL, YOLO_CONFIDENCE, FRAME_SAMPLE_RATE, UPLOAD_DIR
 )
 import models  # type: ignore

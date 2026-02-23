@@ -3,7 +3,6 @@ BenchPro Backend — Flask API Server
 Serves the API endpoints and the frontend static files.
 """
 
-
 import os
 import uuid
 import threading
@@ -19,12 +18,6 @@ from . import models  # type: ignore
 from .analyzer import get_analyzer  # type: ignore
 from .ai_coach import generate_coach_feedback, analyze_stat_sheet  # type: ignore
 from .swish_analyzer import analyze_basketball_shot  # type: ignore
-
-import models  # type: ignore
-from analyzer import get_analyzer  # type: ignore
-from ai_coach import generate_coach_feedback, analyze_stat_sheet  # type: ignore
-
-from swish_analyzer import analyze_basketball_shot  # type: ignore
 
 # ===== APP SETUP =====
 
@@ -43,24 +36,24 @@ def allowed_file(filename):
 def serve_index():
     """Serve the coach dashboard."""
     return send_from_directory(FRONTEND_DIR, 'fullwebsite.html')
+
+
 @app.route('/analyze/basketball', methods=['POST'])
 def analyze_basketball():
     if 'video' not in request.files:
         return jsonify({"error": "No video uploaded"}), 400
-        
+
     video = request.files['video']
-    
+
     # Save temp file
     temp_path = f"uploads/temp_{video.filename}"
     video.save(temp_path)
-    
+
     # Run the AI
     results = analyze_basketball_shot(temp_path)
-    
-    # Clean up (optional: remove file after)
-    # os.remove(temp_path)
-    
+
     return jsonify(results)
+
 
 @app.route('/student')
 @app.route('/student.html')
@@ -94,14 +87,6 @@ def health():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_video():
-    """
-    Upload a game film for analysis.
-    Expects multipart form with:
-    - file: video file (mp4, mov, avi, etc.)
-    - title: game title (optional)
-    - opponent: opponent team name (optional)
-    - date: game date (optional)
-    """
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
 
@@ -114,18 +99,15 @@ def upload_video():
             'error': f'Invalid file type. Allowed: {", ".join(ALLOWED_EXTENSIONS)}'
         }), 400
 
-    # Save file with unique name
     original_name = secure_filename(file.filename)
     unique_name = f"{uuid.uuid4().hex}_{original_name}"
     file_path = os.path.join(UPLOAD_DIR, unique_name)
     file.save(file_path)
 
-    # Get metadata from form
     title = request.form.get('title', original_name)
     opponent = request.form.get('opponent', '')
     date = request.form.get('date', '')
 
-    # Create game record
     game_id = models.create_game(
         title=title,
         opponent=opponent,
@@ -134,8 +116,6 @@ def upload_video():
         file_name=original_name
     )
 
-
-    # Start analysis in background thread
     thread = threading.Thread(
         target=_run_analysis,
         args=(game_id, file_path),
@@ -152,9 +132,6 @@ def upload_video():
 
 @app.route('/api/upload_stats', methods=['POST'])
 def upload_stats():
-    """
-    Upload a game stat sheet (image or CSV) for analysis directly via AI Coach (bypassing video tracking).
-    """
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
 
@@ -162,14 +139,12 @@ def upload_stats():
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
 
-    # Save file with unique name
     original_name = secure_filename(file.filename)
     unique_name = f"{uuid.uuid4().hex}_stats_{original_name}"
     file_path = os.path.join(UPLOAD_DIR, unique_name)
     file.save(file_path)
 
     try:
-        # Pass straight to Claude Vision / Text analyzer
         analysis_html = analyze_stat_sheet(file_path)
         return jsonify({'status': 'success', 'analysis': analysis_html}), 200
     except Exception as e:
@@ -190,7 +165,6 @@ def _run_analysis(game_id, file_path):
 
 @app.route('/api/analysis/<int:game_id>')
 def get_analysis(game_id):
-    """Get full analysis results for a game."""
     game = models.get_game(game_id)
     if not game:
         return jsonify({'error': 'Game not found'}), 404
@@ -201,14 +175,13 @@ def get_analysis(game_id):
     return jsonify({
         'game': game,
         'analysis': analysis,
-        'events': events[:100],  # Limit events to avoid huge responses
+        'events': events[:100],
         'events_total': len(events)
     })
 
 
 @app.route('/api/analysis/<int:game_id>/status')
 def get_analysis_status(game_id):
-    """Check processing status for a game."""
     game = models.get_game(game_id)
     if not game:
         return jsonify({'error': 'Game not found'}), 404
@@ -225,7 +198,6 @@ def get_analysis_status(game_id):
 
 @app.route('/api/clips')
 def list_clips():
-    """List all uploaded/analyzed games."""
     games = models.get_all_games()
     result = []
     for game in games:
@@ -249,7 +221,6 @@ def list_clips():
 
 @app.route('/api/clips/<int:game_id>', methods=['DELETE'])
 def delete_clip(game_id):
-    """Delete a game and its analysis data."""
     game = models.get_game(game_id)
     if not game:
         return jsonify({'error': 'Game not found'}), 404
@@ -262,7 +233,6 @@ def delete_clip(game_id):
 
 @app.route('/api/players')
 def list_players():
-    """List all detected players across all games."""
     games = models.get_all_games()
     all_stats = []
     for game in games:
@@ -282,7 +252,6 @@ def list_players():
 
 @app.route('/api/team')
 def team_stats():
-    """Get aggregated team stats across all games."""
     games = models.get_all_games()
     total_games = len([g for g in games if g['status'] == 'complete'])
     total_events: int = 0
@@ -312,7 +281,6 @@ def team_stats():
 
 @app.route('/api/events/<int:game_id>')
 def get_game_events(game_id):
-    """Get all events for a specific game."""
     game = models.get_game(game_id)
     if not game:
         return jsonify({'error': 'Game not found'}), 404
@@ -330,24 +298,5 @@ def get_game_events(game_id):
 # ===== MAIN =====
 
 if __name__ == '__main__':
-    print(f"""
-╔══════════════════════════════════════════════╗
-║       BenchPro Backend Server                ║
-╠══════════════════════════════════════════════╣
-║  Team:     {TEAM_NAME:<33}║
-║  Code:     {TEAM_CODE:<33}║
-║  Server:   http://localhost:{PORT:<27}║
-║  Student:  http://localhost:{PORT}/student{' '*14}║
-╚══════════════════════════════════════════════╝
-    """)
-
-    # Pre-load the YOLO model so first upload isn't slow
-    print("[INIT] Pre-loading YOLO model...")
-    get_analyzer()
-    print("Ready to analyze game film!\n")
-
-    app.run(host=HOST, port=PORT, debug=DEBUG, use_reloader=False)
-if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)# Build Trigger: Sun Feb 22 18:32:26 PST 2026
-# Final Deployment Pathing: Sun Feb 22 19:21:10 PST 2026
+    app.run(host='0.0.0.0', port=port)
