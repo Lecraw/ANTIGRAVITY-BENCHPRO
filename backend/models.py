@@ -31,8 +31,8 @@ def init_db():
             duration_seconds REAL DEFAULT 0,
             fps REAL DEFAULT 0,
             total_frames INTEGER DEFAULT 0,
-            status TEXT DEFAULT 'uploaded',
-            progress REAL DEFAULT 0,
+            status TEXT DEFAULT 'uploaded',  -- uploaded, processing, complete, error
+            progress REAL DEFAULT 0,         -- 0-100
             error_message TEXT DEFAULT '',
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now'))
@@ -42,19 +42,19 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             game_id INTEGER NOT NULL,
             jersey_number TEXT DEFAULT '',
-            team TEXT DEFAULT 'home',
-            color_rgb TEXT DEFAULT '',
-            detections INTEGER DEFAULT 0,
+            team TEXT DEFAULT 'home',  -- home or away
+            color_rgb TEXT DEFAULT '',  -- dominant jersey color
+            detections INTEGER DEFAULT 0,  -- number of frames detected in
             FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS game_events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             game_id INTEGER NOT NULL,
-            event_type TEXT NOT NULL,
+            event_type TEXT NOT NULL,  -- player_detected, ball_detected, shot_attempt, movement, possession_change
             timestamp_seconds REAL DEFAULT 0,
             frame_number INTEGER DEFAULT 0,
-            data TEXT DEFAULT '{}',
+            data TEXT DEFAULT '{}',  -- JSON blob with event details
             FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
         );
 
@@ -67,9 +67,9 @@ def init_db():
             ball_detections INTEGER DEFAULT 0,
             total_events INTEGER DEFAULT 0,
             possession_changes INTEGER DEFAULT 0,
-            stats_json TEXT DEFAULT '{}',
-            ai_insights TEXT DEFAULT '',
-            activity_trend_json TEXT DEFAULT '[]',
+            stats_json TEXT DEFAULT '{}',     -- Aggregated stats as JSON
+            ai_insights TEXT DEFAULT '',      -- Claude AI coaching analysis
+            activity_trend_json TEXT DEFAULT '[]',   -- Player positional timeline data
             created_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
         );
@@ -81,6 +81,7 @@ def init_db():
 # ===== GAME CRUD =====
 
 def create_game(title, opponent='', date='', file_path='', file_name=''):
+    """Insert a new game record. Returns the game ID."""
     conn = get_db()
     cur = conn.execute(
         "INSERT INTO games (title, opponent, date, file_path, file_name) VALUES (?, ?, ?, ?, ?)",
@@ -93,6 +94,7 @@ def create_game(title, opponent='', date='', file_path='', file_name=''):
 
 
 def get_game(game_id):
+    """Get a single game by ID."""
     conn = get_db()
     row = conn.execute("SELECT * FROM games WHERE id = ?", (game_id,)).fetchone()
     conn.close()
@@ -100,6 +102,7 @@ def get_game(game_id):
 
 
 def get_all_games():
+    """Get all games ordered by creation date."""
     conn = get_db()
     rows = conn.execute("SELECT * FROM games ORDER BY created_at DESC").fetchall()
     conn.close()
@@ -107,6 +110,7 @@ def get_all_games():
 
 
 def update_game_status(game_id, status, progress=None, error_message=None):
+    """Update game processing status."""
     conn = get_db()
     updates = ["status = ?", "updated_at = datetime('now')"]
     params = [status]
@@ -123,6 +127,7 @@ def update_game_status(game_id, status, progress=None, error_message=None):
 
 
 def update_game_video_info(game_id, duration, fps, total_frames):
+    """Update video metadata after processing."""
     conn = get_db()
     conn.execute(
         "UPDATE games SET duration_seconds = ?, fps = ?, total_frames = ? WHERE id = ?",
@@ -133,7 +138,9 @@ def update_game_video_info(game_id, duration, fps, total_frames):
 
 
 def delete_game(game_id):
+    """Delete a game and all related data."""
     conn = get_db()
+    # Get file path to delete the actual file
     row = conn.execute("SELECT file_path FROM games WHERE id = ?", (game_id,)).fetchone()
     if row and row['file_path'] and os.path.exists(row['file_path']):
         os.remove(row['file_path'])
@@ -145,6 +152,7 @@ def delete_game(game_id):
 # ===== ANALYSIS RESULTS =====
 
 def save_analysis(game_id, results):
+    """Save or update analysis results for a game."""
     conn = get_db()
     conn.execute("""
         INSERT INTO analysis_results (
@@ -179,6 +187,7 @@ def save_analysis(game_id, results):
 
 
 def get_analysis(game_id):
+    """Get analysis results for a game."""
     conn = get_db()
     row = conn.execute("SELECT * FROM analysis_results WHERE game_id = ?", (game_id,)).fetchone()
     conn.close()
@@ -193,6 +202,7 @@ def get_analysis(game_id):
 # ===== EVENTS =====
 
 def add_event(game_id, event_type, timestamp_seconds, frame_number, data=None):
+    """Add a game event."""
     conn = get_db()
     conn.execute(
         "INSERT INTO game_events (game_id, event_type, timestamp_seconds, frame_number, data) VALUES (?, ?, ?, ?, ?)",
@@ -203,6 +213,7 @@ def add_event(game_id, event_type, timestamp_seconds, frame_number, data=None):
 
 
 def get_events(game_id, event_type=None):
+    """Get events for a game, optionally filtered by type."""
     conn = get_db()
     if event_type:
         rows = conn.execute(

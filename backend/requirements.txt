@@ -1,6 +1,6 @@
-flask
 flask-cors
-ultralytics
-opencv-python
-numpy
+gunicorn
 anthropic
+python-dotenv
+google-api-core
+grpcio-status

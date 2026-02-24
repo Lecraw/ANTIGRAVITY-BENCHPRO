@@ -3,6 +3,7 @@
 // Refactored to work with file:// protocol (no ES modules)
 
 // ===== CONFIGURATION =====
+// This tells the app to look for the key in the "safe" (Environment Variables)
 const CLAUDE_API_KEY = process.env.ANTHROPIC_API_KEY;
 const MODEL = 'claude-sonnet-4-6';
 const API_URL = 'https://api.anthropic.com/v1/messages';
@@ -10,7 +11,7 @@ const API_URL = 'https://api.anthropic.com/v1/messages';
 // System instruction shared across all analysis functions
 const SYSTEM_INSTRUCTION = `You are BenchPro AI, an elite basketball analytics assistant for high school basketball coaches. 
 You provide data-driven, actionable coaching insights. Your analysis should be:
-- Specific and backed by the data provided
+- Specific and backed by the data provided›
 - Practical for high school level coaching
 - Focused on player development and team strategy
 - Written in a clear, concise coaching style
@@ -318,42 +319,33 @@ You MUST respond with EXACTLY this JSON format first (on its own line, wrapped i
 After the JSON, provide a detailed coaching analysis covering ALL of the following sections:
 
 ## Game Summary
-3-4 sentences on the overall flow of the game.
+1-2 concise sentences on the overall flow.
 
 ## Team Tips
-Provide 5-6 actionable coaching tips for the team as a whole based on the game performance. Focus on what the team did well and what needs improvement in terms of ball movement, spacing, transition, defense, and chemistry.
+Provide 3 brief, actionable coaching tips for the team based on the performance.
 
 ## Individual Player Tips
-For each of the following players, provide 2-3 specific tips based on the game film:
-- Marcus James (#3, PG) — 18.4 PPG, 6.2 APG
-- Anthony Davis (#11, SG) — 14.7 PPG, 3.8 APG
-- DeShawn Wright (#7, SF) — 12.1 PPG, 6.8 RPG
-- Jaylen Carter (#23, PF) — 11.3 PPG, 8.4 RPG
-- Omar Johnson (#5, C) — 9.8 PPG, 9.1 RPG
+For each of the following players, provide 1 specific, high-impact tip:
+- Marcus James (#3, PG)
+- Anthony Davis (#11, SG)
+- DeShawn Wright (#7, SF)
+- Jaylen Carter (#23, PF)
+- Omar Johnson (#5, C)
 
-## Recommended Drills — Team
-Recommend 3-4 specific team drills to address weaknesses identified in this game. For each drill include:
+## Recommended Drills
+Recommend 2 team drills and 1 individual drill focused on the biggest identified needs. For each:
 - **Drill Name**
-- **Focus Area** (what it addresses)
-- **Duration** (minutes)
-- **Description** (1-2 sentences)
-
-## Recommended Drills — Individual Players
-For at least 3 players, recommend 1-2 specific individual drills. Include:
-- **Player Name**
-- **Drill Name**
-- **Why** (what film showed)
-- **Description** (1-2 sentences)
+- **Focus**
+- **Description** (1 sentence)
 
 ## Recommended Lineups
-Based on the game analysis, suggest:
-1. **Best Offensive Lineup** (5 players with rationale)
-2. **Best Defensive Lineup** (5 players with rationale)
-3. **Crunch Time Lineup** (5 players optimized for FT%, composure, and ball security)
+Provide a quick list of starters for:
+1. **Best Offense**
+2. **Best Defense**
 
 Make it realistic for a competitive high school game. Vary the outcomes.`;
 
-    const result = await callClaude(prompt, { maxTokens: 4096, temperature: 0.8 });
+    const result = await callClaude(prompt, { maxTokens: 2048, temperature: 0.8 });
     setLoading(key, false);
 
     if (result.success) {
