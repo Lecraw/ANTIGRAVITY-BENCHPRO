@@ -13,7 +13,7 @@ import json
 from .config import (  # type: ignore
     YOLO_MODEL, YOLO_CONFIDENCE, FRAME_SAMPLE_RATE, UPLOAD_DIR
 )
-import models  # type: ignore
+from . import models  # type: ignore
 from .ai_coach import generate_coach_feedback  # type: ignore
 
 

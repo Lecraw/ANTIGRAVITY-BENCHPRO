@@ -20,7 +20,7 @@ from . analyzer import get_analyzer  # type: ignore
 from . ai_coach import generate_coach_feedback, analyze_stat_sheet  # type: ignore
 from . swish_analyzer import analyze_basketball_shot  # type: ignore
 
-import models  # type: ignore
+from . import models  # type: ignore
 from .analyzer import get_analyzer  # type: ignore
 from .ai_coach import generate_coach_feedback, analyze_stat_sheet  # type: ignore
 
