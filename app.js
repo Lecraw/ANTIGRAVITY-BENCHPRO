@@ -76,6 +76,7 @@ function navigateTo(page) {
   if (page === 'player-stats') renderPlayerCharts();
   if (page === 'ai-analysis') renderAnalysisCharts();
   if (page === 'analysis-history') {
+    document.querySelector('.main-content')?.scrollTo(0, 0);
     if (typeof loadClips === 'function') loadClips();
   }
   if (page === 'settings') {
@@ -1121,7 +1122,7 @@ async function realUploadAndAnalyze(file, title, opponent, displayDate) {
         fill.style.width = '100%';
         label.textContent = 'Analysis complete!';
 
-        setTimeout(() => {
+        setTimeout(async () => {
           overlay.classList.remove('show');
 
           showToast(`Analysis of "${title}" complete!`, IC.check);
@@ -1129,7 +1130,10 @@ async function realUploadAndAnalyze(file, title, opponent, displayDate) {
 
           navigateTo('analysis-history');
           if (typeof loadClips === 'function') {
-            loadClips();
+            await loadClips();
+          }
+          if (typeof loadDashboardRecentGames === 'function') {
+            loadDashboardRecentGames();
           }
         }, 800);
       },
@@ -2392,7 +2396,7 @@ async function loadDashboardRecentGames() {
 async function loadClips() {
   const clipsList = document.getElementById('clips-list');
   const clipsEmpty = document.getElementById('clips-empty');
-  if (!clipsList || !clipsEmpty) return;
+  if (!clipsList) return;
 
   // Preserve any stat sheet entries already in the list
   const existingStatEntries = clipsList.querySelectorAll('[data-stat-entry="true"]');
@@ -2412,12 +2416,16 @@ async function loadClips() {
     statEntriesArr.forEach(el => clipsList.appendChild(el));
 
     if (clips.length === 0 && statEntriesArr.length === 0) {
-      clipsEmpty.style.display = 'block';
-      clipsList.appendChild(clipsEmpty);
+      if (clipsEmpty) {
+        clipsEmpty.style.display = 'block';
+        clipsList.appendChild(clipsEmpty);
+      } else {
+        clipsList.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><h3>No analyses yet</h3><p>Upload a video or stat sheet to get started.</p></div>`;
+      }
       return;
     }
 
-    clipsEmpty.style.display = 'none';
+    if (clipsEmpty) clipsEmpty.style.display = 'none';
 
     clips.forEach(clip => {
       const createdDate = clip.created_at ? new Date(clip.created_at.replace(' ', 'T') + 'Z') : new Date();
@@ -2441,7 +2449,7 @@ async function loadClips() {
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
         </div>
         <div class="analysis-entry-info">
-          <h4>${clip.title || clip.filename}</h4>
+          <h4>${clip.title || clip.file_name || 'Untitled'}</h4>
           <div class="analysis-entry-meta">
             <span class="analysis-entry-type video">Video</span>
             <span>${dateStr}</span>
@@ -2470,7 +2478,7 @@ async function loadClips() {
           if (!r.ok) throw new Error('Delete failed');
           clipEl.remove();
           showToast('Clip deleted', IC.trash);
-          if (!clipsList.querySelector('.analysis-entry')) {
+          if (!clipsList.querySelector('.analysis-entry') && clipsEmpty) {
             clipsEmpty.style.display = 'block';
             clipsList.appendChild(clipsEmpty);
           }
@@ -2511,9 +2519,10 @@ async function loadClips() {
     console.error('Failed to load clips:', err);
     clipsList.innerHTML = '';
     statEntriesArr.forEach(el => clipsList.appendChild(el));
-    if (statEntriesArr.length === 0) {
-      clipsList.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><h3>No analyses yet</h3><p>Upload a video or stat sheet to see analyses here.</p></div>`;
-    }
+    const errDiv = document.createElement('div');
+    errDiv.className = 'empty-state';
+    errDiv.innerHTML = `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><h3>Could not load analyses</h3><p>${err.message || 'Please try again.'}</p>`;
+    clipsList.appendChild(errDiv);
   }
 }
 

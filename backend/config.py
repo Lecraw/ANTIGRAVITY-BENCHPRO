@@ -16,7 +16,7 @@ PORT = 5050
 DEBUG = True
 
 # Video processing
-MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500MB max upload
+MAX_CONTENT_LENGTH = 5 * 1024 * 1024 * 1024  # 5GB max upload (full game film ~1 hour)
 ALLOWED_EXTENSIONS = {'mp4', 'mov', 'avi', 'mkv', 'webm'}
 FRAME_SAMPLE_RATE = 15  # Analyze every Nth frame (higher = faster but less detail)
 YOLO_MODEL = os.path.join(os.path.dirname(BASE_DIR), 'yolov8n.pt')  # Nano model for speed — can upgrade to yolov8s/m/l
