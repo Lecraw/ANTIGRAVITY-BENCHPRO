@@ -427,55 +427,40 @@ function studentPollAnalysisStatus(gameId, onProgress, onComplete, onError) {
 }
 
 async function studentRealUploadAndAnalyze(file, title) {
-    const overlay = document.getElementById('student-analysis-overlay');
+    const indicator = document.getElementById('student-analysis-indicator');
     const fill = document.getElementById('student-analysis-progress-fill');
     const label = document.getElementById('student-analysis-progress-label');
-    const titleEl = document.getElementById('student-analysis-overlay-title');
+    const titleEl = document.getElementById('student-analysis-indicator-title');
+    const pctEl = document.getElementById('student-analysis-indicator-pct');
 
-    titleEl.textContent = 'Analyzing: ' + title;
-    fill.style.width = '0%';
-    label.textContent = 'Uploading video to server...';
-    overlay.classList.add('show');
-
-    document.querySelectorAll('#student-analysis-stages .analysis-stage').forEach(s => s.classList.remove('active', 'done'));
-    document.getElementById('student-stage-upload').classList.add('active');
+    if (titleEl) titleEl.textContent = title.length > 24 ? title.slice(0, 21) + '...' : title;
+    if (fill) fill.style.width = '0%';
+    if (label) label.textContent = 'Uploading video to server...';
+    if (pctEl) pctEl.textContent = '0%';
+    if (indicator) indicator.classList.add('show');
 
     try {
         showToast(`Uploading "${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`, SIC.upload);
         const uploadResult = await studentUploadToBackend(file, title);
         const gameId = uploadResult.id;
 
-        document.getElementById('student-stage-upload').classList.remove('active');
-        document.getElementById('student-stage-upload').classList.add('done');
-        document.getElementById('student-stage-detect').classList.add('active');
-        fill.style.width = '15%';
-        label.textContent = 'Video uploaded! Starting YOLO player detection...';
+        if (fill) fill.style.width = '15%';
+        if (label) label.textContent = 'Starting YOLO detection...';
+        if (pctEl) pctEl.textContent = '15%';
 
         studentPollAnalysisStatus(gameId,
             (pct, statusText) => {
-                fill.style.width = Math.max(pct, 15) + '%';
-                label.textContent = statusText;
-                if (pct >= 20) {
-                    document.getElementById('student-stage-detect').classList.remove('active');
-                    document.getElementById('student-stage-detect').classList.add('done');
-                    document.getElementById('student-stage-plays').classList.add('active');
-                }
-                if (pct >= 70) {
-                    document.getElementById('student-stage-plays').classList.remove('active');
-                    document.getElementById('student-stage-plays').classList.add('done');
-                    document.getElementById('student-stage-insights').classList.add('active');
-                }
+                if (fill) fill.style.width = Math.max(pct, 15) + '%';
+                if (label) label.textContent = statusText.length > 35 ? statusText.slice(0, 32) + '...' : statusText;
+                if (pctEl) pctEl.textContent = pct + '%';
             },
             (result) => {
-                document.querySelectorAll('#student-analysis-stages .analysis-stage').forEach(s => {
-                    s.classList.remove('active');
-                    s.classList.add('done');
-                });
-                fill.style.width = '100%';
-                label.textContent = 'Analysis complete!';
+                if (fill) fill.style.width = '100%';
+                if (label) label.textContent = 'Complete!';
+                if (pctEl) pctEl.textContent = '100%';
 
                 setTimeout(() => {
-                    overlay.classList.remove('show');
+                    if (indicator) indicator.classList.remove('show');
                     showToast(`Analysis of "${title}" complete!`, SIC.check);
                     const titleInput = document.getElementById('clip-title-input');
                     const fileInput = document.getElementById('clip-file-input');
@@ -484,15 +469,15 @@ async function studentRealUploadAndAnalyze(file, title) {
                     if (fileInput) fileInput.value = '';
                     if (info) info.style.display = 'none';
                     if (typeof loadStudentClips === 'function') loadStudentClips();
-                }, 800);
+                }, 600);
             },
             (errorMsg) => {
-                overlay.classList.remove('show');
+                if (indicator) indicator.classList.remove('show');
                 showToast(`Analysis failed: ${errorMsg}`, SIC.warn);
             }
         );
     } catch (err) {
-        overlay.classList.remove('show');
+        if (indicator) indicator.classList.remove('show');
         showToast(`Upload failed: ${err.message}`, SIC.warn);
         console.error('Upload error:', err);
     }

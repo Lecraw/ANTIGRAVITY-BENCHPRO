@@ -2072,64 +2072,91 @@ body {
   margin-top: 2px;
 }
 
-/* ===== ANALYSIS OVERLAY ===== */
-.analysis-overlay {
+/* ===== ANALYSIS INDICATOR (top corner, non-blocking) ===== */
+.analysis-indicator {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(12px);
-  z-index: 10000;
+  top: 72px;
+  right: 16px;
+  z-index: 9999;
   display: none;
-  align-items: center;
-  justify-content: center;
+  min-width: 260px;
+  max-width: 320px;
 }
 
-.analysis-overlay.show {
-  display: flex;
+.analysis-indicator.show {
+  display: block;
 }
 
-.analysis-overlay-card {
+.analysis-indicator-inner {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 48px;
-  max-width: 460px;
-  width: 90%;
-  text-align: center;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-.analysis-overlay-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(232, 101, 10, 0.1);
+.analysis-indicator-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  animation: pulse-icon 2s ease-in-out infinite;
-}
-
-@keyframes pulse-icon {
-
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(232, 101, 10, 0.3);
-  }
-
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px 8px rgba(232, 101, 10, 0.1);
-  }
-}
-
-.analysis-overlay-card h2 {
-  font-size: 22px;
-  font-weight: 800;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
+.analysis-indicator-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(232, 101, 10, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange);
+  animation: analysis-pulse 2s ease-in-out infinite;
+}
+
+@keyframes analysis-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.analysis-indicator-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analysis-indicator-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--orange);
+}
+
+.analysis-indicator-bar {
+  height: 4px;
+  background: var(--bg-primary);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.analysis-indicator-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--orange), #ff8c00);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.analysis-indicator-stage {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Legacy - keep for stat sheet overlay if needed */
 .analysis-progress-bar {
   width: 100%;
   height: 6px;

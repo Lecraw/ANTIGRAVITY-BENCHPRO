@@ -2170,120 +2170,88 @@ body {
     margin-top: 2px;
 }
 
-/* ===== ANALYSIS OVERLAY (AI video processing) ===== */
-.analysis-overlay {
+/* ===== ANALYSIS INDICATOR (top corner, non-blocking) ===== */
+.analysis-indicator {
     position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(12px);
-    z-index: 10000;
+    top: 56px;
+    right: 16px;
+    z-index: 9999;
     display: none;
-    align-items: center;
-    justify-content: center;
+    min-width: 240px;
+    max-width: 300px;
 }
 
-.analysis-overlay.show {
-    display: flex;
+.analysis-indicator.show {
+    display: block;
 }
 
-.analysis-overlay-card {
+.analysis-indicator-inner {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px 24px;
-    max-width: 420px;
-    width: 90%;
-    text-align: center;
+    border-radius: 12px;
+    padding: 12px 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-.analysis-overlay-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: rgba(240, 74, 0, 0.1);
+.analysis-indicator-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    animation: student-pulse-icon 2s ease-in-out infinite;
-}
-
-@keyframes student-pulse-icon {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(240, 74, 0, 0.3); }
-    50% { transform: scale(1.05); box-shadow: 0 0 16px 6px rgba(240, 74, 0, 0.15); }
-}
-
-.analysis-overlay-card h2 {
-    font-size: 18px;
-    font-weight: 800;
+    gap: 8px;
     margin-bottom: 8px;
 }
 
-.analysis-progress-bar {
-    width: 100%;
-    height: 6px;
-    background: var(--bg-primary);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 10px;
+.analysis-indicator-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(240, 74, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--orange);
+    animation: student-analysis-pulse 2s ease-in-out infinite;
 }
 
-.analysis-progress-fill {
+@keyframes student-analysis-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.analysis-indicator-title {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.analysis-indicator-pct {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--orange);
+}
+
+.analysis-indicator-bar {
+    height: 4px;
+    background: var(--bg-primary);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.analysis-indicator-fill {
     height: 100%;
     width: 0%;
     background: linear-gradient(90deg, var(--orange), var(--orange-light));
-    border-radius: 3px;
+    border-radius: 2px;
     transition: width 0.5s ease;
 }
 
-.analysis-progress-label {
-    font-size: 12px;
-    color: var(--orange);
-    font-weight: 600;
-    margin-bottom: 16px;
-}
-
-.analysis-stages {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    text-align: left;
-}
-
-.analysis-stage {
-    font-size: 12px;
+.analysis-indicator-stage {
+    font-size: 11px;
     color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: color 0.3s;
-}
-
-.analysis-stage.active {
-    color: var(--orange);
-    font-weight: 600;
-}
-
-.analysis-stage.done {
-    color: var(--green);
-}
-
-.stage-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--text-muted);
-    flex-shrink: 0;
-    transition: background 0.3s, box-shadow 0.3s;
-}
-
-.analysis-stage.active .stage-dot {
-    background: var(--orange);
-    box-shadow: 0 0 6px var(--orange);
-}
-
-.analysis-stage.done .stage-dot {
-    background: var(--green);
 }
 
 /* Analysis entry (for My Clips / Analysis History) */

@@ -2447,30 +2447,24 @@
   </div>
 
 
-  <!-- Analysis Overlay -->
-  <div class="analysis-overlay" id="analysis-overlay">
-    <div class="analysis-overlay-card">
-      <div class="analysis-overlay-icon">
-        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--orange)" stroke-width="1.5">
-          <path d="M12 2a4 4 0 014 4c0 1.1-.9 2-2 2h-4a2 2 0 01-2-2 4 4 0 014-4z" />
-          <circle cx="12" cy="16" r="4" />
-          <path d="M12 12v4" />
-        </svg>
+  <!-- Analysis Indicator (top corner, non-blocking) -->
+  <div class="analysis-indicator" id="analysis-indicator">
+    <div class="analysis-indicator-inner">
+      <div class="analysis-indicator-header">
+        <div class="analysis-indicator-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a4 4 0 014 4c0 1.1-.9 2-2 2h-4a2 2 0 01-2-2 4 4 0 014-4z" />
+            <circle cx="12" cy="16" r="4" />
+            <path d="M12 12v4" />
+          </svg>
+        </div>
+        <span class="analysis-indicator-title" id="analysis-indicator-title">Analyzing...</span>
+        <span class="analysis-indicator-pct" id="analysis-indicator-pct">0%</span>
       </div>
-      <h2 id="analysis-overlay-title">Analyzing Game Film</h2>
-      <p id="analysis-overlay-subtitle" style="color:var(--text-muted);margin-bottom:24px">Please wait while our
-        AI
-        processes your footage...</p>
-      <div class="analysis-progress-bar">
-        <div class="analysis-progress-fill" id="analysis-progress-fill"></div>
+      <div class="analysis-indicator-bar">
+        <div class="analysis-indicator-fill" id="analysis-progress-fill"></div>
       </div>
-      <div class="analysis-progress-label" id="analysis-progress-label">Uploading file...</div>
-      <div class="analysis-stages" id="analysis-stages">
-        <div class="analysis-stage active" id="stage-upload"><span class="stage-dot"></span> Uploading file</div>
-        <div class="analysis-stage" id="stage-detect"><span class="stage-dot"></span> Detecting players</div>
-        <div class="analysis-stage" id="stage-plays"><span class="stage-dot"></span> Analyzing plays</div>
-        <div class="analysis-stage" id="stage-insights"><span class="stage-dot"></span> Generating insights</div>
-      </div>
+      <div class="analysis-indicator-stage" id="analysis-progress-label">Uploading...</div>
     </div>
   </div>
 

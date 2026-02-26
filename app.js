@@ -1068,19 +1068,17 @@ function handleUploadFromModal() {
 
 // ===== REAL BACKEND UPLOAD + LIVE PROGRESS =====
 async function realUploadAndAnalyze(file, title, opponent, displayDate) {
-  const overlay = document.getElementById('analysis-overlay');
+  const indicator = document.getElementById('analysis-indicator');
   const fill = document.getElementById('analysis-progress-fill');
   const label = document.getElementById('analysis-progress-label');
-  const titleEl = document.getElementById('analysis-overlay-title');
+  const titleEl = document.getElementById('analysis-indicator-title');
+  const pctEl = document.getElementById('analysis-indicator-pct');
 
-  titleEl.textContent = 'Analyzing: ' + title;
-  fill.style.width = '0%';
-  label.textContent = 'Uploading video to server...';
-  overlay.classList.add('show');
-
-  // Reset stages
-  document.querySelectorAll('.analysis-stage').forEach(s => { s.classList.remove('active', 'done'); });
-  document.getElementById('stage-upload').classList.add('active');
+  if (titleEl) titleEl.textContent = title.length > 24 ? title.slice(0, 21) + '...' : title;
+  if (fill) fill.style.width = '0%';
+  if (label) label.textContent = 'Uploading video to server...';
+  if (pctEl) pctEl.textContent = '0%';
+  if (indicator) indicator.classList.add('show');
 
   try {
     // Upload file
@@ -1088,105 +1086,80 @@ async function realUploadAndAnalyze(file, title, opponent, displayDate) {
     const uploadResult = await uploadToBackend(file, title, opponent, displayDate);
     const gameId = uploadResult.id;
 
-    document.getElementById('stage-upload').classList.remove('active');
-    document.getElementById('stage-upload').classList.add('done');
-    document.getElementById('stage-detect').classList.add('active');
-    fill.style.width = '15%';
-    label.textContent = 'Video uploaded! Starting YOLO player detection...';
+    if (fill) fill.style.width = '15%';
+    if (label) label.textContent = 'Starting YOLO detection...';
+    if (pctEl) pctEl.textContent = '15%';
 
     // Poll for real progress
     pollAnalysisStatus(gameId,
       // onProgress
       (pct, statusText) => {
-        fill.style.width = Math.max(pct, 15) + '%';
-        label.textContent = statusText;
-
-        // Update stage indicators based on progress
-        if (pct >= 20) {
-          document.getElementById('stage-detect').classList.remove('active');
-          document.getElementById('stage-detect').classList.add('done');
-          document.getElementById('stage-plays').classList.add('active');
-        }
-        if (pct >= 70) {
-          document.getElementById('stage-plays').classList.remove('active');
-          document.getElementById('stage-plays').classList.add('done');
-          document.getElementById('stage-insights').classList.add('active');
-        }
+        if (fill) fill.style.width = Math.max(pct, 15) + '%';
+        if (label) label.textContent = statusText.length > 35 ? statusText.slice(0, 32) + '...' : statusText;
+        if (pctEl) pctEl.textContent = pct + '%';
       },
       // onComplete
       (result) => {
-        document.querySelectorAll('.analysis-stage').forEach(s => {
-          s.classList.remove('active');
-          s.classList.add('done');
-        });
-        fill.style.width = '100%';
-        label.textContent = 'Analysis complete!';
+        if (fill) fill.style.width = '100%';
+        if (label) label.textContent = 'Complete!';
+        if (pctEl) pctEl.textContent = '100%';
 
         setTimeout(async () => {
-          overlay.classList.remove('show');
+          if (indicator) indicator.classList.remove('show');
 
           showToast(`Analysis of "${title}" complete!`, IC.check);
           addNotification(IC.upload, 'purple', `Film <strong>${title}</strong> analyzed.`, 'Just now');
 
-          navigateTo('analysis-history');
-          if (typeof loadClips === 'function') {
+          loadDashboardRecentGames();
+          if (currentPage === 'analysis-history' && typeof loadClips === 'function') {
             await loadClips();
           }
-          if (typeof loadDashboardRecentGames === 'function') {
-            loadDashboardRecentGames();
-          }
-        }, 800);
+        }, 600);
       },
       // onError
       (errorMsg) => {
-        overlay.classList.remove('show');
+        if (indicator) indicator.classList.remove('show');
         showToast(`Analysis failed: ${errorMsg}`, IC.warn);
       }
     );
 
   } catch (err) {
-    overlay.classList.remove('show');
+    if (indicator) indicator.classList.remove('show');
     showToast(`Upload failed: ${err.message}`, IC.warn);
     console.error('Upload error:', err);
   }
 }
 
 function runAnalysisOverlay(title, date, onComplete) {
-  const overlay = document.getElementById('analysis-overlay');
+  const indicator = document.getElementById('analysis-indicator');
   const fill = document.getElementById('analysis-progress-fill');
   const label = document.getElementById('analysis-progress-label');
-  const titleEl = document.getElementById('analysis-overlay-title');
+  const titleEl = document.getElementById('analysis-indicator-title');
+  const pctEl = document.getElementById('analysis-indicator-pct');
 
-  titleEl.textContent = 'Analyzing: ' + title;
-  fill.style.width = '0%';
-  overlay.classList.add('show');
-
-  // Reset stages
-  document.querySelectorAll('.analysis-stage').forEach(s => { s.classList.remove('active', 'done'); });
-  document.getElementById('stage-upload').classList.add('active');
+  if (titleEl) titleEl.textContent = title.length > 24 ? title.slice(0, 21) + '...' : title;
+  if (fill) fill.style.width = '0%';
+  if (label) label.textContent = 'Uploading file...';
+  if (pctEl) pctEl.textContent = '0%';
+  if (indicator) indicator.classList.add('show');
 
   const stages = [
-    { id: 'stage-upload', pct: 20, label: 'Uploading file...', delay: 600 },
-    { id: 'stage-detect', pct: 45, label: 'Detecting players & tracking motion...', delay: 1800 },
-    { id: 'stage-plays', pct: 70, label: 'Analyzing plays & formations with Claude AI...', delay: 3200 },
-    { id: 'stage-insights', pct: 100, label: 'Generating AI coaching insights...', delay: 5000 },
+    { pct: 20, label: 'Uploading file...', delay: 600 },
+    { pct: 45, label: 'Detecting players...', delay: 1800 },
+    { pct: 70, label: 'Analyzing plays...', delay: 3200 },
+    { pct: 100, label: 'Generating insights...', delay: 5000 },
   ];
 
   stages.forEach((stage, i) => {
     setTimeout(() => {
-      fill.style.width = stage.pct + '%';
-      label.textContent = stage.label;
-      if (i > 0) document.getElementById(stages[i - 1].id).classList.remove('active');
-      if (i > 0) document.getElementById(stages[i - 1].id).classList.add('done');
-      document.getElementById(stage.id).classList.add('active');
+      if (fill) fill.style.width = stage.pct + '%';
+      if (label) label.textContent = stage.label;
+      if (pctEl) pctEl.textContent = stage.pct + '%';
     }, stage.delay);
   });
 
-  // Complete — extended to 6.5s to give AI more time to respond
   setTimeout(() => {
-    document.getElementById(stages[3].id).classList.remove('active');
-    document.getElementById(stages[3].id).classList.add('done');
-    overlay.classList.remove('show');
+    if (indicator) indicator.classList.remove('show');
     if (onComplete) onComplete();
   }, 6500);
 }
@@ -1228,21 +1201,18 @@ async function handleUploadStatSheet() {
 
   btn.disabled = true;
 
-  // Show processing overlay
-  const overlay = document.getElementById('analysis-overlay');
+  // Show processing indicator (non-blocking)
+  const indicator = document.getElementById('analysis-indicator');
   const fill = document.getElementById('analysis-progress-fill');
   const label = document.getElementById('analysis-progress-label');
-  const titleEl = document.getElementById('analysis-overlay-title');
-  const subtitleEl = document.getElementById('analysis-overlay-subtitle');
+  const titleEl = document.getElementById('analysis-indicator-title');
+  const pctEl = document.getElementById('analysis-indicator-pct');
 
-  titleEl.textContent = 'Analyzing: ' + uploadedFileName;
-  subtitleEl.textContent = 'Please wait while our AI processes your stat sheet...';
-  fill.style.width = '0%';
-  label.textContent = 'Uploading stat sheet...';
-  overlay.classList.add('show');
-
-  document.querySelectorAll('.analysis-stage').forEach(s => { s.classList.remove('active', 'done'); });
-  document.getElementById('stage-upload').classList.add('active');
+  if (titleEl) titleEl.textContent = (uploadedFileName.length > 24 ? uploadedFileName.slice(0, 21) + '...' : uploadedFileName);
+  if (fill) fill.style.width = '0%';
+  if (label) label.textContent = 'Uploading stat sheet...';
+  if (pctEl) pctEl.textContent = '0%';
+  if (indicator) indicator.classList.add('show');
 
   const formData = new FormData();
   formData.append('file', selectedStatFile);
@@ -1250,18 +1220,17 @@ async function handleUploadStatSheet() {
   try {
     // Stage 1: upload
     setTimeout(() => {
-      fill.style.width = '25%';
-      label.textContent = 'Uploading stat sheet...';
+      if (fill) fill.style.width = '25%';
+      if (label) label.textContent = 'Uploading stat sheet...';
+      if (pctEl) pctEl.textContent = '25%';
     }, 200);
 
     const res = await fetch(`${BACKEND_URL}/api/upload_stats`, { method: 'POST', body: formData });
 
     // Stage 2: processing
-    document.getElementById('stage-upload').classList.remove('active');
-    document.getElementById('stage-upload').classList.add('done');
-    document.getElementById('stage-detect').classList.add('active');
-    fill.style.width = '40%';
-    label.textContent = 'Reading stat sheet data...';
+    if (fill) fill.style.width = '40%';
+    if (label) label.textContent = 'Reading stat sheet data...';
+    if (pctEl) pctEl.textContent = '40%';
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -1269,20 +1238,16 @@ async function handleUploadStatSheet() {
     }
 
     // Stage 3: analyzing
-    document.getElementById('stage-detect').classList.remove('active');
-    document.getElementById('stage-detect').classList.add('done');
-    document.getElementById('stage-plays').classList.add('active');
-    fill.style.width = '70%';
-    label.textContent = 'Claude AI analyzing stats...';
+    if (fill) fill.style.width = '70%';
+    if (label) label.textContent = 'Claude AI analyzing stats...';
+    if (pctEl) pctEl.textContent = '70%';
 
     const data = await res.json();
 
     // Stage 4: complete
-    document.getElementById('stage-plays').classList.remove('active');
-    document.getElementById('stage-plays').classList.add('done');
-    document.getElementById('stage-insights').classList.add('active');
-    fill.style.width = '100%';
-    label.textContent = 'Analysis complete!';
+    if (fill) fill.style.width = '100%';
+    if (label) label.textContent = 'Analysis complete!';
+    if (pctEl) pctEl.textContent = '100%';
 
     document.querySelectorAll('.analysis-stage').forEach(s => {
       s.classList.remove('active');
@@ -1298,7 +1263,7 @@ async function handleUploadStatSheet() {
     if (titleInput) titleInput.value = '';
 
     setTimeout(async () => {
-      overlay.classList.remove('show');
+      if (indicator) indicator.classList.remove('show');
       showToast('Stat sheet analyzed!', IC.check);
       addNotification(IC.upload, 'purple', `Stat sheet <strong>${uploadedFileName}</strong> analyzed.`, 'Just now');
 
@@ -1316,7 +1281,7 @@ async function handleUploadStatSheet() {
     }, 800);
 
   } catch (err) {
-    overlay.classList.remove('show');
+    if (indicator) indicator.classList.remove('show');
     showToast(err.message, IC.x);
   } finally {
     btn.disabled = false;
