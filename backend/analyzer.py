@@ -16,7 +16,7 @@ from .config import (  # type: ignore
 from . import models  # type: ignore
 from .ai_coach import generate_coach_feedback  # type: ignore
 
-e
+
 class VideoAnalyzer:
     """
     Analyzes basketball game film using YOLOv8 for player/ball detection
