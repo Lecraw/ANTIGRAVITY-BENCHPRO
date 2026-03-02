@@ -7,9 +7,11 @@ Serves the API endpoints and the frontend static files.
 import os
 import uuid
 import threading
+import secrets
 from flask import Flask, request, jsonify, send_from_directory, Response  # type: ignore
 from flask_cors import CORS  # type: ignore
 from werkzeug.utils import secure_filename  # type: ignore
+from werkzeug.security import generate_password_hash, check_password_hash  # type: ignore
 
 from .config import (  # type: ignore
     HOST, PORT, DEBUG, UPLOAD_DIR, FRONTEND_DIR,
@@ -35,6 +37,30 @@ CORS(app)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# ===== AUTH =====
+
+def get_current_user():
+    """Get current user from Authorization: Bearer <token> header. Returns user dict or None."""
+    auth = request.headers.get('Authorization')
+    if not auth or not auth.startswith('Bearer '):
+        return None
+    token = auth[7:].strip()
+    return models.get_user_by_token(token)
+
+
+def require_auth(f):
+    """Decorator: require authenticated user. Injects user as kwarg."""
+    from functools import wraps
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        user = get_current_user()
+        if not user:
+            return jsonify({'error': 'Authentication required'}), 401
+        kwargs['current_user'] = user
+        return f(*args, **kwargs)
+    return wrapped
 
 
 # ===== FRONTEND SERVING =====
@@ -90,10 +116,118 @@ def health():
     })
 
 
+# ===== API: AUTH =====
+
+@app.route('/api/auth/signup', methods=['POST'])
+def auth_signup():
+    """
+    Create a new account.
+    Body: { email, password, name, user_type?, team_code?, plan? }
+    user_type: 'coach' | 'player'
+    """
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip()
+    password = data.get('password') or ''
+    name = (data.get('name') or '').strip()
+    user_type = (data.get('user_type') or 'coach').lower()
+    if user_type not in ('coach', 'player'):
+        user_type = 'coach'
+    team_code = (data.get('team_code') or '').strip()
+    plan = (data.get('plan') or 'standard').lower()
+
+    if not email or not password or not name:
+        return jsonify({'error': 'Email, password, and name are required'}), 400
+    if len(password) < 4:
+        return jsonify({'error': 'Password must be at least 4 characters'}), 400
+
+    password_hash = generate_password_hash(password)
+    user = models.create_user(
+        email=email,
+        password_hash=password_hash,
+        name=name,
+        user_type=user_type,
+        team_code=team_code,
+        plan=plan
+    )
+    if not user:
+        return jsonify({'error': 'An account with this email already exists'}), 409
+
+    token = secrets.token_urlsafe(32)
+    models.set_user_token(user['id'], token)
+    return jsonify({
+        'token': token,
+        'user': {
+            'id': user['id'],
+            'email': user['email'],
+            'name': user['name'],
+            'user_type': user['user_type'],
+            'team_code': user.get('team_code', ''),
+            'plan': user.get('plan', 'standard')
+        }
+    }), 201
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def auth_login():
+    """
+    Log in with email and password.
+    Body: { email, password }
+    """
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip()
+    password = data.get('password') or ''
+
+    if not email or not password:
+        return jsonify({'error': 'Email and password are required'}), 400
+
+    user = models.get_user_by_email(email)
+    if not user or not check_password_hash(user['password_hash'], password):
+        return jsonify({'error': 'Invalid email or password'}), 401
+
+    token = secrets.token_urlsafe(32)
+    models.set_user_token(user['id'], token)
+    return jsonify({
+        'token': token,
+        'user': {
+            'id': user['id'],
+            'email': user['email'],
+            'name': user['name'],
+            'user_type': user['user_type'],
+            'team_code': user.get('team_code', ''),
+            'plan': user.get('plan', 'standard')
+        }
+    }), 200
+
+
+@app.route('/api/auth/me')
+@require_auth
+def auth_me(current_user):
+    """Return current user info (validates token)."""
+    return jsonify({
+        'user': {
+            'id': current_user['id'],
+            'email': current_user['email'],
+            'name': current_user['name'],
+            'user_type': current_user['user_type'],
+            'team_code': current_user.get('team_code', ''),
+            'plan': current_user.get('plan', 'standard')
+        }
+    })
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+@require_auth
+def auth_logout(current_user):
+    """Clear auth token (log out)."""
+    models.clear_user_token(current_user['id'])
+    return jsonify({'message': 'Logged out'}), 200
+
+
 # ===== API: VIDEO UPLOAD =====
 
 @app.route('/api/upload', methods=['POST'])
-def upload_video():
+@require_auth
+def upload_video(current_user):
     """
     Upload a game film for analysis.
     Expects multipart form with:
@@ -131,7 +265,8 @@ def upload_video():
         opponent=opponent,
         date=date,
         file_path=file_path,
-        file_name=original_name
+        file_name=original_name,
+        user_id=current_user['id']
     )
 
 
@@ -151,7 +286,8 @@ def upload_video():
 
 
 @app.route('/api/upload_stats', methods=['POST'])
-def upload_stats():
+@require_auth
+def upload_stats(current_user):
     """
     Upload a game stat sheet (image or CSV) for analysis directly via AI Coach (bypassing video tracking).
     """
@@ -188,12 +324,22 @@ def _run_analysis(game_id, file_path):
 
 # ===== API: ANALYSIS STATUS & RESULTS =====
 
+def _can_access_game(game, user_id):
+    """Check if user can access game (owns it or legacy with no owner)."""
+    if game.get('user_id') is None:
+        return True  # Legacy game, allow access
+    return game.get('user_id') == user_id
+
+
 @app.route('/api/analysis/<int:game_id>')
-def get_analysis(game_id):
+@require_auth
+def get_analysis(game_id, current_user):
     """Get full analysis results for a game."""
     game = models.get_game(game_id)
     if not game:
         return jsonify({'error': 'Game not found'}), 404
+    if not _can_access_game(game, current_user['id']):
+        return jsonify({'error': 'Access denied'}), 403
 
     analysis = models.get_analysis(game_id)
     events = models.get_events(game_id)
@@ -207,11 +353,14 @@ def get_analysis(game_id):
 
 
 @app.route('/api/analysis/<int:game_id>/status')
-def get_analysis_status(game_id):
+@require_auth
+def get_analysis_status(game_id, current_user):
     """Check processing status for a game."""
     game = models.get_game(game_id)
     if not game:
         return jsonify({'error': 'Game not found'}), 404
+    if not _can_access_game(game, current_user['id']):
+        return jsonify({'error': 'Access denied'}), 403
 
     return jsonify({
         'id': game_id,
@@ -224,9 +373,10 @@ def get_analysis_status(game_id):
 # ===== API: CLIPS (GAMES) =====
 
 @app.route('/api/clips')
-def list_clips():
-    """List all uploaded/analyzed games."""
-    games = models.get_all_games()
+@require_auth
+def list_clips(current_user):
+    """List all uploaded/analyzed games for the current user."""
+    games = models.get_all_games(user_id=current_user['id'])
     result = []
     for game in games:
         analysis = models.get_analysis(game['id'])
@@ -248,11 +398,14 @@ def list_clips():
 
 
 @app.route('/api/clips/<int:game_id>', methods=['DELETE'])
-def delete_clip(game_id):
+@require_auth
+def delete_clip(game_id, current_user):
     """Delete a game and its analysis data."""
     game = models.get_game(game_id)
     if not game:
         return jsonify({'error': 'Game not found'}), 404
+    if not _can_access_game(game, current_user['id']):
+        return jsonify({'error': 'Access denied'}), 403
 
     models.delete_game(game_id)
     return jsonify({'message': f'Game #{game_id} deleted'})
@@ -261,9 +414,10 @@ def delete_clip(game_id):
 # ===== API: PLAYERS =====
 
 @app.route('/api/players')
-def list_players():
-    """List all detected players across all games."""
-    games = models.get_all_games()
+@require_auth
+def list_players(current_user):
+    """List all detected players across user's games."""
+    games = models.get_all_games(user_id=current_user['id'])
     all_stats = []
     for game in games:
         analysis = models.get_analysis(game['id'])
@@ -281,9 +435,10 @@ def list_players():
 # ===== API: TEAM =====
 
 @app.route('/api/team')
-def team_stats():
-    """Get aggregated team stats across all games."""
-    games = models.get_all_games()
+@require_auth
+def team_stats(current_user):
+    """Get aggregated team stats across user's games."""
+    games = models.get_all_games(user_id=current_user['id'])
     total_games = len([g for g in games if g['status'] == 'complete'])
     total_events: int = 0
     total_player_detections: int = 0
@@ -311,11 +466,14 @@ def team_stats():
 # ===== API: EVENTS =====
 
 @app.route('/api/events/<int:game_id>')
-def get_game_events(game_id):
+@require_auth
+def get_game_events(game_id, current_user):
     """Get all events for a specific game."""
     game = models.get_game(game_id)
     if not game:
         return jsonify({'error': 'Game not found'}), 404
+    if not _can_access_game(game, current_user['id']):
+        return jsonify({'error': 'Access denied'}), 403
 
     event_type = request.args.get('type')
     events = models.get_events(game_id, event_type)

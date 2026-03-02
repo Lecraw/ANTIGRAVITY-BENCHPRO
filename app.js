@@ -100,6 +100,7 @@ document.addEventListener('click', (e) => {
 });
 
 function handleLogout() {
+  setAuthToken(null);
   const authScreen = document.getElementById('auth-screen');
   if (authScreen) {
     authScreen.classList.remove('hidden');
@@ -898,7 +899,22 @@ function handleNotifClick(type) {
 }
 
 // ===== BACKEND API INTEGRATION =====
-const BACKEND_URL = 'https://antigravity-benchpro.onrender.com';
+const BACKEND_URL = typeof window !== 'undefined' ? window.location.origin : '';
+const AUTH_STORAGE_KEY = 'benchpro_coach_token';
+
+function getAuthToken() {
+  try { return localStorage.getItem(AUTH_STORAGE_KEY) || null; } catch { return null; }
+}
+function setAuthToken(token) {
+  try { if (token) localStorage.setItem(AUTH_STORAGE_KEY, token); else localStorage.removeItem(AUTH_STORAGE_KEY); } catch {}
+}
+
+async function fetchWithAuth(url, opts = {}) {
+  const token = getAuthToken();
+  const headers = { ...(opts.headers || {}) };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  return fetch(url, { ...opts, headers });
+}
 
 let _lastBackendState = null;
 async function checkBackendHealth() {
@@ -927,7 +943,7 @@ async function uploadToBackend(file, title, opponent, date) {
   if (opponent) formData.append('opponent', opponent);
   if (date) formData.append('date', date);
 
-  const res = await fetch(`${BACKEND_URL}/api/upload`, { method: 'POST', body: formData });
+  const res = await fetchWithAuth(`${BACKEND_URL}/api/upload`, { method: 'POST', body: formData });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Upload failed' }));
     throw new Error(err.error || 'Upload failed');
@@ -938,12 +954,12 @@ async function uploadToBackend(file, title, opponent, date) {
 function pollAnalysisStatus(gameId, onProgress, onComplete, onError) {
   const poll = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/analysis/${gameId}/status`);
+      const res = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}/status`);
       const data = await res.json();
 
       if (data.status === 'complete') {
         onProgress(100, 'Analysis complete!');
-        const fullRes = await fetch(`${BACKEND_URL}/api/analysis/${gameId}`);
+        const fullRes = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}`);
         const full = await fullRes.json();
         onComplete(full);
         return;
@@ -974,7 +990,7 @@ function pollAnalysisStatus(gameId, onProgress, onComplete, onError) {
 }
 
 async function fetchAnalysisResults(gameId) {
-  const res = await fetch(`${BACKEND_URL}/api/analysis/${gameId}`);
+  const res = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}`);
   return res.json();
 }
 
@@ -1225,7 +1241,7 @@ async function handleUploadStatSheet() {
       if (pctEl) pctEl.textContent = '25%';
     }, 200);
 
-    const res = await fetch(`${BACKEND_URL}/api/upload_stats`, { method: 'POST', body: formData });
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/upload_stats`, { method: 'POST', body: formData });
 
     // Stage 2: processing
     if (fill) fill.style.width = '40%';
@@ -1957,14 +1973,11 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-function handleLogin() {
+async function handleLogin() {
   const emailEl = document.getElementById('login-email');
   const pwEl = document.getElementById('login-password');
   const email = emailEl.value.trim();
   const password = pwEl.value;
-
-  const validAccounts = window.benchproAccounts || {};
-  validAccounts['coachw@gmail.com'] = { password: '12345', name: 'Coach Wilson' };
 
   let hasError = false;
   if (!email) { showFieldError(emailEl, 'Email is required'); hasError = true; }
@@ -1974,36 +1987,47 @@ function handleLogin() {
   else clearFieldError(pwEl);
   if (hasError) return;
 
-  const account = validAccounts[email.toLowerCase()];
-  if (!account || account.password !== password) {
-    showAuthError('Incorrect email or password. Please try again.');
-    // Shake the login button for visual feedback
-    const btn = document.querySelector('#auth-login .auth-btn');
-    if (btn) {
-      btn.style.animation = 'shake 0.4s ease';
-      setTimeout(() => btn.style.animation = '', 400);
+  const btn = document.querySelector('#auth-login .auth-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = IC.clock; }
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showAuthError(data.error || 'Incorrect email or password. Please try again.');
+      if (btn) { btn.style.animation = 'shake 0.4s ease'; setTimeout(() => { btn.style.animation = ''; btn.disabled = false; btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Log In'; }, 400); }
+      return;
     }
-    return;
+    if (data.user && data.user.user_type === 'player') {
+      showAuthError('This account is for players. Use the Player Portal to log in.');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Log In'; }
+      return;
+    }
+    setAuthToken(data.token);
+    const user = data.user || {};
+    const userName = user.name || 'Coach';
+    const initials = userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    updateUserUI(userName, initials, user.email || email);
+    const authScreen = document.getElementById('auth-screen');
+    authScreen.classList.add('hidden');
+    setTimeout(() => {
+      authScreen.style.display = 'none';
+      navigateTo('dashboard');
+      window.scrollTo(0, 0);
+      document.querySelector('.main-content')?.scrollTo(0, 0);
+      initUpload();
+      setupCanvasEvents();
+      renderSparklines();
+      showToast(`Welcome back, ${userName}!`, IC.wave);
+    }, 500);
+  } catch (err) {
+    showAuthError('Could not connect. Please try again.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Log In'; }
   }
-
-  // Successful login — update UI with user info
-  const userName = account.name || 'Coach';
-  const initials = userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-
-  updateUserUI(userName, initials, email);
-
-  const authScreen = document.getElementById('auth-screen');
-  authScreen.classList.add('hidden');
-  setTimeout(() => {
-    authScreen.style.display = 'none';
-    navigateTo('dashboard');
-    window.scrollTo(0, 0);
-    document.querySelector('.main-content')?.scrollTo(0, 0);
-    initUpload();
-    setupCanvasEvents();
-    renderSparklines();
-    showToast(`Welcome back, ${userName}!`, IC.wave);
-  }, 500);
 }
 
 function showAuthError(message) {
@@ -2045,7 +2069,7 @@ function updateUserUI(name, initials, email) {
   tipSenderPlaceholders.forEach(input => { input.placeholder = name; });
 }
 
-function handleSignupComplete() {
+async function handleSignupComplete() {
   const name = document.getElementById('signup-name').value.trim();
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
@@ -2059,34 +2083,48 @@ function handleSignupComplete() {
   if (password.length < 4) { showAuthError('Password must be at least 4 characters.'); return; }
   if (password !== confirm) { showAuthError('Passwords do not match. Please try again.'); return; }
 
-  // Register the account so they can log in later
-  if (!window.benchproAccounts) window.benchproAccounts = {};
-  window.benchproAccounts[email.toLowerCase()] = { password, name };
-
-  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-
-  updateUserUI(name, initials, email);
-
-  const authScreen = document.getElementById('auth-screen');
-  authScreen.classList.add('hidden');
-  setTimeout(() => {
-    authScreen.style.display = 'none';
-    currentPlan = selectedSignupPlan;
-    // Update the plan badge in sidebar
-    const planBadge = document.querySelector('.plan-badge');
-    if (planBadge) {
-      const planName = selectedSignupPlan === 'elite' ? 'Elite' : 'Standard';
-      const price = selectedSignupPlan === 'elite' ? '$29.99' : '$8.99';
-      planBadge.querySelector('strong').textContent = planName + ' Plan';
-      planBadge.querySelector('small').textContent = price + '/mo';
+  const plan = (typeof selectedSignupPlan === 'string' ? selectedSignupPlan : 'standard').toLowerCase();
+  const btn = document.getElementById('signup-next-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = IC.clock; }
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, name, user_type: 'coach', plan })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      showAuthError(data.error || 'Signup failed. Please try again.');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Start Free Trial'; }
+      return;
     }
-    navigateTo('dashboard');
-    initUpload();
-    setupCanvasEvents();
-    renderSparklines();
-    showToast(`Welcome to BenchPro, ${name}! Your 14-day free trial has started.`, IC.star);
-    addNotification(IC.star, 'green', `Account created for <strong>${name}</strong> (${email})`, 'Just now');
-  }, 500);
+    setAuthToken(data.token);
+    const user = data.user || {};
+    const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    updateUserUI(user.name || name, initials, user.email || email);
+    const authScreen = document.getElementById('auth-screen');
+    authScreen.classList.add('hidden');
+    setTimeout(() => {
+      authScreen.style.display = 'none';
+      currentPlan = plan === 'elite' ? 'elite' : 'standard';
+      const planBadge = document.querySelector('.plan-badge');
+      if (planBadge) {
+        const planName = currentPlan === 'elite' ? 'Elite' : 'Standard';
+        const price = currentPlan === 'elite' ? '$29.99' : '$8.99';
+        planBadge.querySelector('strong').textContent = planName + ' Plan';
+        planBadge.querySelector('small').textContent = price + '/mo';
+      }
+      navigateTo('dashboard');
+      initUpload();
+      setupCanvasEvents();
+      renderSparklines();
+      showToast(`Welcome to BenchPro, ${name}! Your 14-day free trial has started.`, IC.star);
+      addNotification(IC.star, 'green', `Account created for <strong>${name}</strong> (${email})`, 'Just now');
+    }, 500);
+  } catch (err) {
+    showAuthError('Could not create account. Please try again.');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Start Free Trial'; }
+  }
 }
 
 // ===== LINEUP ANALYSIS =====
@@ -2314,7 +2352,7 @@ async function loadDashboardRecentGames() {
   container.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
 
   try {
-    const res = await fetch(`${BACKEND_URL}/api/clips`);
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/clips`);
     if (!res.ok) throw new Error('Backend unavailable');
     const clips = await res.json();
 
@@ -2371,7 +2409,7 @@ async function loadClips() {
   clipsList.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
 
   try {
-    const res = await fetch(`${BACKEND_URL}/api/clips`);
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/clips`);
     if (!res.ok) throw new Error('Failed to load clips');
     const clips = await res.json();
 
@@ -2439,7 +2477,7 @@ async function loadClips() {
         delBtn.disabled = true;
         delBtn.style.opacity = '0.5';
         try {
-          const r = await fetch(`${BACKEND_URL}/api/clips/${clip.id}`, { method: 'DELETE' });
+          const r = await fetchWithAuth(`${BACKEND_URL}/api/clips/${clip.id}`, { method: 'DELETE' });
           if (!r.ok) throw new Error('Delete failed');
           clipEl.remove();
           showToast('Clip deleted', IC.trash);
@@ -2527,7 +2565,7 @@ function buildAnalysisChartData(playerStats, ballStats, eventStats, teamStats, a
 
 async function showResults(gameId) {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/analysis/${gameId}`);
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}`);
     const data = await res.json();
 
     const detailPanel = document.getElementById(`video-detail-${gameId}`);
@@ -2634,9 +2672,38 @@ async function showResults(gameId) {
 }
 
 // ===== INIT =====
-document.addEventListener('DOMContentLoaded', () => {
-  // Auth screen is shown by default — don't navigate to dashboard yet
-  // Dashboard init happens after login/signup
+document.addEventListener('DOMContentLoaded', async () => {
+  // Restore session if valid token exists
+  const token = getAuthToken();
+  if (token) {
+    try {
+      const res = await fetchWithAuth(`${BACKEND_URL}/api/auth/me`);
+      if (res.ok) {
+        const data = await res.json();
+        const user = data.user || {};
+        if (user.user_type === 'player') {
+          setAuthToken(null);
+        } else {
+          const name = user.name || 'Coach';
+          const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+          updateUserUI(name, initials, user.email || '');
+          const authScreen = document.getElementById('auth-screen');
+          if (authScreen) {
+            authScreen.classList.add('hidden');
+            authScreen.style.display = 'none';
+          }
+          navigateTo('dashboard');
+          initUpload();
+          setupCanvasEvents();
+          renderSparklines();
+        }
+      } else {
+        setAuthToken(null);
+      }
+    } catch {
+      setAuthToken(null);
+    }
+  }
 
   // Check if backend server is running and poll every 30s
   checkBackendHealth().then(online => {

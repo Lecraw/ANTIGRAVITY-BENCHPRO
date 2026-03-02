@@ -9,3 +9,5 @@ opencv-python-headless
 ultralytics
 numpy
 werkzeug
+bcrypt
+PyJWT

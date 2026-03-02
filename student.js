@@ -132,6 +132,21 @@ const DRILLS = [
 ];
 
 const BACKEND_URL = window.location.origin;
+const AUTH_STORAGE_KEY = 'benchpro_student_token';
+
+function getStudentAuthToken() {
+  try { return localStorage.getItem(AUTH_STORAGE_KEY) || null; } catch { return null; }
+}
+function setStudentAuthToken(token) {
+  try { if (token) localStorage.setItem(AUTH_STORAGE_KEY, token); else localStorage.removeItem(AUTH_STORAGE_KEY); } catch {}
+}
+
+async function fetchWithAuth(url, opts = {}) {
+  const token = getStudentAuthToken();
+  const headers = { ...(opts.headers || {}) };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  return fetch(url, { ...opts, headers });
+}
 
 // ===== FORM VALIDATION =====
 function showFieldError(input, msg) {
@@ -166,32 +181,46 @@ function showStudentAuthTab(tab) {
     }
 }
 
-function handleStudentLogin() {
+async function handleStudentLogin() {
     const emailEl = document.getElementById('student-email');
     const codeEl = document.getElementById('student-code');
     const email = emailEl.value.trim();
-    const code = codeEl.value.trim();
+    const password = codeEl.value;  // "code" field is the password
 
     let hasError = false;
     if (!email) { showFieldError(emailEl, 'Email is required'); hasError = true; }
     else if (!/\S+@\S+\.\S+/.test(email)) { showFieldError(emailEl, 'Enter a valid email'); hasError = true; }
     else clearFieldError(emailEl);
-    if (!code) { showFieldError(codeEl, 'Password is required'); hasError = true; }
+    if (!password) { showFieldError(codeEl, 'Password is required'); hasError = true; }
     else clearFieldError(codeEl);
     if (hasError) return;
 
-    const account = studentAccounts[email.toLowerCase()];
-    if (account && account.code === code) {
-        finishLogin(account.name || 'Player');
-        return;
+    const btn = document.getElementById('student-login-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<div class="login-spinner"></div> Signing in...'; }
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            showFieldError(codeEl, data.error || 'Invalid email or password');
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Log In'; }
+            return;
+        }
+        if (data.user && data.user.user_type !== 'player') {
+            showFieldError(codeEl, 'This account is for coaches. Use the Coach Dashboard to log in.');
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Log In'; }
+            return;
+        }
+        setStudentAuthToken(data.token);
+        const userName = (data.user && data.user.name) || 'Player';
+        finishLogin(userName);
+    } catch (err) {
+        showFieldError(codeEl, 'Could not connect. Please try again.');
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Log In'; }
     }
-
-    if (email === 'marcus@school.edu' && code === 'HARKER2026') {
-        finishLogin('Marcus');
-        return;
-    }
-
-    showFieldError(codeEl, 'Invalid email or password');
 }
 
 function finishLogin(playerName) {
@@ -250,7 +279,7 @@ function selectStudentPlan(plan) {
     document.getElementById('splan-elite').classList.toggle('selected', plan === 'elite');
 }
 
-function handleStudentSignupFinish() {
+async function handleStudentSignupFinish() {
     const name = document.getElementById('signup-name').value.trim();
     const email = document.getElementById('signup-email').value.trim();
     const pw = document.getElementById('signup-password').value;
@@ -260,30 +289,45 @@ function handleStudentSignupFinish() {
         return;
     }
 
+    let teamCode = '';
+    let plan = 'standard';
     if (studentSignupOption === 'join') {
-        const code = document.getElementById('signup-team-code').value.trim();
-        if (!code) {
+        teamCode = document.getElementById('signup-team-code').value.trim();
+        if (!teamCode) {
             showToast('Please enter your team code', SIC.warn);
             return;
         }
-        studentAccounts[email.toLowerCase()] = { name, password: pw, code, plan: 'team' };
+        plan = 'standard';
     } else {
-        studentAccounts[email.toLowerCase()] = { name, password: pw, code: email.split('@')[0].toUpperCase(), plan: studentSelectedPlan };
+        plan = studentSelectedPlan || 'elite';
     }
 
     const btn = document.getElementById('signup-finish-btn');
-    btn.innerHTML = '<div class="login-spinner"></div> Creating account...';
-    btn.disabled = true;
-
-    setTimeout(() => {
+    if (btn) { btn.disabled = true; btn.innerHTML = '<div class="login-spinner"></div> Creating account...'; }
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password: pw, name, user_type: 'player', team_code: teamCode, plan })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            showToast(data.error || 'Signup failed. Please try again.', SIC.warn);
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Create Account'; }
+            return;
+        }
+        setStudentAuthToken(data.token);
         document.getElementById('student-auth').classList.add('hidden');
         document.getElementById('student-app').classList.add('active');
         const firstName = name.split(' ')[0];
         const titleEl = document.querySelector('#page-home .page-title');
         if (titleEl) titleEl.textContent = `Hey, ${firstName}!`;
-        const planLabel = studentSignupOption === 'join' ? 'Team' : (studentSelectedPlan === 'elite' ? 'Elite' : 'Standard');
+        const planLabel = studentSignupOption === 'join' ? 'Team' : (plan === 'elite' ? 'Elite' : 'Standard');
         showToast(`Welcome to BenchPro, ${firstName}! (${planLabel} Plan)`, SIC.star);
-    }, 1000);
+    } catch (err) {
+        showToast('Could not create account. Please try again.', SIC.warn);
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Create Account'; }
+    }
 }
 
 // ===== NAVIGATION =====
@@ -381,7 +425,7 @@ async function studentUploadToBackend(file, title) {
     formData.append('file', file);
     formData.append('title', title || file.name);
 
-    const res = await fetch(`${BACKEND_URL}/api/upload`, { method: 'POST', body: formData });
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/upload`, { method: 'POST', body: formData });
     if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'Upload failed' }));
         throw new Error(err.error || 'Upload failed');
@@ -392,12 +436,12 @@ async function studentUploadToBackend(file, title) {
 function studentPollAnalysisStatus(gameId, onProgress, onComplete, onError) {
     const poll = async () => {
         try {
-            const res = await fetch(`${BACKEND_URL}/api/analysis/${gameId}/status`);
+            const res = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}/status`);
             const data = await res.json();
 
             if (data.status === 'complete') {
                 onProgress(100, 'Analysis complete!');
-                const fullRes = await fetch(`${BACKEND_URL}/api/analysis/${gameId}`);
+                const fullRes = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}`);
                 const full = await fullRes.json();
                 onComplete(full);
                 return;
@@ -524,10 +568,16 @@ async function loadStudentClips() {
     const badge = document.getElementById('student-clips-badge');
     if (!clipsList) return;
 
+    if (!getStudentAuthToken()) {
+        clipsList.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Log in to see your clips.</div>';
+        if (badge) badge.textContent = '0 clips';
+        return;
+    }
+
     clipsList.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Loading clips...</div>';
 
     try {
-        const res = await fetch(`${BACKEND_URL}/api/clips`);
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/clips`);
         if (!res.ok) throw new Error('Failed to load clips');
         const clips = await res.json();
 
@@ -592,7 +642,7 @@ async function loadStudentClips() {
                 delBtn.disabled = true;
                 delBtn.style.opacity = '0.5';
                 try {
-                    const r = await fetch(`${BACKEND_URL}/api/clips/${clip.id}`, { method: 'DELETE' });
+                    const r = await fetchWithAuth(`${BACKEND_URL}/api/clips/${clip.id}`, { method: 'DELETE' });
                     if (!r.ok) throw new Error('Delete failed');
                     clipEl.remove();
                     showToast('Clip deleted', SIC.film);
@@ -678,7 +728,7 @@ function buildStudentChartData(playerStats, ballStats, eventStats, teamStats, ai
 
 async function showStudentResults(gameId) {
     try {
-        const res = await fetch(`${BACKEND_URL}/api/analysis/${gameId}`);
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}`);
         const data = await res.json();
 
         const detailPanel = document.getElementById(`student-video-detail-${gameId}`);
@@ -942,6 +992,7 @@ function drawSparkline(canvasId, values, color) {
 
 // ===== PROFILE ACTIONS =====
 function handleLogout() {
+    setStudentAuthToken(null);
     document.getElementById('student-app').classList.remove('active');
     document.getElementById('student-auth').classList.remove('hidden');
 
@@ -1049,7 +1100,32 @@ function renderHome() {
 }
 
 // ===== INIT =====
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Restore session if valid token exists
+    const token = getStudentAuthToken();
+    if (token) {
+        try {
+            const res = await fetchWithAuth(`${BACKEND_URL}/api/auth/me`);
+            if (res.ok) {
+                const data = await res.json();
+                const user = data.user || {};
+                if (user.user_type === 'player') {
+                    document.getElementById('student-auth').classList.add('hidden');
+                    document.getElementById('student-app').classList.add('active');
+                    const firstName = (user.name || 'Player').split(' ')[0];
+                    const titleEl = document.querySelector('#page-home .page-title');
+                    if (titleEl) titleEl.textContent = `Hey, ${firstName}!`;
+                } else {
+                    setStudentAuthToken(null);
+                }
+            } else {
+                setStudentAuthToken(null);
+            }
+        } catch {
+            setStudentAuthToken(null);
+        }
+    }
+
     renderHome();
     renderMessages();
     updateUnreadBadge();

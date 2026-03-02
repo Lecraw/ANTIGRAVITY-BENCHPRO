@@ -4,6 +4,7 @@ BenchPro Backend — Database Models (SQLite)
 import sqlite3
 import json
 import os
+import uuid
 from datetime import datetime
 from .config import DB_PATH
 
@@ -21,8 +22,21 @@ def init_db():
     """Create all tables if they don't exist."""
     conn = get_db()
     conn.executescript("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            name TEXT NOT NULL,
+            user_type TEXT NOT NULL DEFAULT 'coach',  -- 'coach' or 'player'
+            team_code TEXT DEFAULT '',
+            plan TEXT DEFAULT 'standard',
+            auth_token TEXT DEFAULT NULL,
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
         CREATE TABLE IF NOT EXISTS games (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER DEFAULT NULL,
             title TEXT NOT NULL,
             opponent TEXT DEFAULT '',
             date TEXT DEFAULT '',
@@ -31,11 +45,12 @@ def init_db():
             duration_seconds REAL DEFAULT 0,
             fps REAL DEFAULT 0,
             total_frames INTEGER DEFAULT 0,
-            status TEXT DEFAULT 'uploaded',  -- uploaded, processing, complete, error
-            progress REAL DEFAULT 0,         -- 0-100
+            status TEXT DEFAULT 'uploaded',
+            progress REAL DEFAULT 0,
             error_message TEXT DEFAULT '',
             created_at TEXT DEFAULT (datetime('now')),
-            updated_at TEXT DEFAULT (datetime('now'))
+            updated_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
         );
 
         CREATE TABLE IF NOT EXISTS players (
@@ -75,17 +90,105 @@ def init_db():
         );
     """)
     conn.commit()
+
+    # Migration: add user_id to games if missing (for existing DBs)
+    try:
+        conn.execute("ALTER TABLE games ADD COLUMN user_id INTEGER DEFAULT NULL")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # Column already exists
+
+    conn.close()
+    _init_users()
+
+
+def _init_users():
+    """Create default coach and student accounts if no users exist."""
+    conn = get_db()
+    row = conn.execute("SELECT COUNT(*) as n FROM users").fetchone()
+    if row and row['n'] == 0:
+        from werkzeug.security import generate_password_hash
+        conn.execute(
+            "INSERT INTO users (email, password_hash, name, user_type) VALUES (?, ?, ?, 'coach')",
+            ('coachw@gmail.com', generate_password_hash('12345'), 'Coach Wilson')
+        )
+        conn.execute(
+            "INSERT INTO users (email, password_hash, name, user_type, team_code) VALUES (?, ?, ?, 'player', ?)",
+            ('marcus@school.edu', generate_password_hash('HARKER2026'), 'Marcus James', 'HARKER')
+        )
+        conn.commit()
+    conn.close()
+
+
+# ===== USER CRUD =====
+
+def create_user(email, password_hash, name, user_type='coach', team_code='', plan='standard'):
+    """Create a new user. Returns user dict or None if email exists."""
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "INSERT INTO users (email, password_hash, name, user_type, team_code, plan) VALUES (?, ?, ?, ?, ?, ?)",
+            (email.lower(), password_hash, name, user_type, team_code, plan)
+        )
+        user_id = cur.lastrowid
+        conn.commit()
+        return get_user_by_id(user_id)
+    except sqlite3.IntegrityError:
+        return None
+    finally:
+        conn.close()
+
+
+def get_user_by_id(user_id):
+    """Get user by ID."""
+    conn = get_db()
+    row = conn.execute("SELECT id, email, name, user_type, team_code, plan, created_at FROM users WHERE id = ?", (user_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_user_by_email(email):
+    """Get user by email."""
+    conn = get_db()
+    row = conn.execute("SELECT * FROM users WHERE email = ?", (email.lower(),)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_user_by_token(token):
+    """Get user by auth token."""
+    if not token:
+        return None
+    conn = get_db()
+    row = conn.execute("SELECT id, email, name, user_type, team_code, plan, created_at FROM users WHERE auth_token = ?", (token,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def set_user_token(user_id, token):
+    """Set auth token for user."""
+    conn = get_db()
+    conn.execute("UPDATE users SET auth_token = ? WHERE id = ?", (token, user_id))
+    conn.commit()
+    conn.close()
+
+
+def clear_user_token(user_id):
+    """Clear auth token for user."""
+    conn = get_db()
+    conn.execute("UPDATE users SET auth_token = NULL WHERE id = ?", (user_id,))
+    conn.commit()
     conn.close()
 
 
 # ===== GAME CRUD =====
 
-def create_game(title, opponent='', date='', file_path='', file_name=''):
+def create_game(title, opponent='', date='', file_path='', file_name='', user_id=None):
     """Insert a new game record. Returns the game ID."""
     conn = get_db()
     cur = conn.execute(
-        "INSERT INTO games (title, opponent, date, file_path, file_name) VALUES (?, ?, ?, ?, ?)",
-        (title, opponent, date, file_path, file_name)
+        "INSERT INTO games (title, opponent, date, file_path, file_name, user_id) VALUES (?, ?, ?, ?, ?, ?)",
+        (title, opponent, date, file_path, file_name, user_id)
     )
     game_id = cur.lastrowid
     conn.commit()
@@ -101,10 +204,13 @@ def get_game(game_id):
     return dict(row) if row else None
 
 
-def get_all_games():
-    """Get all games ordered by creation date."""
+def get_all_games(user_id=None):
+    """Get all games ordered by creation date. If user_id given, filter by that user."""
     conn = get_db()
-    rows = conn.execute("SELECT * FROM games ORDER BY created_at DESC").fetchall()
+    if user_id is not None:
+        rows = conn.execute("SELECT * FROM games WHERE user_id = ? ORDER BY created_at DESC", (user_id,)).fetchall()
+    else:
+        rows = conn.execute("SELECT * FROM games ORDER BY created_at DESC").fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
