@@ -28,6 +28,20 @@
     --status-bar: 44px;
 }
 
+/* ===== LIGHT MODE ===== */
+html[data-theme="light"],
+body.light-mode {
+    --bg-primary: #f5f5f5;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f0f0f0;
+    --text-primary: #1a1a1a;
+    --text-secondary: #555;
+    --text-muted: #888;
+    --border: #e5e5e5;
+    --border-light: #ddd;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -48,6 +62,7 @@ body {
     min-height: 100vh;
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
+    transition: background 0.25s ease, color 0.25s ease;
 }
 
 /* ===== SCROLLBAR ===== */

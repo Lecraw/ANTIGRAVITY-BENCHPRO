@@ -25,120 +25,45 @@ const SIC = {
 let currentTab = 'home';
 let messageDetailOpen = false;
 
-// ===== PLAYER DATA =====
+// ===== PLAYER DATA (empty for new accounts — real data from backend) =====
+let currentStudentUser = null;  // { name, email, team_code } from /api/auth/me
 const STUDENT = {
-    name: 'Marcus James',
-    number: 3,
-    initials: 'MJ',
-    position: 'Point Guard',
-    team: 'Harker Eagles',
-    school: 'Harker High School',
-    season: '2025–26',
-    email: 'marcus@school.edu',
+    name: '',
+    email: '',
     stats: {
-        ppg: { value: 18.4, change: 12, icon: 'target', color: 'orange' },
-        apg: { value: 6.2, change: 8, icon: 'users', color: 'green' },
-        rpg: { value: 4.1, change: 5, icon: 'globe', color: 'blue' },
-        spg: { value: 3.1, change: 15, icon: 'shield', color: 'purple' },
+        ppg: { value: 0, change: 0, icon: 'target', color: 'orange' },
+        apg: { value: 0, change: 0, icon: 'users', color: 'green' },
+        rpg: { value: 0, change: 0, icon: 'globe', color: 'blue' },
+        spg: { value: 0, change: 0, icon: 'shield', color: 'purple' },
     },
-    shooting: { fg: 47, three: 36, ft: 82 },
-    games: [
-        { opponent: 'vs Westfield', date: 'Feb 10', score: '72-65', result: 'W', pts: 22, ast: 8, reb: 5, stl: 3, blk: 0, to: 2, fgm: 9, fga: 17, tpm: 3, tpa: 7, ftm: 1, fta: 2 },
-        { opponent: 'vs Oakridge', date: 'Feb 7', score: '58-61', result: 'L', pts: 14, ast: 5, reb: 3, stl: 1, blk: 0, to: 4, fgm: 5, fga: 14, tpm: 2, tpa: 6, ftm: 2, fta: 3 },
-        { opponent: 'vs Riverside', date: 'Feb 3', score: '81-70', result: 'W', pts: 24, ast: 7, reb: 6, stl: 4, blk: 1, to: 1, fgm: 10, fga: 18, tpm: 2, tpa: 5, ftm: 2, fta: 2 },
-        { opponent: 'vs Crestwood', date: 'Jan 29', score: '66-54', result: 'W', pts: 16, ast: 5, reb: 3, stl: 2, blk: 0, to: 3, fgm: 7, fga: 15, tpm: 1, tpa: 4, ftm: 1, fta: 2 },
-        { opponent: 'vs Brookfield', date: 'Jan 25', score: '55-62', result: 'L', pts: 12, ast: 4, reb: 2, stl: 1, blk: 0, to: 5, fgm: 4, fga: 13, tpm: 2, tpa: 8, ftm: 2, fta: 2 },
-    ],
-    trend: [14, 18, 22, 16, 12, 24, 14, 22, 19, 20],
-    insights: [
-        { type: 'strength', title: 'Strength', text: 'Ball movement and court vision are excellent. 6 out of 8 pick-and-roll assists converted last game.' },
-        { type: 'focus', title: 'Focus Area', text: 'Sprint speed drops 15% in Q4. Extra conditioning work recommended for crunch-time stamina.' },
-        { type: 'trending', title: 'Trending Up', text: 'Mid-range pull-up at 52% from the elbow this month — keep up the early morning shooting sessions.' },
-    ],
+    shooting: { fg: 0, three: 0, ft: 0 },
+    games: [],
+    trend: [],
+    insights: [],
 };
 
-const MESSAGES = [
-    {
-        id: 1,
-        from: 'Coach Wilson',
-        category: 'General Feedback',
-        time: 'Today',
-        unread: true,
-        preview: 'Great ball movement tonight. Keep looking for the extra pass on the pick and roll.',
-        full: 'Great ball movement tonight, Marcus. I noticed you found the open man on 6 out of 8 pick-and-roll possessions — that\'s excellent vision. Keep looking for the extra pass, especially when the defense collapses. Your decision-making in the halfcourt has improved a lot this month.',
-        clip: null,
-    },
-    {
-        id: 2,
-        from: 'Coach Wilson',
-        category: 'Defense',
-        time: 'Feb 9',
-        unread: true,
-        preview: 'Defensive rotations were slow in Q3. Let\'s focus on communication and quick help-side recovery.',
-        full: 'Hey Marcus, I wanted to flag something from the Oakridge game. In Q3, there were a couple of possessions where your help-side rotation was a step late. The opponent scored 8 points on left-wing drives during that stretch. I know you were carrying a heavy load on offense, but we need you locked in on both ends. Let\'s work on close-out speed at Tuesday\'s practice.',
-        clip: 'Harker vs Oakridge — Feb 7',
-    },
-    {
-        id: 3,
-        from: 'Coach Wilson',
-        category: 'Shooting Form',
-        time: 'Feb 7',
-        unread: false,
-        preview: 'Your mid-range pull-up is looking sharp. Shooting 52% from the elbow this month.',
-        full: 'Marcus, just wanted to give you some positive feedback on your mid-range game. Your pull-up from the elbow has been automatic this month — 52% on 25 attempts. The work you\'ve been putting in during early morning shooting sessions is clearly paying off. Keep that same release point and follow-through. I want you to start taking 2-3 more of these per game when the defense goes under on screens.',
-        clip: null,
-    },
-    {
-        id: 4,
-        from: 'Coach Wilson',
-        category: 'Conditioning',
-        time: 'Feb 5',
-        unread: false,
-        preview: 'Your conditioning is improving but I noticed your sprint speed dropped in Q4 vs Riverside.',
-        full: 'I\'ve been tracking your sprint data via the AI and noticed your speed drops about 15% in the fourth quarter. For a point guard who needs to push pace, that\'s something we need to stay on top of. The good news is it\'s improving — it was 22% three weeks ago. Let\'s add an extra 5 minutes of high-intensity interval work to your pre-game warmup. I think that\'ll make a big difference in crunch time.',
-        clip: 'Harker vs Riverside — Feb 3',
-    },
-    {
-        id: 5,
-        from: 'Coach Wilson',
-        category: 'Game IQ',
-        time: 'Jan 30',
-        unread: false,
-        preview: 'Smart timeout request in Q4 vs Crestwood. That showed real leadership on the court.',
-        full: 'Marcus, I wanted to highlight something you might not think much about — that timeout you called at the 3:20 mark in Q4 vs Crestwood was exactly right. They had momentum after a 6-0 run, and your awareness to stop the bleeding showed real maturity. That\'s the kind of leadership I expect from my point guard. Keep being vocal and keeping the team settled in tense moments.',
-        clip: null,
-    },
-];
-
-const MY_CLIPS = [
-    { title: 'Fast break finish vs Westfield', date: 'Feb 10', status: 'AI Analyzed' },
-    { title: 'Crossover layup Q2', date: 'Feb 10', status: 'Uploaded' },
-    { title: 'Pick and roll assist', date: 'Feb 3', status: 'AI Analyzed' },
-];
-
-const DRILLS = [
-    { id: 1, title: 'Crossover Speed Dribble', category: 'Ball Handling', duration: 10, icon: SIC.ball, difficulty: 'Medium',
-      description: 'Practice rapid crossover dribbles at full speed. Focus on keeping the ball low and switching hands cleanly. Do 3 sets of 10 crosses, rest 30 seconds between sets.',
-      assignedBy: 'Coach Wilson', completed: false },
-    { id: 2, title: 'Elbow Pull-Up Jumper', category: 'Shooting', duration: 15, icon: SIC.target, difficulty: 'Medium',
-      description: 'From both elbows, catch and shoot pull-up jumpers off a simulated screen. 5 makes from each elbow, then move to free-throw line extended. Focus on consistent release point.',
-      assignedBy: 'Coach Wilson', completed: false },
-    { id: 3, title: 'Defensive Slide Ladder', category: 'Defense', duration: 12, icon: SIC.shield, difficulty: 'Hard',
-      description: 'Lateral defensive slides across the lane and back. 4 sets of 6 slides. Keep your hips low and hands active. Sprint back to the baseline between sets.',
-      assignedBy: 'Coach Wilson', completed: false },
-    { id: 4, title: 'Free Throw Routine', category: 'Shooting', duration: 10, icon: SIC.target, difficulty: 'Easy',
-      description: 'Shoot 25 free throws using your game routine. Track makes vs misses. Take a deep breath before each shot and focus on follow-through.',
-      assignedBy: 'Coach Wilson', completed: true },
-];
+const MESSAGES = [];
+const MY_CLIPS = [];
+const DRILLS = [];
 
 const BACKEND_URL = window.location.origin;
 const AUTH_STORAGE_KEY = 'benchpro_student_token';
+const AUTH_STORAGE_KEY_SESSION = 'benchpro_student_token_session';
 
 function getStudentAuthToken() {
-  try { return localStorage.getItem(AUTH_STORAGE_KEY) || null; } catch { return null; }
+  try {
+    return localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY_SESSION) || null;
+  } catch { return null; }
 }
-function setStudentAuthToken(token) {
-  try { if (token) localStorage.setItem(AUTH_STORAGE_KEY, token); else localStorage.removeItem(AUTH_STORAGE_KEY); } catch {}
+function setStudentAuthToken(token, persist) {
+  try {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(AUTH_STORAGE_KEY_SESSION);
+    if (token) {
+      if (persist) localStorage.setItem(AUTH_STORAGE_KEY, token);
+      else sessionStorage.setItem(AUTH_STORAGE_KEY_SESSION, token);
+    }
+  } catch {}
 }
 
 async function fetchWithAuth(url, opts = {}) {
@@ -164,6 +89,30 @@ function clearFieldError(input) {
     input.classList.remove('error');
     const errEl = input.parentElement.querySelector('.form-error-msg');
     if (errEl) errEl.classList.remove('show');
+}
+
+// ===== THEME =====
+const STUDENT_THEME_KEY = 'student_dark_mode';
+
+function toggleStudentDarkMode(darkOn) {
+    try { localStorage.setItem(STUDENT_THEME_KEY, String(darkOn)); } catch {}
+    const isLight = !darkOn;
+    if (document.body) document.body.classList.toggle('light-mode', isLight);
+    if (isLight) document.documentElement.setAttribute('data-theme', 'light');
+    else document.documentElement.removeAttribute('data-theme');
+    showToast(darkOn ? 'Dark mode on' : 'Light mode on', SIC.check);
+}
+
+function loadStudentTheme() {
+    try {
+        const stored = localStorage.getItem(STUDENT_THEME_KEY);
+        const darkOn = stored === null ? true : stored === 'true';
+        const toggle = document.getElementById('student-dark-mode-toggle');
+        if (toggle) toggle.checked = darkOn;
+        if (document.body) document.body.classList.toggle('light-mode', !darkOn);
+        if (darkOn) document.documentElement.removeAttribute('data-theme');
+        else document.documentElement.setAttribute('data-theme', 'light');
+    } catch {}
 }
 
 // ===== AUTH =====
@@ -205,7 +154,10 @@ async function handleStudentLogin() {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-            showFieldError(codeEl, data.error || 'Invalid email or password');
+            const msg = data.code === 'email_not_verified'
+                ? 'Please verify your email first. Check your inbox.'
+                : (data.error || 'Invalid email or password');
+            showFieldError(codeEl, msg);
             if (btn) { btn.disabled = false; btn.innerHTML = 'Log In'; }
             return;
         }
@@ -214,9 +166,13 @@ async function handleStudentLogin() {
             if (btn) { btn.disabled = false; btn.innerHTML = 'Log In'; }
             return;
         }
-        setStudentAuthToken(data.token);
-        const userName = (data.user && data.user.name) || 'Player';
-        finishLogin(userName);
+        const rememberMe = document.getElementById('student-remember-me')?.checked ?? false;
+        setStudentAuthToken(data.token, rememberMe);
+        const user = data.user || {};
+        currentStudentUser = user;
+        STUDENT.name = user.name || '';
+        STUDENT.email = user.email || '';
+        finishLogin(user.name || 'Player');
     } catch (err) {
         showFieldError(codeEl, 'Could not connect. Please try again.');
         if (btn) { btn.disabled = false; btn.innerHTML = 'Log In'; }
@@ -316,7 +272,17 @@ async function handleStudentSignupFinish() {
             if (btn) { btn.disabled = false; btn.innerHTML = 'Create Account'; }
             return;
         }
-        setStudentAuthToken(data.token);
+        if (data.requires_confirmation) {
+            showToast('Check your email to confirm your account', SIC.check);
+            showStudentAuthTab('login');
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Create Account'; }
+            return;
+        }
+        const rememberMe = document.getElementById('student-signup-remember-me')?.checked ?? false;
+        setStudentAuthToken(data.token, rememberMe);
+        currentStudentUser = data.user || {};
+        STUDENT.name = name;
+        STUDENT.email = email;
         document.getElementById('student-auth').classList.add('hidden');
         document.getElementById('student-app').classList.add('active');
         const firstName = name.split(' ')[0];
@@ -726,6 +692,96 @@ function buildStudentChartData(playerStats, ballStats, eventStats, teamStats, ai
     return bars.length > 0 ? bars : null;
 }
 
+function buildStudentShareBar(title, opponent, date, analysis, stats) {
+    return `
+    <div class="share-analysis-bar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;padding:12px 16px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);">
+      <span style="font-size:13px;color:var(--text-secondary)">Share this analysis</span>
+      <button class="btn btn-sm btn-secondary" data-share-analysis title="Share to social media">
+        ${SIC.shield} Share
+      </button>
+    </div>`;
+}
+
+function buildStudentShareText(title, opponent, date, analysis, stats) {
+    const parts = [`📊 ${title}`];
+    if (opponent) parts.push(`vs ${opponent}`);
+    if (date) parts.push(date);
+    const s = stats || {};
+    const v = s.video || {};
+    const p = s.players || {};
+    const e = s.events || {};
+    const lines = [];
+    if (p.total_detections) lines.push(`👥 ${p.total_detections} player detections`);
+    if (e.total) lines.push(`📋 ${e.total} events detected`);
+    if (v.duration_formatted) lines.push(`⏱ ${v.duration_formatted} analyzed`);
+    if (lines.length) parts.push('\n' + lines.join(' • '));
+    if (analysis && analysis.ai_insights) {
+        const raw = analysis.ai_insights.replace(/<[^>]+>/g, '');
+        const insight = raw.slice(0, 200);
+        parts.push('\n\n' + insight + (raw.length > 200 ? '...' : ''));
+    }
+    parts.push('\n\nAnalyzed with BenchPro 🏀');
+    return parts.join(' ');
+}
+
+function openStudentShareMenu(gameId, title, opponent, date, analysis, stats) {
+    const url = window.location.origin + '/student?clip=' + gameId;
+    const shareText = buildStudentShareText(title, opponent, date, analysis, stats);
+    const fullText = shareText + '\n' + url;
+
+    if (navigator.share) {
+        navigator.share({
+            title: title || 'BenchPro Analysis',
+            text: shareText,
+            url
+        }).then(() => showToast('Shared!', SIC.check)).catch(() => showStudentShareFallback(url, fullText));
+    } else {
+        showStudentShareFallback(url, fullText);
+    }
+}
+
+function showStudentShareFallback(url, fullText) {
+    let overlay = document.getElementById('share-overlay');
+    if (overlay) {
+        const ta = overlay.querySelector('#share-full-text');
+        if (ta) ta.value = fullText || '';
+        overlay.classList.add('show');
+        return;
+    }
+    const div = document.createElement('div');
+    div.id = 'share-overlay';
+    div.className = 'modal-overlay';
+    div.innerHTML = `
+      <div class="modal" style="max-width:420px" onclick="event.stopPropagation()">
+        <div class="modal-header"><h2>Share to Social Media</h2><button class="modal-close" onclick="document.getElementById('share-overlay').classList.remove('show')">✕</button></div>
+        <div class="modal-body">
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Share this clip and analysis to Instagram, Twitter, or any app.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button class="btn btn-primary share-copy-full">Copy for Instagram / Social</button>
+            <a href="#" class="btn btn-secondary share-twitter" style="text-align:center;text-decoration:none" target="_blank" rel="noopener">Share to X (Twitter)</a>
+            <a href="#" class="btn btn-secondary share-facebook" style="text-align:center;text-decoration:none" target="_blank" rel="noopener">Share to Facebook</a>
+            <button class="btn btn-secondary share-copy-link">Copy Link Only</button>
+          </div>
+          <textarea id="share-full-text" style="display:none"></textarea>
+        </div>
+      </div>`;
+    div.onclick = () => div.classList.remove('show');
+    document.body.appendChild(div);
+    const ta = div.querySelector('#share-full-text');
+    if (ta) ta.value = fullText || '';
+    div.querySelector('.share-copy-full').onclick = () => {
+        navigator.clipboard.writeText(ta.value || fullText);
+        showToast('Copied! Paste into Instagram or any app', SIC.check);
+    };
+    div.querySelector('.share-copy-link').onclick = () => {
+        navigator.clipboard.writeText(url);
+        showToast('Link copied!', SIC.check);
+    };
+    div.querySelector('.share-twitter').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent((fullText || '').slice(0, 200) + (fullText && fullText.length > 200 ? '...' : ''));
+    div.querySelector('.share-facebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+    div.classList.add('show');
+}
+
 async function showStudentResults(gameId) {
     try {
         const res = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}`);
@@ -805,7 +861,13 @@ async function showStudentResults(gameId) {
             </div>
         </div>` : '';
 
-        detailPanel.innerHTML = statsHtml + chartsHtml + coachHtml + eventsHtml;
+        const game = data.game || {};
+        const shareTitle = game.title || game.file_name || 'Game Analysis';
+        const shareBar = buildStudentShareBar(shareTitle, game.opponent || '', game.date || '', analysis, stats);
+        detailPanel.innerHTML = shareBar + statsHtml + chartsHtml + coachHtml + eventsHtml;
+
+        const shareBtn = detailPanel.querySelector('[data-share-analysis]');
+        if (shareBtn) shareBtn.addEventListener('click', () => openStudentShareMenu(gameId, shareTitle, game.opponent, game.date, analysis, stats));
     } catch (err) {
         console.error('Failed to load results:', err);
         const detailPanel = document.getElementById(`student-video-detail-${gameId}`);
@@ -816,9 +878,6 @@ async function showStudentResults(gameId) {
 }
 
 function addClipToList(title, status) {
-    const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    MY_CLIPS.unshift({ title, date: dateStr, status: status || 'Uploaded' });
     if (typeof loadStudentClips === 'function') loadStudentClips();
     else renderMyClips();
 }
@@ -992,23 +1051,35 @@ function drawSparkline(canvasId, values, color) {
 
 // ===== PROFILE ACTIONS =====
 function handleLogout() {
+    const token = getStudentAuthToken();
     setStudentAuthToken(null);
-    document.getElementById('student-app').classList.remove('active');
-    document.getElementById('student-auth').classList.remove('hidden');
+    const appEl = document.getElementById('student-app');
+    const authEl = document.getElementById('student-auth');
+    if (appEl) appEl.classList.remove('active');
+    if (authEl) {
+        authEl.classList.remove('hidden');
+        authEl.style.visibility = 'visible';
+        authEl.style.opacity = '1';
+    }
 
     // Reset login form
-    document.getElementById('student-email').value = '';
-    document.getElementById('student-code').value = '';
+    const emailEl = document.getElementById('student-email');
+    const codeEl = document.getElementById('student-code');
+    if (emailEl) emailEl.value = '';
+    if (codeEl) codeEl.value = '';
     const btn = document.getElementById('student-login-btn');
-    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    if (btn) {
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"></path>
     <polyline points="10 17 15 12 10 7"></polyline>
     <line x1="15" y1="12" x2="3" y2="12"></line>
   </svg> Sign In`;
-    btn.disabled = false;
+        btn.disabled = false;
+    }
 
     currentTab = 'home';
     showToast('Logged out', SIC.wave);
+    if (token) fetch(`${BACKEND_URL}/api/auth/logout`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(() => {});
 }
 
 // ===== RENDER HOME PAGE =====
@@ -1036,7 +1107,7 @@ function renderHome() {
             <div class="stat-card-icon ${st.color}">${STAT_ICONS[st.icon] || ''}</div>
             <div class="stat-label">${key.toUpperCase()}</div>
             <div class="stat-value">${st.value}</div>
-            <div class="stat-change up">↑ ${st.change}% this month</div>
+            <div class="stat-change ${st.change > 0 ? 'up' : ''}">${st.change > 0 ? '↑ ' + st.change + '% this month' : 'No data yet'}</div>
           </div>`).join('');
     }
 
@@ -1101,6 +1172,8 @@ function renderHome() {
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', async () => {
+    loadStudentTheme();
+
     // Restore session if valid token exists
     const token = getStudentAuthToken();
     if (token) {
@@ -1110,6 +1183,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const data = await res.json();
                 const user = data.user || {};
                 if (user.user_type === 'player') {
+                    currentStudentUser = user;
+                    STUDENT.name = user.name || '';
+                    STUDENT.email = user.email || '';
                     document.getElementById('student-auth').classList.add('hidden');
                     document.getElementById('student-app').classList.add('active');
                     const firstName = (user.name || 'Player').split(' ')[0];
@@ -1132,9 +1208,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadStudentClips();
     renderDrills();
 
-    // Draw sparklines after a short delay to ensure layout
+    // Draw sparklines after a short delay to ensure layout (skip if no data)
     setTimeout(() => {
-        drawSparkline('trend-canvas', STUDENT.trend, 'rgb(212, 115, 26)');
+        if (STUDENT.trend && STUDENT.trend.length > 0) {
+            drawSparkline('trend-canvas', STUDENT.trend, 'rgb(212, 115, 26)');
+        }
     }, 300);
 
     // Login on enter key
@@ -1265,38 +1343,14 @@ const SETTINGS_CONTENT = {
         title: 'Team Info',
         html: `
       <div class="modal-section-title">Team Details</div>
-      <div class="modal-info-row"><span class="modal-info-label">Team</span><span class="modal-info-value">Harker Eagles</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">Season</span><span class="modal-info-value">2025–26</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">League</span><span class="modal-info-value">Bay Area Conference</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">Record</span><span class="modal-info-value" style="color:var(--green)">14-4</span></div>
-      <div class="modal-section-title">Roster</div>
-      <div class="modal-info-row"><span class="modal-info-label">#3 Marcus James</span><span class="modal-info-value" style="color:var(--orange)">PG · You</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">#7 Tyler Brooks</span><span class="modal-info-value">SG</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">#12 David Chen</span><span class="modal-info-value">SF</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">#21 Andre Williams</span><span class="modal-info-value">PF</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">#33 Chris Rodriguez</span><span class="modal-info-value">C</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">#5 Jason Lee</span><span class="modal-info-value">SG</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">#11 Kevin Park</span><span class="modal-info-value">PG</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">#15 Ryan Mitchell</span><span class="modal-info-value">SF</span></div>
+      <div class="empty-state" style="padding:24px"><p>Team info will appear here when your coach adds it.</p></div>
     `
     },
     coach: {
-        title: 'Coach Wilson',
+        title: 'Coach',
         html: `
       <div class="modal-section-title">Coach Profile</div>
-      <div style="text-align:center;padding:16px 0;">
-        <div style="width:64px;height:64px;border-radius:50%;background:var(--bg-secondary);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:20px;font-weight:800;color:var(--orange);">CW</div>
-        <div style="font-size:16px;font-weight:700;">Coach Mark Wilson</div>
-        <div style="font-size:12px;color:var(--text-muted);">Head Coach · Harker High</div>
-      </div>
-      <div class="modal-info-row"><span class="modal-info-label">Email</span><span class="modal-info-value" style="color:var(--blue)">coach.wilson@harker.edu</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">Phone</span><span class="modal-info-value">(555) 234-5678</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">Office</span><span class="modal-info-value">Gym, Room 102</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">Office Hours</span><span class="modal-info-value">Mon-Fri 3-5pm</span></div>
-      <div class="modal-section-title">Coaching Staff</div>
-      <div class="modal-info-row"><span class="modal-info-label">Coach Wilson</span><span class="modal-info-value">Head Coach</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">Coach Davis</span><span class="modal-info-value">Assistant Coach</span></div>
-      <div class="modal-info-row"><span class="modal-info-label">Coach Martinez</span><span class="modal-info-value">Strength & Conditioning</span></div>
+      <div class="empty-state" style="padding:24px"><p>Coach contact info will appear here when available.</p></div>
     `
     },
     about: {

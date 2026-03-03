@@ -2,37 +2,48 @@
 BenchPro Backend — Flask API Server
 Serves the API endpoints and the frontend static files.
 """
-
-
 import os
 import uuid
 import threading
 import secrets
 from flask import Flask, request, jsonify, send_from_directory, Response  # type: ignore
 from flask_cors import CORS  # type: ignore
+from flask_limiter import Limiter  # type: ignore
+from flask_limiter.util import get_remote_address  # type: ignore
 from werkzeug.utils import secure_filename  # type: ignore
 from werkzeug.security import generate_password_hash, check_password_hash  # type: ignore
 
 from .config import (  # type: ignore
-    HOST, PORT, DEBUG, UPLOAD_DIR, FRONTEND_DIR,
-    MAX_CONTENT_LENGTH, ALLOWED_EXTENSIONS, TEAM_CODE, TEAM_NAME
+    HOST, PORT, DEBUG, SECRET_KEY, UPLOAD_DIR, FRONTEND_DIR,
+    MAX_CONTENT_LENGTH, ALLOWED_EXTENSIONS, TEAM_CODE, TEAM_NAME,
+    CORS_ORIGINS, RATE_LIMIT, RATE_LIMIT_AUTH, RATE_LIMIT_UPLOAD,
+    APP_URL, GOOGLE_CLIENT_ID, APPLE_CLIENT_ID
 )
-from . import models  # type: ignore
-from . analyzer import get_analyzer  # type: ignore
-from . ai_coach import generate_coach_feedback, analyze_stat_sheet  # type: ignore
-from . swish_analyzer import analyze_basketball_shot  # type: ignore
-
 from . import models  # type: ignore
 from .analyzer import get_analyzer  # type: ignore
 from .ai_coach import generate_coach_feedback, analyze_stat_sheet  # type: ignore
-
 from .swish_analyzer import analyze_basketball_shot  # type: ignore
+from .email_service import send_confirmation_email, send_password_reset_email  # type: ignore
+from . import stripe_service  # type: ignore
+from . import oauth_service  # type: ignore
 
 # ===== APP SETUP =====
 
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path='')
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
-CORS(app)
+app.config['SECRET_KEY'] = SECRET_KEY or 'dev-secret-change-in-production'
+
+# CORS — restrict origins in production (set CORS_ORIGINS env var)
+cors_kw = {'origins': CORS_ORIGINS.split(',')} if CORS_ORIGINS != '*' else {}
+CORS(app, **cors_kw)
+
+# Rate limiting (in-memory; use Redis for multi-worker production)
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=[RATE_LIMIT],
+    storage_uri='memory://'
+)
 
 
 def allowed_file(filename):
@@ -95,6 +106,28 @@ def serve_student():
     return send_from_directory(FRONTEND_DIR, 'student.html')
 
 
+@app.route('/forgot-password')
+def serve_forgot_password():
+    """Serve the forgot password page."""
+    return send_from_directory(FRONTEND_DIR, 'forgot-password.html')
+
+
+@app.route('/reset-password')
+def serve_reset_password():
+    """Serve the password reset page (token in query string)."""
+    return send_from_directory(FRONTEND_DIR, 'reset-password.html')
+
+
+@app.route('/confirm-email')
+def serve_confirm_email_redirect():
+    """Redirect to API for token handling (user clicks link in email)."""
+    from flask import redirect
+    token = request.args.get('token', '')
+    if token:
+        return redirect(f'/api/auth/confirm-email?token={token}', code=302)
+    return send_from_directory(FRONTEND_DIR, 'fullwebsite.html')
+
+
 @app.route('/<path:path>')
 def serve_static(path):
     """Serve any static file (CSS, JS, images)."""
@@ -119,11 +152,11 @@ def health():
 # ===== API: AUTH =====
 
 @app.route('/api/auth/signup', methods=['POST'])
+@limiter.limit(RATE_LIMIT_AUTH)
 def auth_signup():
     """
-    Create a new account.
+    Create a new account. Sends confirmation email; user must verify before logging in.
     Body: { email, password, name, user_type?, team_code?, plan? }
-    user_type: 'coach' | 'player'
     """
     data = request.get_json() or {}
     email = (data.get('email') or '').strip()
@@ -152,25 +185,22 @@ def auth_signup():
     if not user:
         return jsonify({'error': 'An account with this email already exists'}), 409
 
-    token = secrets.token_urlsafe(32)
-    models.set_user_token(user['id'], token)
+    confirm_token = models.create_auth_token(user['id'], 'email_confirm', expires_hours=24)
+    send_confirmation_email(email, name, confirm_token)
+
     return jsonify({
-        'token': token,
-        'user': {
-            'id': user['id'],
-            'email': user['email'],
-            'name': user['name'],
-            'user_type': user['user_type'],
-            'team_code': user.get('team_code', ''),
-            'plan': user.get('plan', 'standard')
-        }
+        'message': 'Check your email to confirm your account',
+        'email': email,
+        'user_id': user['id'],
+        'requires_confirmation': True
     }), 201
 
 
 @app.route('/api/auth/login', methods=['POST'])
+@limiter.limit(RATE_LIMIT_AUTH)
 def auth_login():
     """
-    Log in with email and password.
+    Log in with email and password. Requires verified email.
     Body: { email, password }
     """
     data = request.get_json() or {}
@@ -183,6 +213,12 @@ def auth_login():
     user = models.get_user_by_email(email)
     if not user or not check_password_hash(user['password_hash'], password):
         return jsonify({'error': 'Invalid email or password'}), 401
+
+    if not user.get('email_verified', 1):
+        return jsonify({
+            'error': 'Please verify your email first. Check your inbox for the confirmation link.',
+            'code': 'email_not_verified'
+        }), 403
 
     token = secrets.token_urlsafe(32)
     models.set_user_token(user['id'], token)
@@ -210,7 +246,9 @@ def auth_me(current_user):
             'name': current_user['name'],
             'user_type': current_user['user_type'],
             'team_code': current_user.get('team_code', ''),
-            'plan': current_user.get('plan', 'standard')
+            'plan': current_user.get('plan', 'standard'),
+            'stripe_customer_id': current_user.get('stripe_customer_id'),
+            'subscription_status': current_user.get('subscription_status')
         }
     })
 
@@ -223,9 +261,382 @@ def auth_logout(current_user):
     return jsonify({'message': 'Logged out'}), 200
 
 
+@app.route('/api/auth/forgot-password', methods=['POST'])
+@limiter.limit(RATE_LIMIT_AUTH)
+def auth_forgot_password():
+    """Request password reset. Sends email with reset link."""
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip()
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+
+    user = models.get_user_by_email(email)
+    if user:
+        token = models.create_auth_token(user['id'], 'password_reset', expires_hours=1)
+        send_password_reset_email(email, user['name'], token)
+
+    return jsonify({'message': 'If that email exists, we sent a password reset link'}), 200
+
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+@limiter.limit(RATE_LIMIT_AUTH)
+def auth_reset_password():
+    """Reset password using token from email."""
+    data = request.get_json() or {}
+    token = (data.get('token') or '').strip()
+    new_password = data.get('new_password') or ''
+
+    if not token or not new_password:
+        return jsonify({'error': 'Token and new password are required'}), 400
+    if len(new_password) < 4:
+        return jsonify({'error': 'Password must be at least 4 characters'}), 400
+
+    user_id = models.consume_auth_token(token, 'password_reset')
+    if not user_id:
+        return jsonify({'error': 'Invalid or expired reset link. Request a new one.'}), 400
+
+    password_hash = generate_password_hash(new_password)
+    conn = models.get_db()
+    conn.execute("UPDATE users SET password_hash = ? WHERE id = ?", (password_hash, user_id))
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Password updated. You can now log in.'}), 200
+
+
+@app.route('/api/auth/confirm-email', methods=['POST', 'GET'])
+@limiter.limit(RATE_LIMIT_AUTH)
+def auth_confirm_email():
+    """Confirm email using token from signup email."""
+    token = request.args.get('token') or (request.get_json() or {}).get('token') or ''
+    token = token.strip()
+    if not token:
+        return jsonify({'error': 'Token is required'}), 400
+
+    user_id = models.consume_auth_token(token, 'email_confirm')
+    if not user_id:
+        return jsonify({'error': 'Invalid or expired confirmation link. Sign up again or request a new one.'}), 400
+
+    models.set_email_verified(user_id)
+    user = models.get_user_by_id(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    auth_token = secrets.token_urlsafe(32)
+    models.set_user_token(user_id, auth_token)
+
+    if request.method == 'GET':
+        from flask import redirect
+        from urllib.parse import urlencode
+        qs = urlencode({'verified': '1', 'token': auth_token})
+        return redirect(f'/?{qs}', code=302)
+
+    return jsonify({
+        'message': 'Email confirmed',
+        'token': auth_token,
+        'user': {
+            'id': user['id'],
+            'email': user['email'],
+            'name': user['name'],
+            'user_type': user['user_type'],
+            'team_code': user.get('team_code', ''),
+            'plan': user.get('plan', 'standard')
+        }
+    }), 200
+
+
+@app.route('/api/auth/resend-confirmation', methods=['POST'])
+@limiter.limit(RATE_LIMIT_AUTH)
+def auth_resend_confirmation():
+    """Resend confirmation email."""
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip()
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+
+    user = models.get_user_by_email(email)
+    if not user:
+        return jsonify({'message': 'If that email exists, we sent a new confirmation link'}), 200
+    if user.get('email_verified', 0):
+        return jsonify({'error': 'Email already verified. You can log in.'}), 400
+
+    token = models.create_auth_token(user['id'], 'email_confirm', expires_hours=24)
+    send_confirmation_email(email, user['name'], token)
+
+    return jsonify({'message': 'Confirmation email sent. Check your inbox.'}), 200
+
+
+# ===== API: OAUTH (Google, Apple) =====
+
+def _oauth_success_redirect(token):
+    """Redirect to frontend with token in URL."""
+    from flask import redirect
+    from urllib.parse import urlencode
+    base = (APP_URL or request.url_root).rstrip('/')
+    if not base.startswith('http'):
+        base = request.url_root.rstrip('/')
+    # Serve our app at root
+    qs = urlencode({'token': token})
+    return redirect(f'{base}/?{qs}', code=302)
+
+
+def _oauth_error_redirect(message='Sign in failed'):
+    """Redirect to frontend with error."""
+    from flask import redirect
+    from urllib.parse import urlencode
+    base = (APP_URL or request.url_root).rstrip('/')
+    if not base.startswith('http'):
+        base = request.url_root.rstrip('/')
+    qs = urlencode({'oauth_error': message})
+    return redirect(f'{base}/?{qs}', code=302)
+
+
+@app.route('/api/auth/google/authorize')
+def oauth_google_authorize():
+    """Redirect to Google OAuth consent screen."""
+    url = oauth_service.get_google_authorize_url()
+    if not url:
+        return jsonify({'error': 'Google sign-in is not configured'}), 503
+    from flask import redirect
+    return redirect(url, code=302)
+
+
+@app.route('/api/auth/google/callback')
+@limiter.limit(RATE_LIMIT_AUTH)
+def oauth_google_callback():
+    """Handle Google OAuth callback, create/update user, redirect with token."""
+    code = request.args.get('code')
+    if not code:
+        return _oauth_error_redirect('Missing authorization code')
+
+    info = oauth_service.exchange_google_code(code)
+    if not info or not info.get('sub') or not info.get('email'):
+        return _oauth_error_redirect('Could not get your Google account info')
+
+    user, _ = models.get_or_create_oauth_user(
+        provider='google',
+        subject_id=info['sub'],
+        email=info['email'],
+        name=info['name'],
+        user_type='coach'
+    )
+    if not user:
+        return _oauth_error_redirect('Could not create account')
+
+    token = secrets.token_urlsafe(32)
+    models.set_user_token(user['id'], token)
+    return _oauth_success_redirect(token)
+
+
+@app.route('/api/auth/apple/authorize')
+def oauth_apple_authorize():
+    """Redirect to Apple Sign In."""
+    url = oauth_service.get_apple_authorize_url()
+    if not url:
+        return jsonify({'error': 'Apple sign-in is not configured'}), 503
+    from flask import redirect
+    return redirect(url, code=302)
+
+
+@app.route('/api/auth/apple/callback', methods=['GET', 'POST'])
+@limiter.limit(RATE_LIMIT_AUTH)
+def oauth_apple_callback():
+    """Handle Apple OAuth callback (POST from Apple). Create/update user, redirect with token."""
+    # Apple sends POST with code, id_token, user (optional), state
+    code = request.form.get('code') or request.args.get('code')
+    id_token = request.form.get('id_token') or request.args.get('id_token')
+    user_json = request.form.get('user')
+
+    if not code and not id_token:
+        return _oauth_error_redirect('Missing authorization from Apple')
+
+    info = oauth_service.exchange_apple_code(code=code, id_token=id_token, user_json=user_json)
+    if not info or not info.get('sub'):
+        return _oauth_error_redirect('Could not get your Apple account info')
+
+    user, _ = models.get_or_create_oauth_user(
+        provider='apple',
+        subject_id=info['sub'],
+        email=info['email'],
+        name=info['name'],
+        user_type='coach'
+    )
+    if not user:
+        return _oauth_error_redirect('Could not create account')
+
+    token = secrets.token_urlsafe(32)
+    models.set_user_token(user['id'], token)
+    return _oauth_success_redirect(token)
+
+
+@app.route('/api/auth/oauth/status')
+def oauth_status():
+    """Return which OAuth providers are configured (for frontend to show/hide buttons)."""
+    return jsonify({
+        'google': bool(GOOGLE_CLIENT_ID),
+        'apple': bool(APPLE_CLIENT_ID),
+    })
+
+
+# ===== API: STRIPE =====
+
+@app.route('/api/stripe/create-checkout-session', methods=['POST'])
+@limiter.limit(RATE_LIMIT_AUTH)
+def stripe_create_checkout():
+    """
+    Create Stripe Checkout session for subscription.
+    Body: { user_id, email, name, plan }
+    Returns: { url } to redirect user to Stripe Checkout.
+    """
+    if not stripe_service.is_configured():
+        return jsonify({'error': 'Payments are not configured'}), 503
+
+    data = request.get_json() or {}
+    user_id = data.get('user_id')
+    email = (data.get('email') or '').strip()
+    name = (data.get('name') or '').strip()
+    plan = (data.get('plan') or 'elite').lower()
+    if plan not in ('standard', 'elite'):
+        plan = 'elite'
+
+    if not user_id or not email:
+        return jsonify({'error': 'user_id and email are required'}), 400
+
+    user = models.get_user_by_id(int(user_id))
+    if not user or user.get('email', '').lower() != email.lower():
+        return jsonify({'error': 'User not found'}), 404
+
+    try:
+        result = stripe_service.create_checkout_session(
+            user_id=int(user_id),
+            email=email,
+            name=name or user.get('name', ''),
+            plan=plan,
+            cancel_path='/?checkout=cancelled'
+        )
+        return jsonify({'url': result['url']}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/stripe/checkout-success')
+def stripe_checkout_success():
+    """
+    Handle redirect from Stripe Checkout success.
+    Verifies session, updates user subscription, redirects to app.
+    """
+    session_id = request.args.get('session_id')
+    if not session_id:
+        return jsonify({'error': 'Missing session_id'}), 400
+
+    session, sub = stripe_service.get_session_and_subscription(session_id)
+    if not session:
+        return jsonify({'error': 'Invalid session'}), 400
+
+    user_id = session.metadata.get('user_id') or (sub.metadata.get('user_id') if sub else None)
+    if not user_id:
+        return jsonify({'error': 'Could not find user'}), 400
+
+    user_id = int(user_id)
+    plan = session.metadata.get('plan', 'elite')
+
+    customer_id = session.customer or (sub.customer if sub else None)
+    if isinstance(customer_id, str) and customer_id.startswith('cus_'):
+        pass
+    elif hasattr(customer_id, 'id'):
+        customer_id = customer_id.id if hasattr(customer_id, 'id') else str(customer_id)
+    else:
+        customer_id = str(customer_id) if customer_id else None
+
+    sub_id = sub.id if sub and hasattr(sub, 'id') else None
+    status = sub.status if sub and hasattr(sub, 'status') else 'active'
+
+    models.update_user_stripe(
+        user_id,
+        stripe_customer_id=customer_id,
+        stripe_subscription_id=sub_id,
+        subscription_status=status,
+        plan=plan
+    )
+
+    from flask import redirect
+    from urllib.parse import urlencode
+    token = secrets.token_urlsafe(32)
+    models.set_user_token(user_id, token)
+    qs = urlencode({'checkout': 'success', 'token': token})
+    return redirect(f'/?{qs}', code=302)
+
+
+@app.route('/api/stripe/webhook', methods=['POST'])
+@limiter.exempt
+def stripe_webhook():
+    """Handle Stripe webhooks for subscription lifecycle."""
+    from .config import STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+    if not STRIPE_SECRET_KEY or not STRIPE_WEBHOOK_SECRET:
+        return jsonify({'error': 'Webhook not configured'}), 503
+
+    payload = request.get_data()
+    sig = request.headers.get('Stripe-Signature', '')
+    try:
+        import stripe
+        stripe.api_key = STRIPE_SECRET_KEY
+        event = stripe.Webhook.construct_event(payload, sig, STRIPE_WEBHOOK_SECRET)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+    if event['type'] == 'customer.subscription.updated':
+        sub = event['data']['object']
+        user_id = sub.get('metadata', {}).get('user_id')
+        if user_id:
+            models.update_user_stripe(
+                int(user_id),
+                stripe_subscription_id=sub.get('id'),
+                subscription_status=sub.get('status')
+            )
+    elif event['type'] == 'customer.subscription.deleted':
+        sub = event['data']['object']
+        user_id = sub.get('metadata', {}).get('user_id')
+        if user_id:
+            models.update_user_stripe(
+                int(user_id),
+                subscription_status='canceled'
+            )
+
+    return jsonify({'received': True}), 200
+
+
+@app.route('/api/stripe/create-portal-session', methods=['POST'])
+@require_auth
+def stripe_create_portal(current_user):
+    """Create Stripe Customer Portal session for managing subscription."""
+    if not stripe_service.is_configured():
+        return jsonify({'error': 'Payments are not configured'}), 503
+
+    customer_id = current_user.get('stripe_customer_id')
+    if not customer_id:
+        return jsonify({'error': 'No subscription found'}), 400
+
+    try:
+        result = stripe_service.create_portal_session(customer_id, return_path='/')
+        return jsonify({'url': result['url']}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/team/create-code', methods=['POST'])
+@require_auth
+def create_team_code(current_user):
+    """Generate a new team code for the coach. Coach only."""
+    if current_user.get('user_type') != 'coach':
+        return jsonify({'error': 'Only coaches can create team codes'}), 403
+    code = models.create_team_code_for_user(current_user['id'])
+    return jsonify({'team_code': code}), 200
+
+
 # ===== API: VIDEO UPLOAD =====
 
 @app.route('/api/upload', methods=['POST'])
+@limiter.limit(RATE_LIMIT_UPLOAD)
 @require_auth
 def upload_video(current_user):
     """
@@ -286,6 +697,7 @@ def upload_video(current_user):
 
 
 @app.route('/api/upload_stats', methods=['POST'])
+@limiter.limit(RATE_LIMIT_UPLOAD)
 @require_auth
 def upload_stats(current_user):
     """
@@ -505,6 +917,3 @@ if __name__ == '__main__':
     print("Ready to analyze game film!\n")
 
     app.run(host=HOST, port=PORT, debug=DEBUG, use_reloader=False)
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)# Build Trigger: Sun Feb 22 18:32:26 PST 2026

@@ -11,9 +11,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="stylesheet" href="student.css">
     <link rel="icon" href="minilogo.png" type="image/png">
+    <script>
+        (function(){try{var d=localStorage.getItem('student_dark_mode');if(d!==null&&d!=='true'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();
+    </script>
 </head>
 
 <body>
+    <script>
+        (function(){try{var d=localStorage.getItem('student_dark_mode');if(d!==null){var darkOn=d==='true';document.body.classList.toggle('light-mode',!darkOn);if(!darkOn)document.documentElement.setAttribute('data-theme','light');}}catch(e){}})();
+    </script>
 
     <!-- ===== AUTH SCREEN ===== -->
     <div class="auth-screen" id="student-auth">
@@ -64,16 +70,23 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Team Code</label>
+                        <label class="form-label">Password</label>
                         <div class="input-icon-wrap">
                             <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                 <path d="M7 11V7a5 5 0 0110 0v4"></path>
                             </svg>
-                            <input type="text" class="form-input with-icon" id="student-code"
-                                placeholder="Team code from your coach" autocomplete="off">
+                            <input type="password" class="form-input with-icon" id="student-code"
+                                placeholder="Enter your password" autocomplete="current-password">
                         </div>
                     </div>
+
+                    <label style="display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:13px;cursor:pointer;margin-bottom:8px">
+                        <input type="checkbox" id="student-remember-me" style="accent-color:var(--orange)"> Remember me
+                    </label>
+                    <p style="margin-bottom:12px;font-size:13px">
+                        <a href="/forgot-password" style="color:var(--orange);text-decoration:none">Forgot password?</a>
+                    </p>
 
                     <button class="btn btn-primary" id="student-login-btn" onclick="handleStudentLogin()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -215,6 +228,10 @@
                                 </div>
                             </div>
                         </div>
+
+                        <label style="display:flex;align-items:center;gap:6px;color:var(--text-muted);font-size:13px;cursor:pointer;margin-bottom:12px">
+                            <input type="checkbox" id="student-signup-remember-me" style="accent-color:var(--orange)"> Keep me signed in on this device
+                        </label>
 
                         <div class="btn-group">
                             <button class="btn btn-secondary btn-back" onclick="goSignupStep(1)">
@@ -622,11 +639,11 @@
                             </div>
                             <div>
                                 <div class="settings-item-label">Dark Mode</div>
-                                <div class="settings-item-desc">Always on</div>
+                                <div class="settings-item-desc">Use dark theme</div>
                             </div>
                         </div>
                         <label class="toggle">
-                            <input type="checkbox" checked disabled>
+                            <input type="checkbox" id="student-dark-mode-toggle" checked onchange="toggleStudentDarkMode(this.checked)">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>

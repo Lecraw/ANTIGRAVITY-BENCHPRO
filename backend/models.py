@@ -1,11 +1,15 @@
 """
 BenchPro Backend — Database Models (SQLite)
 """
+import secrets
 import sqlite3
 import json
 import os
 import uuid
+import random
+import string
 from datetime import datetime
+from werkzeug.security import generate_password_hash
 from .config import DB_PATH
 
 
@@ -27,11 +31,28 @@ def init_db():
             email TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             name TEXT NOT NULL,
-            user_type TEXT NOT NULL DEFAULT 'coach',  -- 'coach' or 'player'
+            user_type TEXT NOT NULL DEFAULT 'coach',
             team_code TEXT DEFAULT '',
             plan TEXT DEFAULT 'standard',
             auth_token TEXT DEFAULT NULL,
+            email_verified INTEGER DEFAULT 0,
+            email_verified_at TEXT DEFAULT NULL,
+            stripe_customer_id TEXT DEFAULT NULL,
+            stripe_subscription_id TEXT DEFAULT NULL,
+            subscription_status TEXT DEFAULT NULL,
+            oauth_provider TEXT DEFAULT NULL,
+            oauth_subject_id TEXT DEFAULT NULL,
             created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            token TEXT NOT NULL UNIQUE,
+            user_id INTEGER NOT NULL,
+            token_type TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS games (
@@ -91,12 +112,22 @@ def init_db():
     """)
     conn.commit()
 
-    # Migration: add user_id to games if missing (for existing DBs)
-    try:
-        conn.execute("ALTER TABLE games ADD COLUMN user_id INTEGER DEFAULT NULL")
-        conn.commit()
-    except sqlite3.OperationalError:
-        pass  # Column already exists
+    # Migrations for existing DBs
+    for col, sql in [
+        ('user_id', "ALTER TABLE games ADD COLUMN user_id INTEGER DEFAULT NULL"),
+        ('email_verified', "ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 1"),
+        ('email_verified_at', "ALTER TABLE users ADD COLUMN email_verified_at TEXT DEFAULT NULL"),
+        ('stripe_customer_id', "ALTER TABLE users ADD COLUMN stripe_customer_id TEXT DEFAULT NULL"),
+        ('stripe_subscription_id', "ALTER TABLE users ADD COLUMN stripe_subscription_id TEXT DEFAULT NULL"),
+        ('subscription_status', "ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT NULL"),
+        ('oauth_provider', "ALTER TABLE users ADD COLUMN oauth_provider TEXT DEFAULT NULL"),
+        ('oauth_subject_id', "ALTER TABLE users ADD COLUMN oauth_subject_id TEXT DEFAULT NULL"),
+    ]:
+        try:
+            conn.execute(sql)
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass
 
     conn.close()
     _init_users()
@@ -123,11 +154,11 @@ def _init_users():
 # ===== USER CRUD =====
 
 def create_user(email, password_hash, name, user_type='coach', team_code='', plan='standard'):
-    """Create a new user. Returns user dict or None if email exists."""
+    """Create a new user. Returns user dict or None if email exists. New users start unverified."""
     conn = get_db()
     try:
         cur = conn.execute(
-            "INSERT INTO users (email, password_hash, name, user_type, team_code, plan) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO users (email, password_hash, name, user_type, team_code, plan, email_verified) VALUES (?, ?, ?, ?, ?, ?, 0)",
             (email.lower(), password_hash, name, user_type, team_code, plan)
         )
         user_id = cur.lastrowid
@@ -139,10 +170,66 @@ def create_user(email, password_hash, name, user_type='coach', team_code='', pla
         conn.close()
 
 
+def get_user_by_oauth(provider, subject_id):
+    """Get user by OAuth provider and subject ID."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT id, email, name, user_type, team_code, plan, email_verified, stripe_customer_id, subscription_status FROM users WHERE oauth_provider = ? AND oauth_subject_id = ?",
+        (provider, subject_id)
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def get_or_create_oauth_user(provider, subject_id, email, name, user_type='coach'):
+    """
+    Find or create user for OAuth login. OAuth users are email_verified by default.
+    Returns (user_dict, created: bool).
+    """
+    user = get_user_by_oauth(provider, subject_id)
+    if user:
+        return user, False
+
+    # Check if email already exists (e.g. from email signup)
+    existing = get_user_by_email(email)
+    if existing:
+        # Link OAuth to existing account
+        conn = get_db()
+        placeholder = generate_password_hash(secrets.token_urlsafe(32))  # unguessable
+        conn.execute(
+            "UPDATE users SET oauth_provider = ?, oauth_subject_id = ?, email_verified = 1 WHERE id = ?",
+            (provider, subject_id, existing['id'])
+        )
+        conn.commit()
+        conn.close()
+        return get_user_by_id(existing['id']), False
+
+    # Create new OAuth user
+    placeholder = generate_password_hash(secrets.token_urlsafe(32))
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            """INSERT INTO users (email, password_hash, name, user_type, oauth_provider, oauth_subject_id, email_verified)
+               VALUES (?, ?, ?, ?, ?, ?, 1)""",
+            (email.lower(), placeholder, name, user_type, provider, subject_id)
+        )
+        user_id = cur.lastrowid
+        conn.commit()
+        return get_user_by_id(user_id), True
+    except sqlite3.IntegrityError:
+        conn.close()
+        return get_user_by_oauth(provider, subject_id), False
+    finally:
+        conn.close()
+
+
 def get_user_by_id(user_id):
     """Get user by ID."""
     conn = get_db()
-    row = conn.execute("SELECT id, email, name, user_type, team_code, plan, created_at FROM users WHERE id = ?", (user_id,)).fetchone()
+    row = conn.execute(
+        "SELECT id, email, name, user_type, team_code, plan, email_verified, created_at FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()
     conn.close()
     return dict(row) if row else None
 
@@ -160,7 +247,10 @@ def get_user_by_token(token):
     if not token:
         return None
     conn = get_db()
-    row = conn.execute("SELECT id, email, name, user_type, team_code, plan, created_at FROM users WHERE auth_token = ?", (token,)).fetchone()
+    row = conn.execute(
+        "SELECT id, email, name, user_type, team_code, plan, email_verified, stripe_customer_id, subscription_status, created_at FROM users WHERE auth_token = ?",
+        (token,)
+    ).fetchone()
     conn.close()
     return dict(row) if row else None
 
@@ -179,6 +269,110 @@ def clear_user_token(user_id):
     conn.execute("UPDATE users SET auth_token = NULL WHERE id = ?", (user_id,))
     conn.commit()
     conn.close()
+
+
+def set_email_verified(user_id):
+    """Mark user's email as verified."""
+    conn = get_db()
+    conn.execute(
+        "UPDATE users SET email_verified = 1, email_verified_at = datetime('now') WHERE id = ?",
+        (user_id,)
+    )
+    conn.commit()
+    conn.close()
+
+
+def update_user_stripe(user_id, stripe_customer_id=None, stripe_subscription_id=None, subscription_status=None, plan=None):
+    """Update Stripe-related fields for a user."""
+    conn = get_db()
+    updates, params = [], []
+    if stripe_customer_id is not None:
+        updates.append('stripe_customer_id = ?')
+        params.append(stripe_customer_id)
+    if stripe_subscription_id is not None:
+        updates.append('stripe_subscription_id = ?')
+        params.append(stripe_subscription_id)
+    if subscription_status is not None:
+        updates.append('subscription_status = ?')
+        params.append(subscription_status)
+    if plan is not None:
+        updates.append('plan = ?')
+        params.append(plan)
+    if updates:
+        params.append(user_id)
+        conn.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", params)
+        conn.commit()
+    conn.close()
+
+
+# ===== AUTH TOKENS (email confirm, password reset) =====
+
+def create_auth_token(user_id, token_type, expires_hours=24):
+    """Create a token. token_type: 'email_confirm' | 'password_reset'. Returns token string."""
+    import secrets
+    from datetime import datetime, timedelta
+    token = secrets.token_urlsafe(32)
+    expires = (datetime.utcnow() + timedelta(hours=expires_hours)).strftime('%Y-%m-%d %H:%M:%S')
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO auth_tokens (token, user_id, token_type, expires_at) VALUES (?, ?, ?, ?)",
+        (token, user_id, token_type, expires)
+    )
+    conn.commit()
+    conn.close()
+    return token
+
+
+def get_auth_token(token, token_type):
+    """Get token record if valid and not expired. Returns (user_id, ) or None."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT user_id FROM auth_tokens WHERE token = ? AND token_type = ? AND expires_at > datetime('now')",
+        (token, token_type)
+    ).fetchone()
+    conn.close()
+    return row['user_id'] if row else None
+
+
+def consume_auth_token(token, token_type):
+    """Validate and delete token. Returns user_id or None."""
+    user_id = get_auth_token(token, token_type)
+    if not user_id:
+        return None
+    conn = get_db()
+    conn.execute("DELETE FROM auth_tokens WHERE token = ?", (token,))
+    conn.commit()
+    conn.close()
+    return user_id
+
+
+def set_user_team_code(user_id, team_code):
+    """Update user's team_code."""
+    conn = get_db()
+    conn.execute("UPDATE users SET team_code = ? WHERE id = ?", (team_code, user_id))
+    conn.commit()
+    conn.close()
+
+
+def team_code_exists(team_code):
+    """Check if a team code is already used by any user."""
+    conn = get_db()
+    row = conn.execute("SELECT id FROM users WHERE team_code = ?", (team_code,)).fetchone()
+    conn.close()
+    return row is not None
+
+
+def create_team_code_for_user(user_id):
+    """Generate a unique 8-char alphanumeric team code and set it for the user. Returns the new code."""
+    chars = string.ascii_uppercase + string.digits
+    for _ in range(20):
+        code = ''.join(random.choices(chars, k=8))
+        if not team_code_exists(code):
+            set_user_team_code(user_id, code)
+            return code
+    code = ''.join(random.choices(chars, k=8))
+    set_user_team_code(user_id, code)
+    return code
 
 
 # ===== GAME CRUD =====

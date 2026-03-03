@@ -1,5 +1,18 @@
-*.dmg
-*.dmg
-*.dmg
-*.dmg
+# Environment and secrets
+.env
+.env.local
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Database and uploads (optional — remove if you want to track)
+# benchpro.db
+# backend/uploads/
+
+# Build / IDE
 *.dmg

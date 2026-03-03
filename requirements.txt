@@ -1,10 +1,13 @@
 flask
 gunicorn
+requests
+stripe
 anthropic
 python-dotenv
 google-api-core
 grpcio-status
 flask-cors
+flask-limiter
 opencv-python-headless
 ultralytics
 numpy

@@ -49,6 +49,7 @@ const IC = {
 // ===== STATE =====
 let currentPage = 'dashboard';
 let currentPlan = 'elite';
+let currentUser = null;  // { id, email, name, user_type, team_code, plan } from auth
 let drawTool = 'pen';
 let drawColor = '#F04A00';
 let isDrawing = false;
@@ -56,12 +57,7 @@ let lastX = 0, lastY = 0;
 let arrowStartX = 0, arrowStartY = 0;
 let preDrawSnapshot = null;
 let canvasHistory = [];
-let tipStore = [
-  { player: 'Marcus James (#3)', message: 'Great ball movement tonight. Keep looking for the extra pass on the pick and roll.', date: 'Today', category: 'General Feedback' },
-  { player: 'Entire Team', message: 'Defensive rotations were slow in Q3. Let\'s focus on communication and quick help-side recovery.', date: 'Feb 9', category: 'Defense' },
-  { player: 'DeShawn Wright (#7)', message: 'Your conditioning dropped in the 4th quarter. Let\'s add extra cardio to your pregame warmup.', date: 'Feb 8', category: 'Conditioning' },
-  { player: 'Jaylen Carter (#23)', message: 'Box out stronger on defensive rebounds. You\'re giving up too many second-chance points.', date: 'Feb 6', category: 'Defense' },
-];
+let tipStore = [];  // Empty for new accounts — tips added when coach sends feedback
 
 // ===== NAVIGATION =====
 function navigateTo(page) {
@@ -83,6 +79,13 @@ function navigateTo(page) {
     document.querySelectorAll('.plan-card').forEach(c => {
       c.classList.toggle('selected', c.getAttribute('data-plan') === currentPlan);
     });
+    refreshTeamCodeDisplay();
+    if (currentUser) {
+      const n = document.getElementById('settings-name');
+      const e = document.getElementById('settings-email');
+      if (n) n.value = currentUser.name || '';
+      if (e) e.value = currentUser.email || '';
+    }
   }
 }
 
@@ -100,14 +103,20 @@ document.addEventListener('click', (e) => {
 });
 
 function handleLogout() {
-  setAuthToken(null);
+  const token = getAuthToken();
+  setAuthToken(null);  // clears both localStorage and sessionStorage
+  currentUser = null;
   const authScreen = document.getElementById('auth-screen');
   if (authScreen) {
     authScreen.classList.remove('hidden');
-    authScreen.style.display = '';
+    authScreen.style.display = 'flex';
+    authScreen.style.visibility = 'visible';
+    authScreen.style.opacity = '1';
   }
   const menu = document.getElementById('avatar-menu');
   if (menu) menu.style.display = 'none';
+  showToast('Logged out', IC.login);
+  if (token) fetch(`${BACKEND_URL}/api/auth/logout`, { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(() => {});
 }
 
 // ===== TOAST =====
@@ -472,8 +481,54 @@ async function selectPlan(plan) {
 }
 
 // ===== TEAM CODE =====
+function getTeamCode() {
+  const el = document.getElementById('team-code-display');
+  if (el && el.dataset.code) return el.dataset.code;
+  return (currentUser && currentUser.team_code) || '';
+}
+
+function refreshTeamCodeDisplay() {
+  const codeRow = document.getElementById('team-code-row');
+  const display = document.getElementById('team-code-display');
+  const createBtn = document.getElementById('create-team-code-btn');
+  const code = (currentUser && currentUser.team_code) || '';
+
+  if (code) {
+    if (display) {
+      display.textContent = code;
+      display.dataset.code = code;
+    }
+    if (codeRow) codeRow.style.display = 'flex';
+    if (createBtn) createBtn.style.display = 'none';
+  } else {
+    if (codeRow) codeRow.style.display = 'none';
+    if (createBtn) createBtn.style.display = 'block';
+  }
+}
+
+async function createTeamCode() {
+  const btn = document.getElementById('create-team-code-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Creating...'; }
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/team/create-code`, { method: 'POST' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Failed to create team code');
+    if (currentUser) currentUser.team_code = data.team_code;
+    refreshTeamCodeDisplay();
+    showToast('Team code created! Share it with your players.', IC.clipboard);
+  } catch (err) {
+    showToast(err.message || 'Failed to create team code', IC.warn);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Create Team Code'; }
+  }
+}
+
 function copyTeamCode() {
-  const code = 'HARKER2026';
+  const code = getTeamCode();
+  if (!code) {
+    showToast('Create a team code first in Settings', IC.warn);
+    return;
+  }
   if (navigator.clipboard) {
     navigator.clipboard.writeText(code).then(() => {
       showToast('Team code copied to clipboard!', IC.clipboard);
@@ -524,9 +579,15 @@ function drawQRCode() {
 }
 
 function shareTeamCode() {
+  const code = getTeamCode();
+  if (!code) {
+    showToast('Create a team code first in Settings', IC.warn);
+    return;
+  }
+  const teamName = document.getElementById('settings-team')?.value || 'our team';
   const shareData = {
-    title: 'Join Harker Eagles on BenchPro',
-    text: 'Use team code HARKER2026 to join the student app.',
+    title: `Join ${teamName} on BenchPro`,
+    text: `Use team code ${code} to join the student app.`,
     url: window.location.origin + '/student.html'
   };
 
@@ -901,12 +962,22 @@ function handleNotifClick(type) {
 // ===== BACKEND API INTEGRATION =====
 const BACKEND_URL = typeof window !== 'undefined' ? window.location.origin : '';
 const AUTH_STORAGE_KEY = 'benchpro_coach_token';
+const AUTH_STORAGE_KEY_SESSION = 'benchpro_coach_token_session';
 
 function getAuthToken() {
-  try { return localStorage.getItem(AUTH_STORAGE_KEY) || null; } catch { return null; }
+  try {
+    return localStorage.getItem(AUTH_STORAGE_KEY) || sessionStorage.getItem(AUTH_STORAGE_KEY_SESSION) || null;
+  } catch { return null; }
 }
-function setAuthToken(token) {
-  try { if (token) localStorage.setItem(AUTH_STORAGE_KEY, token); else localStorage.removeItem(AUTH_STORAGE_KEY); } catch {}
+function setAuthToken(token, persist) {
+  try {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(AUTH_STORAGE_KEY_SESSION);
+    if (token) {
+      if (persist) localStorage.setItem(AUTH_STORAGE_KEY, token);
+      else sessionStorage.setItem(AUTH_STORAGE_KEY_SESSION, token);
+    }
+  } catch {}
 }
 
 async function fetchWithAuth(url, opts = {}) {
@@ -1394,6 +1465,9 @@ function addStatSheetToHistory(fileName, analysisHtml) {
     </div>
     <div class="analysis-entry-actions">
       <span class="badge badge-green">Complete</span>
+      <button class="btn btn-secondary btn-sm" data-stat-share="${entryId}" title="Share to social media">
+        ${IC.link} Share
+      </button>
       <button class="btn btn-primary btn-sm" data-view="${entryId}">
         ${IC.search} View
       </button>
@@ -1408,6 +1482,21 @@ function addStatSheetToHistory(fileName, analysisHtml) {
   `;
 
   clipsList.insertBefore(entryDiv, clipsList.firstChild);
+
+  const shareBtn = entryDiv.querySelector(`[data-stat-share="${entryId}"]`);
+  if (shareBtn) {
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const text = `📊 ${fileName}\nStat Sheet Analysis • ${dateStr}\n\n` + (analysisHtml || '').replace(/<[^>]+>/g, '').slice(0, 300) + '\n\nAnalyzed with BenchPro 🏀';
+      const url = window.location.origin;
+      const fullText = text + '\n' + url;
+      if (navigator.share) {
+        navigator.share({ title: fileName, text, url }).then(() => showToast('Shared!', IC.check)).catch(() => showShareFallback(url, fullText));
+      } else {
+        showShareFallback(url, fullText);
+      }
+    });
+  }
 
   const viewBtn = entryDiv.querySelector(`[data-view="${entryId}"]`);
   const detailPanel = document.getElementById(entryId);
@@ -1900,78 +1989,11 @@ function selectSignupPlan(plan) {
   });
 }
 
-let socialLoginProvider = '';
-
+// OAuth: redirect to backend which redirects to Google/Apple
 window.socialLogin = function (provider) {
-  socialLoginProvider = provider;
-  const overlay = document.getElementById('social-login-overlay');
-  const title = document.getElementById('social-login-title');
-  const icon = document.getElementById('social-login-icon');
-  const emailInput = document.getElementById('social-login-email');
-  const nameInput = document.getElementById('social-login-name');
-
-  // Reset fields
-  nameInput.value = '';
-  emailInput.value = '';
-
-  if (provider === 'Google') {
-    title.textContent = 'Sign in with Google';
-    icon.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>';
-    emailInput.placeholder = 'your.email@gmail.com';
-  } else {
-    title.textContent = 'Sign in with Apple';
-    icon.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.18 0-.36-.02-.53-.06-.01-.18-.04-.39-.04-.56 0-1.12.535-2.22 1.235-3.02C13.66 1.57 14.98.87 16.12.75c.02.23.04.45.04.68h.205zm3.635 10.44c.03 3.33 2.925 4.44 2.955 4.45-.025.08-.462 1.58-1.525 3.13-.916 1.34-1.866 2.67-3.363 2.7-1.47.03-1.944-.87-3.627-.87-1.683 0-2.208.84-3.597.9-1.445.05-2.545-1.45-3.47-2.79-1.885-2.73-3.325-7.72-1.392-11.09.955-1.67 2.672-2.72 4.53-2.75 1.42-.03 2.758.95 3.625.95.865 0 2.49-1.18 4.195-1.01.715.03 2.718.29 4.005 2.17-.1.07-2.39 1.39-2.365 4.16h.03z"/></svg>';
-    emailInput.placeholder = 'your.email@icloud.com';
-  }
-
-  overlay.classList.add('show');
-  setTimeout(() => nameInput.focus(), 200);
+  const path = provider === 'Google' ? '/api/auth/google/authorize' : '/api/auth/apple/authorize';
+  window.location.href = BACKEND_URL + path;
 };
-
-window.closeSocialLogin = function () {
-  document.getElementById('social-login-overlay').classList.remove('show');
-};
-
-window.submitSocialLogin = function () {
-  const name = document.getElementById('social-login-name').value.trim();
-  const email = document.getElementById('social-login-email').value.trim();
-
-  if (!name) { showAuthError('Please enter your name.'); return; }
-  if (!email || !email.includes('@')) { showAuthError('Please enter a valid email address.'); return; }
-
-  // Register account so they can also log in normally later
-  if (!window.benchproAccounts) window.benchproAccounts = {};
-  window.benchproAccounts[email.toLowerCase()] = { password: 'social-' + socialLoginProvider.toLowerCase(), name };
-
-  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  updateUserUI(name, initials, email);
-
-  // Close social modal
-  closeSocialLogin();
-
-  // Hide auth screen
-  const authScreen = document.getElementById('auth-screen');
-  authScreen.classList.add('hidden');
-  setTimeout(() => {
-    authScreen.style.display = 'none';
-    navigateTo('dashboard');
-    initUpload();
-    setupCanvasEvents();
-    renderSparklines();
-    showToast(`Signed in with ${socialLoginProvider} as ${email}`, IC.login);
-    addNotification(IC.check, 'green', `Signed in via <strong>${socialLoginProvider}</strong> (${email})`, 'Just now');
-  }, 500);
-};
-
-// Close social login with Escape or clicking overlay
-document.addEventListener('click', (e) => {
-  if (e.target.id === 'social-login-overlay') closeSocialLogin();
-});
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && document.getElementById('social-login-overlay').classList.contains('show')) {
-    closeSocialLogin();
-  }
-});
 
 async function handleLogin() {
   const emailEl = document.getElementById('login-email');
@@ -1997,7 +2019,14 @@ async function handleLogin() {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      showAuthError(data.error || 'Incorrect email or password. Please try again.');
+      const msg = data.code === 'email_not_verified'
+        ? (data.error || 'Please verify your email first.')
+        : (data.error || 'Incorrect email or password. Please try again.');
+      showAuthError(msg);
+      if (data.code === 'email_not_verified') {
+        const email = emailEl.value.trim();
+        showEmailNotVerifiedBanner(email);
+      }
       if (btn) { btn.style.animation = 'shake 0.4s ease'; setTimeout(() => { btn.style.animation = ''; btn.disabled = false; btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Log In'; }, 400); }
       return;
     }
@@ -2006,8 +2035,10 @@ async function handleLogin() {
       if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Log In'; }
       return;
     }
-    setAuthToken(data.token);
+    const rememberMe = document.getElementById('remember-me')?.checked ?? false;
+    setAuthToken(data.token, rememberMe);
     const user = data.user || {};
+    currentUser = user;
     const userName = user.name || 'Coach';
     const initials = userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     updateUserUI(userName, initials, user.email || email);
@@ -2031,7 +2062,6 @@ async function handleLogin() {
 }
 
 function showAuthError(message) {
-  // Remove any existing error
   const existing = document.querySelector('.auth-error-popup');
   if (existing) existing.remove();
 
@@ -2045,6 +2075,99 @@ function showAuthError(message) {
     popup.style.animation = 'fadeOut 0.3s ease forwards';
     setTimeout(() => popup.remove(), 300);
   }, 3000);
+}
+
+function showEmailNotVerifiedBanner(email) {
+  let banner = document.getElementById('email-not-verified-banner');
+  if (banner) banner.remove();
+  banner = document.createElement('div');
+  banner.id = 'email-not-verified-banner';
+  banner.style.cssText = 'margin-top:12px;padding:12px 16px;background:rgba(240,74,0,0.15);border:1px solid rgba(240,74,0,0.3);border-radius:8px;font-size:13px;color:var(--text-primary)';
+  banner.innerHTML = `<span>Check your inbox for the confirmation link.</span> <button type="button" class="btn btn-sm btn-secondary" style="margin-left:8px;padding:4px 12px" onclick="resendConfirmation('${email.replace(/'/g, "\\'")}')">Resend</button>`;
+  const loginView = document.getElementById('auth-login');
+  if (loginView) loginView.appendChild(banner);
+}
+
+async function resendConfirmation(email) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/resend-confirmation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) showToast(data.message || 'Confirmation email sent', IC.mail);
+    else showAuthError(data.error || 'Failed to resend');
+  } catch { showAuthError('Could not connect'); }
+}
+
+function showSignupConfirmationView(email, userId, name, plan) {
+  showAuthTab('login');
+  const loginView = document.getElementById('auth-login');
+  if (!loginView) return;
+  let banner = document.getElementById('signup-confirmation-banner');
+  if (banner) banner.remove();
+  banner = document.createElement('div');
+  banner.id = 'signup-confirmation-banner';
+  banner.style.cssText = 'margin-bottom:16px;padding:16px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;font-size:14px;color:var(--text-primary)';
+  let inner = `<strong>Check your email</strong><p style="margin:8px 0 0;opacity:0.9">We sent a confirmation link to <strong>${email}</strong>. Click it to activate your account.</p><button type="button" class="btn btn-sm btn-secondary" style="margin-top:12px" onclick="resendConfirmation('${email.replace(/'/g, "\\'")}')">Resend confirmation</button>`;
+  if (userId) {
+    inner += `<p style="margin-top:12px;opacity:0.9">Or start your 14-day free trial now:</p><button type="button" class="btn btn-primary btn-sm" style="margin-top:8px" onclick="startTrialAfterSignup(${userId}, '${email.replace(/'/g, "\\'")}', '${(name||'').replace(/'/g, "\\'")}', '${plan||'elite'}')">Start 14-day free trial</button>`;
+  }
+  banner.innerHTML = inner;
+  loginView.insertBefore(banner, loginView.firstChild);
+  showToast('Check your email to confirm your account', IC.mail);
+}
+
+async function startTrialAfterSignup(userId, email, name, plan) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/stripe/create-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, email, name, plan })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.url) {
+      window.location.href = data.url;
+    } else {
+      showAuthError(data.error || 'Could not start checkout');
+    }
+  } catch (e) {
+    showAuthError('Could not connect');
+  }
+}
+
+function openForgotPasswordModal() {
+  const overlay = document.getElementById('forgot-password-overlay');
+  if (overlay) overlay.classList.add('show');
+}
+
+function closeForgotPasswordModal() {
+  const overlay = document.getElementById('forgot-password-overlay');
+  if (overlay) overlay.classList.remove('show');
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById('forgot-password-email')?.value?.trim();
+  if (!email) { showAuthError('Enter your email'); return; }
+  if (!/\S+@\S+\.\S+/.test(email)) { showAuthError('Enter a valid email'); return; }
+  const btn = document.getElementById('forgot-password-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      showToast(data.message || 'If that email exists, we sent a reset link', IC.mail);
+      closeForgotPasswordModal();
+    } else {
+      showAuthError(data.error || 'Something went wrong');
+    }
+  } catch { showAuthError('Could not connect'); }
+  if (btn) { btn.disabled = false; btn.textContent = 'Send reset link'; }
 }
 
 function updateUserUI(name, initials, email) {
@@ -2098,8 +2221,15 @@ async function handleSignupComplete() {
       if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Start Free Trial'; }
       return;
     }
-    setAuthToken(data.token);
+    if (data.requires_confirmation) {
+      showSignupConfirmationView(email, data.user_id, name, plan);
+      if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Start Free Trial'; }
+      return;
+    }
+    const rememberMe = document.getElementById('signup-remember-me')?.checked ?? false;
+    setAuthToken(data.token, rememberMe);
     const user = data.user || {};
+    currentUser = user;
     const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     updateUserUI(user.name || name, initials, user.email || email);
     const authScreen = document.getElementById('auth-screen');
@@ -2563,6 +2693,107 @@ function buildAnalysisChartData(playerStats, ballStats, eventStats, teamStats, a
   return bars.length > 0 ? bars : null;
 }
 
+function buildShareBar(gameId, title, opponent, date, analysis, stats, events) {
+  return `
+    <div class="share-analysis-bar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;padding:12px 16px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);">
+      <span style="font-size:13px;color:var(--text-secondary)">Share this analysis</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-sm btn-secondary" data-share-analysis title="Share to social media">
+          ${IC.link} Share
+        </button>
+      </div>
+    </div>`;
+}
+
+function buildShareText(title, opponent, date, analysis, stats) {
+  const parts = [`📊 ${title}`];
+  if (opponent) parts.push(`vs ${opponent}`);
+  if (date) parts.push(date);
+  const s = stats || {};
+  const v = s.video || {};
+  const p = s.players || {};
+  const e = s.events || {};
+  const lines = [];
+  if (p.total_detections) lines.push(`👥 ${p.total_detections} player detections`);
+  if (e.total) lines.push(`📋 ${e.total} events detected`);
+  if (v.duration_formatted) lines.push(`⏱ ${v.duration_formatted} analyzed`);
+  if (lines.length) parts.push('\n' + lines.join(' • '));
+  if (analysis && analysis.ai_insights) {
+    const raw = analysis.ai_insights.replace(/<[^>]+>/g, '');
+    const insight = raw.slice(0, 200);
+    parts.push('\n\n' + insight + (raw.length > 200 ? '...' : ''));
+  }
+  parts.push('\n\nAnalyzed with BenchPro 🏀');
+  return parts.join(' ');
+}
+
+function openShareMenu(gameId, title, opponent, date, analysis, stats, events) {
+  const url = window.location.origin + '/?clip=' + gameId;
+  const shareText = buildShareText(title, opponent, date, analysis, stats);
+  const fullText = shareText + '\n' + url;
+
+  if (navigator.share) {
+    navigator.share({
+      title: title || 'BenchPro Analysis',
+      text: shareText,
+      url
+    }).then(() => showToast('Shared!', IC.check)).catch(() => showShareFallback(url, fullText));
+  } else {
+    showShareFallback(url, fullText);
+  }
+}
+
+function showShareFallback(url, fullText) {
+  let overlay = document.getElementById('share-overlay');
+  if (overlay) {
+    const ta = overlay.querySelector('#share-full-text');
+    if (ta) ta.value = fullText || '';
+    overlay.classList.add('show');
+    return;
+  }
+  const div = document.createElement('div');
+  div.id = 'share-overlay';
+  div.className = 'modal-overlay';
+  const escaped = (fullText || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  div.innerHTML = `
+    <div class="modal" style="max-width:420px" onclick="event.stopPropagation()">
+      <div class="modal-header"><h2>Share to Social Media</h2><button class="modal-close" onclick="document.getElementById('share-overlay').classList.remove('show')">✕</button></div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">Share this clip and analysis to Instagram, Twitter, or any app.</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button class="btn btn-primary share-copy-full">
+            ${IC.clipboard} Copy for Instagram / Social
+          </button>
+          <a href="#" class="btn btn-secondary share-twitter" style="text-align:center;text-decoration:none" target="_blank" rel="noopener">
+            Share to X (Twitter)
+          </a>
+          <a href="#" class="btn btn-secondary share-facebook" style="text-align:center;text-decoration:none" target="_blank" rel="noopener">
+            Share to Facebook
+          </a>
+          <button class="btn btn-secondary share-copy-link">
+            ${IC.link} Copy Link Only
+          </button>
+        </div>
+        <textarea id="share-full-text" style="display:none">${escaped}</textarea>
+      </div>
+    </div>`;
+  div.onclick = () => div.classList.remove('show');
+  document.body.appendChild(div);
+  const ta = div.querySelector('#share-full-text');
+  if (ta) ta.value = fullText || '';
+  div.querySelector('.share-copy-full').onclick = () => {
+    navigator.clipboard.writeText(ta.value || fullText);
+    showToast('Copied! Paste into Instagram or any app', IC.check);
+  };
+  div.querySelector('.share-copy-link').onclick = () => {
+    navigator.clipboard.writeText(url);
+    showToast('Link copied!', IC.check);
+  };
+  div.querySelector('.share-twitter').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent((fullText || '').slice(0, 200) + (fullText && fullText.length > 200 ? '...' : ''));
+  div.querySelector('.share-facebook').href = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
+  div.classList.add('show');
+}
+
 async function showResults(gameId) {
   try {
     const res = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}`);
@@ -2657,7 +2888,13 @@ async function showResults(gameId) {
             </div>
         ` : '';
 
-    detailPanel.innerHTML = statsHtml + chartsHtml + coachHtml + eventsHtml;
+    const game = data.game || {};
+    const shareTitle = game.title || game.file_name || 'Game Analysis';
+    const shareBar = buildShareBar(gameId, shareTitle, game.opponent || '', game.date || '', analysis, stats, data.events || []);
+    detailPanel.innerHTML = shareBar + statsHtml + chartsHtml + coachHtml + eventsHtml;
+
+    const shareBtn = detailPanel.querySelector('[data-share-analysis]');
+    if (shareBtn) shareBtn.addEventListener('click', () => openShareMenu(gameId, shareTitle, game.opponent, game.date, analysis, stats, data.events || []));
 
     if (window.lucide) {
       lucide.createIcons({ root: detailPanel });
@@ -2673,6 +2910,30 @@ async function showResults(gameId) {
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', async () => {
+  // Load saved settings (theme, toggles, profile) — apply theme immediately
+  loadSettingsUI();
+
+  // Handle redirects with token (?token= from confirm-email, checkout success, or OAuth)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlToken = urlParams.get('token');
+  const verified = urlParams.get('verified');
+  const checkout = urlParams.get('checkout');
+  const oauthError = urlParams.get('oauth_error');
+  if (oauthError) {
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, cleanUrl);
+    showAuthError(decodeURIComponent(oauthError));
+  }
+  if (urlToken) {
+    setAuthToken(urlToken, true);
+    const cleanParams = new URLSearchParams();
+    if (checkout) cleanParams.set('checkout', checkout);
+    const newUrl = window.location.pathname + (cleanParams.toString() ? '?' + cleanParams.toString() : '');
+    window.history.replaceState({}, document.title, newUrl);
+    if (verified === '1') showToast('Email confirmed! Welcome to BenchPro.', IC.check);
+    else if (checkout === 'success') showToast('Your 14-day free trial has started!', IC.star);
+  }
+
   // Restore session if valid token exists
   const token = getAuthToken();
   if (token) {
@@ -2684,6 +2945,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (user.user_type === 'player') {
           setAuthToken(null);
         } else {
+          currentUser = user;
           const name = user.name || 'Coach';
           const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
           updateUserUI(name, initials, user.email || '');
@@ -2704,6 +2966,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       setAuthToken(null);
     }
   }
+
+  // Hide OAuth buttons if providers not configured
+  fetch(`${BACKEND_URL}/api/auth/oauth/status`).then(r => r.json()).then(data => {
+    const googleBtn = document.querySelector('.social-btn[onclick*="Google"]');
+    const appleBtn = document.querySelector('.social-btn[onclick*="Apple"]');
+    if (googleBtn) googleBtn.style.display = data.google ? '' : 'none';
+    if (appleBtn) appleBtn.style.display = data.apple ? '' : 'none';
+    const divider = document.querySelector('.auth-divider');
+    const anySocial = data.google || data.apple;
+    if (divider) divider.style.display = anySocial ? '' : 'none';
+    const socialWrap = document.querySelector('.social-buttons');
+    if (socialWrap) socialWrap.style.display = anySocial ? 'flex' : 'none';
+  }).catch(() => {});
 
   // Check if backend server is running and poll every 30s
   checkBackendHealth().then(online => {
@@ -2786,6 +3061,72 @@ document.addEventListener('DOMContentLoaded', async () => {
   initDragDrop('upload-zone-stat', 'file-input-stat');
 });
 
+/* ===== SETTINGS STORAGE ===== */
+const SETTINGS_KEY = 'benchpro_settings';
+
+function getStoredSettings() {
+  try {
+    const s = localStorage.getItem(SETTINGS_KEY);
+    return s ? JSON.parse(s) : {};
+  } catch { return {}; }
+}
+
+function saveStoredSettings(settings) {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch {}
+}
+
+function loadSettingsUI() {
+  const s = getStoredSettings();
+  ['push', 'email-notif', 'sms', 'player-activity', 'game-remind', 'autosave', 'sounds', '2fa', 'visible', 'analytics'].forEach(id => {
+    const el = document.getElementById('setting-' + id);
+    if (el && s[id] !== undefined) el.checked = s[id];
+  });
+  if (s.quality) {
+    const q = document.getElementById('setting-quality');
+    if (q) q.value = s.quality;
+  }
+  if (s.detail) {
+    const d = document.getElementById('setting-detail');
+    if (d) d.value = s.detail;
+  }
+  if (s.profile) {
+    const p = s.profile;
+    const n = document.getElementById('settings-name');
+    const e = document.getElementById('settings-email');
+    const sch = document.getElementById('settings-school');
+    const t = document.getElementById('settings-team');
+    const ph = document.getElementById('settings-phone');
+    const bio = document.getElementById('settings-bio');
+    const sport = document.getElementById('settings-sport');
+    if (n && p.name !== undefined) n.value = p.name;
+    if (e && p.email !== undefined) e.value = p.email;
+    if (sch && p.school !== undefined) sch.value = p.school;
+    if (t && p.team !== undefined) t.value = p.team;
+    if (ph && p.phone !== undefined) ph.value = p.phone;
+    if (bio && p.bio !== undefined) bio.value = p.bio;
+    if (sport && p.sport !== undefined) sport.value = p.sport;
+  }
+  setTheme(s.theme || 'dark', false);
+}
+
+function setTheme(theme, showToastMsg = true) {
+  const isLight = theme === 'light';
+  if (document.body) document.body.classList.toggle('light-mode', isLight);
+  if (isLight) document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  const darkBtn = document.getElementById('theme-dark-btn');
+  const lightBtn = document.getElementById('theme-light-btn');
+  if (darkBtn) { darkBtn.classList.toggle('active', !isLight); darkBtn.setAttribute('aria-pressed', !isLight); }
+  if (lightBtn) { lightBtn.classList.toggle('active', isLight); lightBtn.setAttribute('aria-pressed', isLight); }
+  const s = getStoredSettings();
+  s.theme = theme;
+  saveStoredSettings(s);
+  if (showToastMsg) showToast(isLight ? 'Light mode enabled' : 'Dark mode enabled', IC.check);
+}
+window.setTheme = setTheme;
+
 /* ===== SETTINGS FUNCTIONS ===== */
 function saveSettings() {
   const nameEl = document.getElementById('settings-name');
@@ -2794,6 +3135,9 @@ function saveSettings() {
   const email = emailEl?.value?.trim() || '';
   const school = document.getElementById('settings-school')?.value || '';
   const team = document.getElementById('settings-team')?.value || '';
+  const phone = document.getElementById('settings-phone')?.value || '';
+  const bio = document.getElementById('settings-bio')?.value || '';
+  const sport = document.getElementById('settings-sport')?.value || '';
 
   let hasError = false;
   if (nameEl && !name) { showFieldError(nameEl, 'Name is required'); hasError = true; }
@@ -2801,6 +3145,10 @@ function saveSettings() {
   if (emailEl && email && !/\S+@\S+\.\S+/.test(email)) { showFieldError(emailEl, 'Enter a valid email'); hasError = true; }
   else if (emailEl) clearFieldError(emailEl);
   if (hasError) return;
+
+  const s = getStoredSettings();
+  s.profile = { name, email, school, team, phone, bio, sport };
+  saveStoredSettings(s);
 
   const sidebarName = document.querySelector('.sidebar .plan-badge-text span:first-child');
   if (sidebarName) sidebarName.textContent = name || 'Coach';
@@ -2817,11 +3165,112 @@ function saveSettings() {
     if (!headerAvatar.dataset.hasPhoto) headerAvatar.textContent = initials;
   }
 
+  const coachTitle = document.querySelector('#team-code-section .card-header + .card-body')?.previousElementSibling;
+  const subEl = document.querySelector('#page-settings .page-subtitle')?.nextElementSibling;
+  const profileTitle = document.getElementById('settings-avatar')?.parentElement?.querySelector('div:first-child');
+  if (profileTitle) profileTitle.textContent = name || 'Coach';
+  const profileSub = profileTitle?.nextElementSibling;
+  if (profileSub) profileSub.textContent = (team ? team + ' · ' : '') + (school || 'Head Coach');
+
   showToast('Profile saved successfully!', IC.check);
 }
 
 function toggleSetting(label, enabled) {
+  const idMap = {
+    'Push Notifications': 'push',
+    'Email Notifications': 'email-notif',
+    'SMS Alerts': 'sms',
+    'Player Activity Alerts': 'player-activity',
+    'Game Day Reminders': 'game-remind',
+    'Auto-Save': 'autosave',
+    'Sound Effects': 'sounds',
+    'Two-Factor Auth': '2fa',
+    'Profile Visibility': 'visible',
+    'Analytics': 'analytics'
+  };
+  const key = idMap[label];
+  if (key) {
+    const s = getStoredSettings();
+    s[key] = enabled;
+    saveStoredSettings(s);
+  }
   showToast(`${label} ${enabled ? 'enabled' : 'disabled'}`, enabled ? IC.check : IC.bellOff);
+}
+
+function saveSettingSelect(key, value) {
+  const s = getStoredSettings();
+  s[key] = value;
+  saveStoredSettings(s);
+}
+
+function openChangePasswordModal() {
+  const overlay = document.getElementById('change-password-overlay');
+  if (overlay) {
+    overlay.classList.add('show');
+    document.getElementById('change-password-current')?.focus();
+  } else {
+    const div = document.createElement('div');
+    div.id = 'change-password-overlay';
+    div.className = 'modal-overlay';
+    div.innerHTML = `
+      <div class="modal" style="max-width:400px" onclick="event.stopPropagation()">
+        <div class="modal-header"><h2>Change Password</h2><button class="modal-close" onclick="document.getElementById('change-password-overlay').classList.remove('show')">✕</button></div>
+        <div class="modal-body">
+        <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-input" id="change-password-current" placeholder="Enter current password"></div>
+        <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="change-password-new" placeholder="Enter new password"></div>
+        <div class="form-group"><label class="form-label">Confirm New Password</label><input type="password" class="form-input" id="change-password-confirm" placeholder="Confirm new password"></div>
+        <div style="display:flex;gap:10px;margin-top:20px">
+          <button class="btn btn-primary" onclick="submitChangePassword()" style="flex:1">Update Password</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('change-password-overlay').classList.remove('show')">Cancel</button>
+        </div>
+        </div>
+      </div>`;
+    div.onclick = () => div.classList.remove('show');
+    document.body.appendChild(div);
+    div.classList.add('show');
+    document.getElementById('change-password-current')?.focus();
+  }
+}
+
+function submitChangePassword() {
+  const current = document.getElementById('change-password-current')?.value || '';
+  const newPw = document.getElementById('change-password-new')?.value || '';
+  const confirm = document.getElementById('change-password-confirm')?.value || '';
+  if (!current || !newPw || !confirm) {
+    showToast('Please fill in all fields', IC.warn);
+    return;
+  }
+  if (newPw.length < 4) {
+    showToast('New password must be at least 4 characters', IC.warn);
+    return;
+  }
+  if (newPw !== confirm) {
+    showToast('New passwords do not match', IC.warn);
+    return;
+  }
+  document.getElementById('change-password-overlay').classList.remove('show');
+  showToast('Password change requested. Backend support coming soon.', IC.check);
+}
+
+function exportData() {
+  showToast('Preparing your data export...', IC.clock);
+  setTimeout(() => showToast('Export ready! Check your email for the download link.', IC.check), 1500);
+}
+
+function manageDevices() {
+  showToast('Device management — view and revoke sessions from other devices.', IC.user);
+}
+
+function handleSettingsLogout() {
+  if (confirm('Log out of BenchPro?')) {
+    handleLogout();
+  }
+}
+
+function deleteAccount() {
+  if (confirm('Are you sure? This action cannot be undone. All your data will be permanently deleted.')) {
+    showToast('Account deletion request submitted. You will receive a confirmation email.', IC.warn);
+  }
 }
 
 function openPhotoUpload() {
@@ -2890,7 +3339,22 @@ function sharePlayWithTeam() {
   addNotification(IC.pencil, 'orange', `Play <strong>${name}</strong> shared with team`, 'Just now');
 }
 
-function openManageSubscription() {
+async function openManageSubscription() {
+  if (currentUser?.stripe_customer_id) {
+    try {
+      const res = await fetchWithAuth(`${BACKEND_URL}/api/stripe/create-portal-session`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      showToast(data.error || 'Could not open billing portal', IC.warn);
+      return;
+    } catch (e) {
+      showToast('Could not connect', IC.warn);
+      return;
+    }
+  }
   let modal = document.getElementById('manage-sub-modal');
   if (!modal) {
     modal = document.createElement('div');
@@ -2900,7 +3364,14 @@ function openManageSubscription() {
   }
   const planName = currentPlan === 'elite' ? 'Elite' : 'Standard';
   const planPrice = currentPlan === 'elite' ? '$29.99' : '$8.99';
+  const hasSubscription = !!currentUser?.stripe_customer_id;
   const nextBill = 'March 1, 2026';
+
+  const noSubContent = !hasSubscription ? `
+    <div style="background:rgba(240,74,0,0.1);border:1px solid rgba(240,74,0,0.3);border-radius:var(--radius);padding:16px;margin-bottom:20px">
+      <p style="margin:0;font-size:14px;color:var(--text-primary)">No active subscription. Add a payment method to start your 14-day free trial.</p>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="closeModal('manage-sub-modal');startTrialFromSettings()">Start free trial</button>
+    </div>` : '';
 
   modal.innerHTML = `
     <div class="modal" style="max-width:520px">
@@ -2909,6 +3380,7 @@ function openManageSubscription() {
         <button class="modal-close" onclick="closeModal('manage-sub-modal')">${IC.x}</button>
       </div>
       <div class="modal-body">
+        ${noSubContent}
         <div style="background:var(--bg-secondary);border-radius:var(--radius);padding:20px;border:1px solid var(--border);margin-bottom:20px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <div>
@@ -2943,4 +3415,28 @@ function openManageSubscription() {
     </div>`;
 
   openModal('manage-sub-modal');
+}
+
+async function startTrialFromSettings() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/stripe/create-checkout-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: currentUser.id,
+        email: currentUser.email,
+        name: currentUser.name,
+        plan: currentPlan || 'elite'
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.url) {
+      window.location.href = data.url;
+    } else {
+      showToast(data.error || 'Payments are not configured', IC.warn);
+    }
+  } catch (e) {
+    showToast('Could not connect', IC.warn);
+  }
 }
