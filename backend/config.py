@@ -58,13 +58,6 @@ SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
 # Or Resend (set RESEND_API_KEY to use instead of SMTP)
 RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
 
-# Stripe (subscriptions)
-STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
-STRIPE_PRICE_STANDARD = os.environ.get('STRIPE_PRICE_STANDARD', '')
-STRIPE_PRICE_ELITE = os.environ.get('STRIPE_PRICE_ELITE', '')
-STRIPE_TRIAL_DAYS = int(os.environ.get('STRIPE_TRIAL_DAYS', 14))
-
 # OAuth (Google, Apple)
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')

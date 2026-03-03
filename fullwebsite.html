@@ -139,7 +139,7 @@
             <div class="progress-line"></div>
             <div class="progress-step" data-step="4">
               <div class="step-number">4</div>
-              <span class="step-label">Payment</span>
+              <span class="step-label">Create</span>
             </div>
           </div>
 
@@ -297,7 +297,7 @@
           <!-- Step 3: Plan -->
           <div class="signup-step" id="signup-step-3">
             <h2 class="step-title">Choose Your Plan</h2>
-            <p class="step-desc">Start with a 14-day free trial. Cancel anytime.</p>
+            <p class="step-desc">Select the plan that fits your coaching needs.</p>
             <div class="signup-plans">
               <div class="signup-plan-card" data-plan="standard" onclick="selectSignupPlan('standard')">
                 <div class="plan-card-header">
@@ -361,24 +361,15 @@
             </div>
           </div>
 
-          <!-- Step 4: Start Trial -->
+          <!-- Step 4: Create Account -->
           <div class="signup-step" id="signup-step-4">
-            <h2 class="step-title">Start Your Free Trial</h2>
-            <p class="step-desc">Your 14-day free trial starts today. Add a payment method — you won't be charged until the trial ends.</p>
+            <h2 class="step-title">You're All Set</h2>
+            <p class="step-desc">Review your plan and create your account.</p>
             <div class="auth-form">
               <div class="form-group">
                 <label style="display:flex;align-items:center;gap:6px;color:var(--text-secondary);font-size:13px;cursor:pointer">
                   <input type="checkbox" id="signup-remember-me" style="accent-color:var(--orange)"> Keep me signed in on this device
                 </label>
-              </div>
-              <div class="trial-notice" style="margin-top:16px">
-                <svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" width="20" height="20">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
-                <div>
-                  <strong>14-day free trial</strong>
-                  <p>You can cancel anytime before the trial ends. No charge until then. Secure payment via Stripe.</p>
-                </div>
               </div>
             </div>
           </div>
@@ -496,14 +487,6 @@
         <span>Player Stats</span>
       </button>
       <div class="nav-section-label">Account</div>
-      <button class="nav-item" data-page="plans" onclick="navigateTo('plans')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2 2 7l10 5 10-5-10-5z" />
-          <path d="M2 17l10 5 10-5" />
-          <path d="M2 12l10 5 10-5" />
-        </svg>
-        <span>Plans</span>
-      </button>
       <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="3" />
@@ -514,14 +497,14 @@
       </button>
     </nav>
     <div class="sidebar-footer">
-      <div class="plan-badge" onclick="navigateTo('plans')">
+      <div class="plan-badge" onclick="navigateTo('settings')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 2 2 7l10 5 10-5-10-5z" />
           <path d="M2 17l10 5 10-5" />
         </svg>
         <div class="plan-badge-text">
           <div class="plan-name">Elite Plan</div>
-          <div class="plan-price">$29.99/mo</div>
+          <div class="plan-price">BenchPro</div>
         </div>
       </div>
     </div>
@@ -1817,163 +1800,6 @@
   </div>
 
 
-  <!-- ===== PAGE: PLANS ===== -->
-  <div class="page" id="page-plans">
-    <h1 class="page-title">Choose Your Plan <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2">
-          <path d="M12 2 2 7l10 5 10-5-10-5z" />
-          <path d="M2 17l10 5 10-5" />
-          <path d="M2 12l10 5 10-5" />
-        </svg></span></h1>
-    <p class="page-subtitle">Select the plan that best fits your coaching needs.</p>
-    <div class="plan-cards">
-      <div class="plan-card" data-plan="standard" onclick="selectPlan('standard')">
-        <h3>Standard</h3>
-        <p class="plan-desc">Perfect for individual player development</p>
-        <div class="plan-price-big">$8.99<span>/month</span></div>
-        <ul class="plan-features">
-          <li>1 Player Profile</li>
-          <li>5 Game Uploads / Month</li>
-          <li>Basic AI Analysis</li>
-          <li>Play Designer</li>
-          <li>3 AI Drill Recommendations</li>
-          <li>Email Support</li>
-        </ul>
-        <button class="btn btn-secondary" style="width:100%;margin-top:18px"
-          onclick="event.stopPropagation();selectPlan('standard')">Select
-          Standard</button>
-      </div>
-      <div class="plan-card popular selected" data-plan="elite" onclick="selectPlan('elite')">
-        <h3 style="color:var(--orange)">Elite</h3>
-        <p class="plan-desc">Everything you need for a full team</p>
-        <div class="plan-price-big" style="color:var(--orange)">$29.99<span>/month</span></div>
-        <ul class="plan-features">
-          <li>Unlimited Player Profiles</li>
-          <li>Unlimited Game Uploads</li>
-          <li>Advanced AI Analysis</li>
-          <li>Play Designer + Sharing</li>
-          <li>Unlimited AI Drills</li>
-          <li>Fatigue Detection</li>
-          <li>Send Tips to Players</li>
-          <li>Priority Support</li>
-        </ul>
-        <button class="btn btn-primary" style="width:100%;margin-top:18px"
-          onclick="event.stopPropagation();selectPlan('elite')">Select
-          Elite</button>
-      </div>
-    </div>
-
-    <!-- Payment Methods -->
-    <div style="margin-top:36px">
-      <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><span class="inline-icon"><svg viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="1" y="4" width="22" height="16" rx="2" />
-            <line x1="1" y1="10" x2="23" y2="10" />
-          </svg></span> Payment Methods</h2>
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-body">
-          <div id="payment-methods-list">
-            <div class="player-row" style="border-bottom:1px solid var(--border)">
-              <div
-                style="width:48px;height:32px;background:linear-gradient(135deg,#1a1f71,#2e77bc);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0">
-                VISA</div>
-              <div class="player-info">
-                <div class="player-name">Visa ending in 4242</div>
-                <div class="player-position">Expires 08/2027</div>
-              </div>
-              <div style="display:flex;gap:8px;align-items:center">
-                <span class="badge badge-orange">Default</span>
-                <button class="btn btn-sm btn-secondary" onclick="openModal('edit-payment-modal')">Edit</button>
-                <button class="btn btn-sm btn-secondary" onclick="removePaymentMethod(this)">Remove</button>
-              </div>
-            </div>
-            <div class="player-row">
-              <div
-                style="width:48px;height:32px;background:linear-gradient(135deg,#eb001b,#f79e1b);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0">
-                MC</div>
-              <div class="player-info">
-                <div class="player-name">Mastercard ending in 8901</div>
-                <div class="player-position">Expires 12/2026</div>
-              </div>
-              <div style="display:flex;gap:8px;align-items:center">
-                <button class="btn btn-sm btn-secondary" onclick="setDefaultPayment(this)">Set Default</button>
-                <button class="btn btn-sm btn-secondary" onclick="openModal('edit-payment-modal')">Edit</button>
-                <button class="btn btn-sm btn-secondary" onclick="removePaymentMethod(this)">Remove</button>
-              </div>
-            </div>
-          </div>
-          <button class="btn btn-primary" style="margin-top:16px" onclick="openModal('add-payment-modal')">+ Add
-            Payment Method</button>
-        </div>
-      </div>
-
-      <h2 style="font-size:20px;font-weight:800;margin-bottom:16px"><span class="inline-icon"><svg viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg></span> Billing History</h2>
-      <div class="card">
-        <div class="card-body card-body-flush">
-          <div class="player-row" style="border-bottom:1px solid var(--border)">
-            <div class="player-info">
-              <div class="player-name">Elite Plan — February 2026</div>
-              <div class="player-position">Feb 1, 2026</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
-                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
-          </div>
-          <div class="player-row" style="border-bottom:1px solid var(--border)">
-            <div class="player-info">
-              <div class="player-name">Elite Plan — January 2026</div>
-              <div class="player-position">Jan 1, 2026</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
-                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
-          </div>
-          <div class="player-row" style="border-bottom:1px solid var(--border)">
-            <div class="player-info">
-              <div class="player-name">Elite Plan — December 2025</div>
-              <div class="player-position">Dec 1, 2025</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$29.99</span><span
-                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
-          </div>
-          <div class="player-row" style="border-bottom:1px solid var(--border)">
-            <div class="player-info">
-              <div class="player-name">Standard Plan — November 2025</div>
-              <div class="player-position">Nov 1, 2025</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$8.99</span><span
-                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
-          </div>
-          <div class="player-row">
-            <div class="player-info">
-              <div class="player-name">Standard Plan — October 2025</div>
-              <div class="player-position">Oct 1, 2025</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px"><span style="font-weight:700">$8.99</span><span
-                class="badge badge-orange">Paid</span><button class="btn btn-sm btn-secondary"
-                onclick="showToast('Invoice downloaded!','📄')">Invoice</button></div>
-          </div>
-        </div>
-      </div>
-
-      <div style="margin-top:24px">
-        <button class="btn btn-secondary" onclick="openManageSubscription()"
-          style="margin-right:12px">Manage Subscription</button>
-        <button class="btn btn-secondary" style="color:var(--red);border-color:rgba(239,68,68,0.3)"
-          onclick="if(confirm('Are you sure you want to cancel your subscription?')) showToast('Subscription cancelled. You will retain access until end of billing period.','❌')">Cancel
-          Subscription</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ===== PAGE: SETTINGS ===== -->
   <div class="page" id="page-settings">
     <h1 class="page-title">Profile &amp; Settings <span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09"/></svg></span></h1>
@@ -2348,58 +2174,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Add Payment Modal -->
-  <div class="modal-overlay" id="add-payment-modal">
-    <div class="modal" style="max-width:500px">
-      <div class="modal-header">
-        <h2>Add Payment Method</h2><button class="modal-close" onclick="closeModal('add-payment-modal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group"><label class="form-label">Card Number</label><input type="text" class="form-input"
-            placeholder="1234 5678 9012 3456" maxlength="19"></div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Expiry</label><input type="text"
-              class="form-input" placeholder="MM/YY" maxlength="5"></div>
-          <div class="form-group"><label class="form-label">CVC</label><input type="text"
-              class="form-input" placeholder="123" maxlength="4"></div>
-        </div>
-        <div class="form-group"><label class="form-label">Cardholder Name</label><input type="text" class="form-input"
-            placeholder="Coach Wilson"></div>
-        <div class="form-group"><label class="form-label">Billing ZIP Code</label><input type="text" class="form-input"
-            placeholder="10001" maxlength="10"></div>
-        <button class="btn btn-primary" style="width:100%"
-          onclick="showToast('Payment method added!','💳');closeModal('add-payment-modal')">Add Card</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Payment Modal -->
-  <div class="modal-overlay" id="edit-payment-modal">
-    <div class="modal" style="max-width:500px">
-      <div class="modal-header">
-        <h2>Edit Payment Method</h2><button class="modal-close" onclick="closeModal('edit-payment-modal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group"><label class="form-label">Card Number</label><input type="text" class="form-input"
-            value="•••• •••• •••• 4242" disabled style="opacity:0.6"></div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Expiry</label><input type="text"
-              class="form-input" value="08/27" maxlength="5"></div>
-          <div class="form-group"><label class="form-label">CVC</label><input type="text"
-              class="form-input" placeholder="•••" maxlength="4"></div>
-        </div>
-        <div class="form-group"><label class="form-label">Cardholder Name</label><input type="text" class="form-input"
-            value="Coach Wilson"></div>
-        <div class="form-group"><label class="form-label">Billing ZIP Code</label><input type="text" class="form-input"
-            value="10001" maxlength="10"></div>
-        <button class="btn btn-primary" style="width:100%"
-          onclick="showToast('Payment method updated!','✅');closeModal('edit-payment-modal')">Save
-          Changes</button>
-      </div>
-    </div>
-  </div>
-
 
   <!-- Analysis Indicator (top corner, non-blocking) -->
   <div class="analysis-indicator" id="analysis-indicator">

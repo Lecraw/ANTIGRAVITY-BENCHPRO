@@ -1,7 +1,6 @@
 flask
 gunicorn
 requests
-stripe
 anthropic
 python-dotenv
 google-api-core

@@ -272,12 +272,6 @@ async function handleStudentSignupFinish() {
             if (btn) { btn.disabled = false; btn.innerHTML = 'Create Account'; }
             return;
         }
-        if (data.requires_confirmation) {
-            showToast('Check your email to confirm your account', SIC.check);
-            showStudentAuthTab('login');
-            if (btn) { btn.disabled = false; btn.innerHTML = 'Create Account'; }
-            return;
-        }
         const rememberMe = document.getElementById('student-signup-remember-me')?.checked ?? false;
         setStudentAuthToken(data.token, rememberMe);
         currentStudentUser = data.user || {};

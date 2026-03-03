@@ -72,24 +72,6 @@ def send_email(to: str, subject: str, html_body: str, text_body: str = None) -> 
     return _send_smtp(to, subject, html_body, text_body)
 
 
-def send_confirmation_email(to: str, name: str, token: str) -> bool:
-    """Send email confirmation link."""
-    url = f"{APP_URL.rstrip('/')}/confirm-email?token={token}"
-    subject = "Confirm your BenchPro account"
-    html = f"""
-    <p>Hi {name},</p>
-    <p>Thanks for signing up for BenchPro! Please confirm your email by clicking the link below:</p>
-    <p><a href="{url}" style="color:#F04A00;font-weight:600">Confirm my email</a></p>
-    <p>Or copy this link: {url}</p>
-    <p>This link expires in 24 hours.</p>
-    <p>— BenchPro Team</p>
-    """
-    if not EMAIL_ENABLED:
-        print(f"[DEV] Confirm email link for {to}: {url}")
-        return True
-    return send_email(to, subject, html)
-
-
 def send_password_reset_email(to: str, name: str, token: str) -> bool:
     """Send password reset link."""
     url = f"{APP_URL.rstrip('/')}/reset-password?token={token}"

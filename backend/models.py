@@ -176,7 +176,7 @@ def create_user(email, password_hash, name, user_type='coach', team_code='', pla
     conn = get_db()
     try:
         cur = conn.execute(
-            "INSERT INTO users (email, password_hash, name, user_type, team_code, plan, email_verified) VALUES (?, ?, ?, ?, ?, ?, 0)",
+            "INSERT INTO users (email, password_hash, name, user_type, team_code, plan, email_verified) VALUES (?, ?, ?, ?, ?, ?, 1)",
             (email.lower(), password_hash, name, user_type, team_code, plan)
         )
         user_id = cur.lastrowid

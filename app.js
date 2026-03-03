@@ -76,9 +76,6 @@ function navigateTo(page) {
     if (typeof loadClips === 'function') loadClips();
   }
   if (page === 'settings') {
-    document.querySelectorAll('.plan-card').forEach(c => {
-      c.classList.toggle('selected', c.getAttribute('data-plan') === currentPlan);
-    });
     refreshTeamCodeDisplay();
     if (currentUser) {
       const n = document.getElementById('settings-name');
@@ -444,40 +441,12 @@ function sendTip() {
   }
 }
 
-// ===== PLAN SWITCHER =====
-async function selectPlan(plan) {
-  if (plan === currentPlan) return;
-
-  const label = plan === 'standard' ? 'Standard ($8.99/mo)' : 'Elite ($29.99/mo)';
-  const fromLabel = currentPlan === 'standard' ? 'Standard' : 'Elite';
-
-  const ok = await confirmAction('Switch Plan', `Switch from ${fromLabel} to ${label}? Your new plan will take effect at the start of your next billing cycle.`, { okText: 'Switch Plan' });
-  if (!ok) return;
-
+// ===== PLAN SWITCHER (signup only; no payment) =====
+function selectPlan(plan) {
   currentPlan = plan;
-  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-  const card = document.querySelector(`.plan-card[data-plan="${plan}"]`);
-  if (card) card.classList.add('selected');
-
-  let banner = document.getElementById('plan-confirm-banner');
-  if (!banner) {
-    banner = document.createElement('div');
-    banner.id = 'plan-confirm-banner';
-    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 24px;font-size:14px;font-weight:700;transform:translateY(-100%);transition:transform 0.35s ease;';
-    document.body.appendChild(banner);
-  }
-
-  banner.style.background = 'linear-gradient(135deg, #F04A00, #d44400)';
-  banner.style.color = '#fff';
-  banner.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Plan updated to <strong style="margin-left:4px">${label}</strong><button onclick="this.parentElement.style.transform='translateY(-100%)'" style="margin-left:16px;background:rgba(255,255,255,0.2);border:none;color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px">Dismiss</button>`;
-
-  requestAnimationFrame(() => { banner.style.transform = 'translateY(0)'; });
-  setTimeout(() => { banner.style.transform = 'translateY(-100%)'; }, 5000);
-
-  const sidebar = document.querySelector('.plan-badge-text .plan-price');
-  if (sidebar) sidebar.textContent = plan === 'standard' ? '$8.99/mo' : '$29.99/mo';
-  const sidebarName = document.querySelector('.plan-badge-text span:first-child');
-  if (sidebarName) sidebarName.textContent = plan === 'standard' ? 'Standard Plan' : 'Elite Plan';
+  document.querySelectorAll('.plan-card').forEach(c => c.classList.toggle('selected', c.getAttribute('data-plan') === plan));
+  const planNameEl = document.querySelector('.plan-badge .plan-name');
+  if (planNameEl) planNameEl.textContent = (plan === 'elite' ? 'Elite' : 'Standard') + ' Plan';
 }
 
 // ===== TEAM CODE =====
@@ -879,7 +848,6 @@ const searchableItems = [
   { type: 'page', label: 'AI Drills', sub: 'Recommended training', icon: IC.bolt, action: () => navigateTo('ai-drills') },
   { type: 'page', label: 'Old Clips', sub: 'Game library', icon: IC.film, action: () => navigateTo('old-clips') },
   { type: 'page', label: 'Player Stats', sub: 'Individual performance', icon: IC.trendUp, action: () => navigateTo('player-stats') },
-  { type: 'page', label: 'Plans', sub: 'Subscription management', icon: IC.gem, action: () => navigateTo('plans') },
   { type: 'page', label: 'Settings', sub: 'Account preferences', icon: IC.gear, action: () => navigateTo('settings') },
 ];
 
@@ -1885,31 +1853,6 @@ function switchPlayer(name) {
   renderPlayerCharts();
 }
 
-// ===== PAYMENT METHODS =====
-async function removePaymentMethod(btn) {
-  const ok = await confirmAction('Remove Payment Method', 'Remove this payment method from your account?', { danger: true, okText: 'Remove', icon: IC.card });
-  if (!ok) return;
-  const row = btn.closest('.player-row');
-  if (row) row.remove();
-  showToast('Payment method removed', IC.trash);
-}
-
-function setDefaultPayment(btn) {
-  document.querySelectorAll('#payment-methods-list .badge-orange').forEach(b => b.remove());
-  document.querySelectorAll('#payment-methods-list .player-row').forEach(row => {
-    const btns = row.querySelectorAll('.btn');
-    btns.forEach(b => { if (b.textContent === 'Set Default') b.style.display = ''; });
-  });
-  const row = btn.closest('.player-row');
-  const badgeArea = row.querySelector('div[style*="display:flex"]');
-  const badge = document.createElement('span');
-  badge.className = 'badge badge-orange';
-  badge.textContent = 'Default';
-  badgeArea.prepend(badge);
-  btn.style.display = 'none';
-  showToast('Default payment method updated', IC.check);
-}
-
 // ===== AUTH SCREEN =====
 let signupStep = 1;
 let selectedSignupPlan = 'elite';
@@ -1956,7 +1899,7 @@ function updateSignupStep() {
   if (signupStep === 4) {
     nextBtn.innerHTML = `
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      Start Free Trial
+      Create Account
     `;
   } else {
     nextBtn.innerHTML = `
@@ -2019,14 +1962,7 @@ async function handleLogin() {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const msg = data.code === 'email_not_verified'
-        ? (data.error || 'Please verify your email first.')
-        : (data.error || 'Incorrect email or password. Please try again.');
-      showAuthError(msg);
-      if (data.code === 'email_not_verified') {
-        const email = emailEl.value.trim();
-        showEmailNotVerifiedBanner(email);
-      }
+      showAuthError(data.error || 'Incorrect email or password. Please try again.');
       if (btn) { btn.style.animation = 'shake 0.4s ease'; setTimeout(() => { btn.style.animation = ''; btn.disabled = false; btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Log In'; }, 400); }
       return;
     }
@@ -2075,66 +2011,6 @@ function showAuthError(message) {
     popup.style.animation = 'fadeOut 0.3s ease forwards';
     setTimeout(() => popup.remove(), 300);
   }, 3000);
-}
-
-function showEmailNotVerifiedBanner(email) {
-  let banner = document.getElementById('email-not-verified-banner');
-  if (banner) banner.remove();
-  banner = document.createElement('div');
-  banner.id = 'email-not-verified-banner';
-  banner.style.cssText = 'margin-top:12px;padding:12px 16px;background:rgba(240,74,0,0.15);border:1px solid rgba(240,74,0,0.3);border-radius:8px;font-size:13px;color:var(--text-primary)';
-  banner.innerHTML = `<span>Check your inbox for the confirmation link.</span> <button type="button" class="btn btn-sm btn-secondary" style="margin-left:8px;padding:4px 12px" onclick="resendConfirmation('${email.replace(/'/g, "\\'")}')">Resend</button>`;
-  const loginView = document.getElementById('auth-login');
-  if (loginView) loginView.appendChild(banner);
-}
-
-async function resendConfirmation(email) {
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/resend-confirmation`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) showToast(data.message || 'Confirmation email sent', IC.mail);
-    else showAuthError(data.error || 'Failed to resend');
-  } catch { showAuthError('Could not connect'); }
-}
-
-function showSignupConfirmationView(email, userId, name, plan) {
-  showAuthTab('login');
-  const loginView = document.getElementById('auth-login');
-  if (!loginView) return;
-  let banner = document.getElementById('signup-confirmation-banner');
-  if (banner) banner.remove();
-  banner = document.createElement('div');
-  banner.id = 'signup-confirmation-banner';
-  banner.style.cssText = 'margin-bottom:16px;padding:16px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:8px;font-size:14px;color:var(--text-primary)';
-  let inner = `<strong>Check your email</strong><p style="margin:8px 0 0;opacity:0.9">We sent a confirmation link to <strong>${email}</strong>. Click it to activate your account.</p><button type="button" class="btn btn-sm btn-secondary" style="margin-top:12px" onclick="resendConfirmation('${email.replace(/'/g, "\\'")}')">Resend confirmation</button>`;
-  if (userId) {
-    inner += `<p style="margin-top:12px;opacity:0.9">Or start your 14-day free trial now:</p><button type="button" class="btn btn-primary btn-sm" style="margin-top:8px" onclick="startTrialAfterSignup(${userId}, '${email.replace(/'/g, "\\'")}', '${(name||'').replace(/'/g, "\\'")}', '${plan||'elite'}')">Start 14-day free trial</button>`;
-  }
-  banner.innerHTML = inner;
-  loginView.insertBefore(banner, loginView.firstChild);
-  showToast('Check your email to confirm your account', IC.mail);
-}
-
-async function startTrialAfterSignup(userId, email, name, plan) {
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/stripe/create-checkout-session`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId, email, name, plan })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && data.url) {
-      window.location.href = data.url;
-    } else {
-      showAuthError(data.error || 'Could not start checkout');
-    }
-  } catch (e) {
-    showAuthError('Could not connect');
-  }
 }
 
 function openForgotPasswordModal() {
@@ -2218,12 +2094,7 @@ async function handleSignupComplete() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       showAuthError(data.error || 'Signup failed. Please try again.');
-      if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Start Free Trial'; }
-      return;
-    }
-    if (data.requires_confirmation) {
-      showSignupConfirmationView(email, data.user_id, name, plan);
-      if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Start Free Trial'; }
+      if (btn) { btn.disabled = false; btn.innerHTML = 'Create Account'; }
       return;
     }
     const rememberMe = document.getElementById('signup-remember-me')?.checked ?? false;
@@ -2237,23 +2108,18 @@ async function handleSignupComplete() {
     setTimeout(() => {
       authScreen.style.display = 'none';
       currentPlan = plan === 'elite' ? 'elite' : 'standard';
-      const planBadge = document.querySelector('.plan-badge');
-      if (planBadge) {
-        const planName = currentPlan === 'elite' ? 'Elite' : 'Standard';
-        const price = currentPlan === 'elite' ? '$29.99' : '$8.99';
-        planBadge.querySelector('strong').textContent = planName + ' Plan';
-        planBadge.querySelector('small').textContent = price + '/mo';
-      }
+      const planNameEl = document.querySelector('.plan-badge .plan-name');
+      if (planNameEl) planNameEl.textContent = (currentPlan === 'elite' ? 'Elite' : 'Standard') + ' Plan';
       navigateTo('dashboard');
       initUpload();
       setupCanvasEvents();
       renderSparklines();
-      showToast(`Welcome to BenchPro, ${name}! Your 14-day free trial has started.`, IC.star);
+      showToast(`Welcome to BenchPro, ${name}!`, IC.star);
       addNotification(IC.star, 'green', `Account created for <strong>${name}</strong> (${email})`, 'Just now');
     }, 500);
   } catch (err) {
     showAuthError('Could not create account. Please try again.');
-    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Start Free Trial'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Create Account'; }
   }
 }
 
@@ -2913,11 +2779,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load saved settings (theme, toggles, profile) — apply theme immediately
   loadSettingsUI();
 
-  // Handle redirects with token (?token= from confirm-email, checkout success, or OAuth)
+  // Handle redirects with token (?token= from OAuth)
   const urlParams = new URLSearchParams(window.location.search);
   const urlToken = urlParams.get('token');
-  const verified = urlParams.get('verified');
-  const checkout = urlParams.get('checkout');
   const oauthError = urlParams.get('oauth_error');
   if (oauthError) {
     const cleanUrl = window.location.pathname;
@@ -2926,12 +2790,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (urlToken) {
     setAuthToken(urlToken, true);
-    const cleanParams = new URLSearchParams();
-    if (checkout) cleanParams.set('checkout', checkout);
-    const newUrl = window.location.pathname + (cleanParams.toString() ? '?' + cleanParams.toString() : '');
-    window.history.replaceState({}, document.title, newUrl);
-    if (verified === '1') showToast('Email confirmed! Welcome to BenchPro.', IC.check);
-    else if (checkout === 'success') showToast('Your 14-day free trial has started!', IC.star);
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
 
   // Restore session if valid token exists
@@ -3339,104 +3198,3 @@ function sharePlayWithTeam() {
   addNotification(IC.pencil, 'orange', `Play <strong>${name}</strong> shared with team`, 'Just now');
 }
 
-async function openManageSubscription() {
-  if (currentUser?.stripe_customer_id) {
-    try {
-      const res = await fetchWithAuth(`${BACKEND_URL}/api/stripe/create-portal-session`, { method: 'POST' });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.url) {
-        window.location.href = data.url;
-        return;
-      }
-      showToast(data.error || 'Could not open billing portal', IC.warn);
-      return;
-    } catch (e) {
-      showToast('Could not connect', IC.warn);
-      return;
-    }
-  }
-  let modal = document.getElementById('manage-sub-modal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.id = 'manage-sub-modal';
-    document.body.appendChild(modal);
-  }
-  const planName = currentPlan === 'elite' ? 'Elite' : 'Standard';
-  const planPrice = currentPlan === 'elite' ? '$29.99' : '$8.99';
-  const hasSubscription = !!currentUser?.stripe_customer_id;
-  const nextBill = 'March 1, 2026';
-
-  const noSubContent = !hasSubscription ? `
-    <div style="background:rgba(240,74,0,0.1);border:1px solid rgba(240,74,0,0.3);border-radius:var(--radius);padding:16px;margin-bottom:20px">
-      <p style="margin:0;font-size:14px;color:var(--text-primary)">No active subscription. Add a payment method to start your 14-day free trial.</p>
-      <button class="btn btn-primary" style="margin-top:12px" onclick="closeModal('manage-sub-modal');startTrialFromSettings()">Start free trial</button>
-    </div>` : '';
-
-  modal.innerHTML = `
-    <div class="modal" style="max-width:520px">
-      <div class="modal-header">
-        <h2>Manage Subscription</h2>
-        <button class="modal-close" onclick="closeModal('manage-sub-modal')">${IC.x}</button>
-      </div>
-      <div class="modal-body">
-        ${noSubContent}
-        <div style="background:var(--bg-secondary);border-radius:var(--radius);padding:20px;border:1px solid var(--border);margin-bottom:20px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-            <div>
-              <div style="font-size:18px;font-weight:800;color:var(--text-primary)">${planName} Plan</div>
-              <div style="font-size:13px;color:var(--text-muted)">Billed monthly</div>
-            </div>
-            <div style="font-size:28px;font-weight:900;color:var(--orange)">${planPrice}<span style="font-size:13px;font-weight:400;color:var(--text-muted)">/mo</span></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);padding-top:12px;border-top:1px solid var(--border)">
-            <span>Next billing date</span>
-            <span style="font-weight:600">${nextBill}</span>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <button class="btn btn-primary" style="width:100%" onclick="closeModal('manage-sub-modal');navigateTo('plans')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
-            Change Plan
-          </button>
-          <button class="btn btn-secondary" style="width:100%" onclick="showToast('Payment method updated',IC.card);closeModal('manage-sub-modal')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            Update Payment Method
-          </button>
-          <button class="btn btn-secondary" style="width:100%" onclick="showToast('Billing history downloaded',IC.download);closeModal('manage-sub-modal')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:6px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download All Invoices
-          </button>
-          <button class="btn btn-secondary" style="width:100%;color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="confirmAction('Cancel Subscription','Cancel your subscription? You will keep access until the end of the billing period.',{danger:true,okText:'Cancel Subscription',icon:IC.x}).then(ok=>{if(ok){showToast('Subscription cancelled',IC.x);closeModal('manage-sub-modal')}})">
-            Cancel Subscription
-          </button>
-        </div>
-      </div>
-    </div>`;
-
-  openModal('manage-sub-modal');
-}
-
-async function startTrialFromSettings() {
-  if (!currentUser) return;
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/stripe/create-checkout-session`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: currentUser.id,
-        email: currentUser.email,
-        name: currentUser.name,
-        plan: currentPlan || 'elite'
-      })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && data.url) {
-      window.location.href = data.url;
-    } else {
-      showToast(data.error || 'Payments are not configured', IC.warn);
-    }
-  } catch (e) {
-    showToast('Could not connect', IC.warn);
-  }
-}
