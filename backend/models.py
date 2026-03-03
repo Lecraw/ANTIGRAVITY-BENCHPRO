@@ -129,18 +129,24 @@ def init_db():
         except sqlite3.OperationalError:
             pass
 
+    # Ensure demo coach (coachw@gmail.com / 12345) always works
+    conn.execute(
+        "UPDATE users SET email_verified = 1 WHERE email = 'coachw@gmail.com'"
+    )
+    conn.commit()
+
     conn.close()
     _init_users()
 
 
 def _init_users():
-    """Create default coach and student accounts if no users exist."""
+    """Create default coach and student accounts if no users exist. Ensure coachw@gmail.com always works."""
+    from werkzeug.security import generate_password_hash
     conn = get_db()
     row = conn.execute("SELECT COUNT(*) as n FROM users").fetchone()
     if row and row['n'] == 0:
-        from werkzeug.security import generate_password_hash
         conn.execute(
-            "INSERT INTO users (email, password_hash, name, user_type) VALUES (?, ?, ?, 'coach')",
+            "INSERT INTO users (email, password_hash, name, user_type, email_verified) VALUES (?, ?, ?, 'coach', 1)",
             ('coachw@gmail.com', generate_password_hash('12345'), 'Coach Wilson')
         )
         conn.execute(
@@ -148,6 +154,18 @@ def _init_users():
             ('marcus@school.edu', generate_password_hash('HARKER2026'), 'Marcus James', 'HARKER')
         )
         conn.commit()
+    else:
+        # Ensure demo coach (coachw@gmail.com / 12345) always exists and is verified
+        coach = conn.execute("SELECT id FROM users WHERE email = 'coachw@gmail.com'").fetchone()
+        if not coach:
+            conn.execute(
+                "INSERT INTO users (email, password_hash, name, user_type, email_verified) VALUES (?, ?, ?, 'coach', 1)",
+                ('coachw@gmail.com', generate_password_hash('12345'), 'Coach Wilson')
+            )
+            conn.commit()
+        else:
+            conn.execute("UPDATE users SET email_verified = 1 WHERE email = 'coachw@gmail.com'")
+            conn.commit()
     conn.close()
 
 
