@@ -1271,6 +1271,7 @@ async function handleUploadStatSheet() {
 
   const formData = new FormData();
   formData.append('file', selectedStatFile);
+  if (title) formData.append('title', title);
 
   try {
     // Stage 1: upload
@@ -1322,7 +1323,7 @@ async function handleUploadStatSheet() {
       showToast('Stat sheet analyzed!', IC.check);
       addNotification(IC.upload, 'purple', `Stat sheet <strong>${uploadedFileName}</strong> analyzed.`, 'Just now');
 
-      // Navigate to analysis history page manually, load clips, then add stat entry
+      // Navigate to analysis history and reload clips (stat sheet is now saved in backend)
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       const pageEl = document.getElementById('page-analysis-history');
@@ -1330,9 +1331,8 @@ async function handleUploadStatSheet() {
       if (pageEl) { pageEl.classList.add('active'); currentPage = 'analysis-history'; }
       if (navEl) navEl.classList.add('active');
 
-      // Load backend clips first, then add stat sheet entry on top
       await loadClips();
-      addStatSheetToHistory(uploadedFileName, data.analysis || 'No analysis available.');
+      loadDashboardRecentGames();  // Refresh dashboard too
     }, 800);
 
   } catch (err) {
@@ -1341,6 +1341,29 @@ async function handleUploadStatSheet() {
   } finally {
     btn.disabled = false;
     btn.innerHTML = originalBtnText;
+  }
+}
+
+// ===== STAT SHEET DETAIL (from API) =====
+function renderStatSheetDetail(clip, detailPanel) {
+  if (clip.analysis_html) {
+    detailPanel.innerHTML = `
+      <div class="stat-sheet-detail" style="padding:16px;background:var(--bg-secondary);border-radius:var(--radius);margin-top:12px">
+        ${buildStatSheetChart(clip.analysis_html)}
+        <div class="stat-sheet-html" style="margin-top:16px;font-size:14px;line-height:1.6;color:var(--text-primary)">${clip.analysis_html}</div>
+      </div>`;
+  } else {
+    fetchWithAuth(`${BACKEND_URL}/api/stat-sheets/${clip.id}`)
+      .then(r => r.json())
+      .then(data => {
+        const html = data.analysis_html || 'No analysis content.';
+        detailPanel.innerHTML = `
+          <div class="stat-sheet-detail" style="padding:16px;background:var(--bg-secondary);border-radius:var(--radius);margin-top:12px">
+            ${buildStatSheetChart(html)}
+            <div class="stat-sheet-html" style="margin-top:16px;font-size:14px;line-height:1.6;color:var(--text-primary)">${html}</div>
+          </div>`;
+      })
+      .catch(() => { detailPanel.innerHTML = '<div style="color:var(--red)">Failed to load analysis</div>'; });
   }
 }
 
@@ -2367,6 +2390,7 @@ async function loadDashboardRecentGames() {
       else if (clip.status === 'processing') statusBadge = '<span class="badge badge-yellow">Processing</span>';
       else if (clip.status === 'error') statusBadge = '<span class="badge badge-red">Error</span>';
 
+      const typeBadge = clip.type === 'stat_sheet' ? '<span class="badge badge-blue">Stat Sheet</span>' : '';
       const eventBadge = clip.event_count > 0 ? `<span class="badge badge-blue">${clip.event_count} Events</span>` : '';
       const playerBadge = clip.player_count > 0 ? `<span class="badge badge-orange">${clip.player_count} Detections</span>` : '';
 
@@ -2375,11 +2399,12 @@ async function loadDashboardRecentGames() {
           <div class="game-card-top">
             <div>
               <div class="game-card-teams">${clip.title || clip.file_name || 'Untitled'}</div>
-              <div class="game-card-date">${dateStr}${clip.opponent ? ' · vs. ' + clip.opponent : ''}</div>
+              <div class="game-card-date">${dateStr}${clip.opponent ? ' · vs. ' + clip.opponent : ''}${clip.type === 'stat_sheet' ? ' · Stat Sheet' : ''}</div>
             </div>
           </div>
           <div class="game-card-insights">
             ${statusBadge}
+            ${typeBadge}
             ${eventBadge}
             ${playerBadge}
           </div>
@@ -2397,11 +2422,6 @@ async function loadClips() {
   const clipsEmpty = document.getElementById('clips-empty');
   if (!clipsList) return;
 
-  // Preserve any stat sheet entries already in the list
-  const existingStatEntries = clipsList.querySelectorAll('[data-stat-entry="true"]');
-  const statEntriesArr = [];
-  existingStatEntries.forEach(el => statEntriesArr.push(el));
-
   clipsList.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
 
   try {
@@ -2411,10 +2431,7 @@ async function loadClips() {
 
     clipsList.innerHTML = '';
 
-    // Put stat entries back first
-    statEntriesArr.forEach(el => clipsList.appendChild(el));
-
-    if (clips.length === 0 && statEntriesArr.length === 0) {
+    if (clips.length === 0) {
       if (clipsEmpty) {
         clipsEmpty.style.display = 'block';
         clipsList.appendChild(clipsEmpty);
@@ -2427,6 +2444,7 @@ async function loadClips() {
     if (clipsEmpty) clipsEmpty.style.display = 'none';
 
     clips.forEach(clip => {
+      const isStatSheet = clip.type === 'stat_sheet';
       const createdDate = clip.created_at ? new Date(clip.created_at.replace(' ', 'T') + 'Z') : new Date();
       const dateStr = createdDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -2436,47 +2454,53 @@ async function loadClips() {
       else if (clip.status === 'error') statusBadge = '<span class="badge badge-red">Error</span>';
       else statusBadge = '<span class="badge badge-blue">Pending</span>';
 
-      const viewAnalysisBtn = clip.status === 'complete' ? `
-        <button class="btn btn-primary btn-sm" data-view-video="${clip.id}">
+      const viewAnalysisBtn = (clip.status === 'complete' || isStatSheet) ? `
+        <button class="btn btn-primary btn-sm" data-view-clip="${clip.id}" data-type="${clip.type || 'video'}">
           ${IC.search} View
         </button>` : '';
 
+      const iconClass = isStatSheet ? 'stat-sheet' : 'video';
+      const typeLabel = isStatSheet ? 'Stat Sheet' : 'Video';
+
       const clipEl = document.createElement('div');
       clipEl.className = 'analysis-entry';
+      clipEl.dataset.type = clip.type || 'video';
       clipEl.innerHTML = `
-        <div class="analysis-entry-icon video">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        <div class="analysis-entry-icon ${iconClass}">
+          ${isStatSheet ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>' : '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>'}
         </div>
         <div class="analysis-entry-info">
           <h4>${clip.title || clip.file_name || 'Untitled'}</h4>
           <div class="analysis-entry-meta">
-            <span class="analysis-entry-type video">Video</span>
+            <span class="analysis-entry-type ${iconClass}">${typeLabel}</span>
             <span>${dateStr}</span>
           </div>
         </div>
         <div class="analysis-entry-actions">
           ${statusBadge}
           ${viewAnalysisBtn}
-          <button class="btn-icon" data-delete="${clip.id}" title="Delete">
+          <button class="btn-icon" data-delete="${clip.id}" data-type="${clip.type || 'video'}" title="Delete">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         </div>
-        <div id="video-detail-${clip.id}" class="analysis-entry-detail"></div>
+        <div id="clip-detail-${clip.id}" class="analysis-entry-detail"></div>
       `;
       clipsList.appendChild(clipEl);
 
       const delBtn = clipEl.querySelector(`[data-delete="${clip.id}"]`);
+      const deleteUrl = isStatSheet ? `${BACKEND_URL}/api/stat-sheets/${clip.id}` : `${BACKEND_URL}/api/clips/${clip.id}`;
       delBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const ok = await confirmAction('Delete Clip', 'Delete this game clip? This cannot be undone.', { danger: true, okText: 'Delete', icon: IC.trash });
+        const ok = await confirmAction('Delete Analysis', `Delete this ${isStatSheet ? 'stat sheet' : 'game clip'}? This cannot be undone.`, { danger: true, okText: 'Delete', icon: IC.trash });
         if (!ok) return;
         delBtn.disabled = true;
         delBtn.style.opacity = '0.5';
         try {
-          const r = await fetchWithAuth(`${BACKEND_URL}/api/clips/${clip.id}`, { method: 'DELETE' });
+          const r = await fetchWithAuth(deleteUrl, { method: 'DELETE' });
           if (!r.ok) throw new Error('Delete failed');
           clipEl.remove();
-          showToast('Clip deleted', IC.trash);
+          showToast('Analysis deleted', IC.trash);
+          loadDashboardRecentGames();
           if (!clipsList.querySelector('.analysis-entry') && clipsEmpty) {
             clipsEmpty.style.display = 'block';
             clipsList.appendChild(clipsEmpty);
@@ -2488,11 +2512,11 @@ async function loadClips() {
         }
       });
 
-      if (clip.status === 'complete') {
-        const viewBtn = clipEl.querySelector(`[data-view-video="${clip.id}"]`);
+      const viewBtn = clipEl.querySelector(`[data-view-clip="${clip.id}"]`);
+      if (viewBtn) {
         viewBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          const detailPanel = document.getElementById(`video-detail-${clip.id}`);
+          const detailPanel = document.getElementById(`clip-detail-${clip.id}`);
           const isVisible = detailPanel.classList.contains('show');
 
           if (isVisible) {
@@ -2500,9 +2524,15 @@ async function loadClips() {
             viewBtn.innerHTML = `${IC.search} View`;
           } else {
             if (detailPanel.innerHTML === '') {
-              detailPanel.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Loading analysis...</div>';
-              detailPanel.classList.add('show');
-              showResults(clip.id);
+              if (isStatSheet) {
+                detailPanel.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Loading...</div>';
+                detailPanel.classList.add('show');
+                renderStatSheetDetail(clip, detailPanel);
+              } else {
+                detailPanel.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Loading analysis...</div>';
+                detailPanel.classList.add('show');
+                showResults(clip.id);
+              }
             } else {
               detailPanel.classList.add('show');
             }
@@ -2517,7 +2547,6 @@ async function loadClips() {
   } catch (err) {
     console.error('Failed to load clips:', err);
     clipsList.innerHTML = '';
-    statEntriesArr.forEach(el => clipsList.appendChild(el));
     const errDiv = document.createElement('div');
     errDiv.className = 'empty-state';
     errDiv.innerHTML = `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><h3>Could not load analyses</h3><p>${err.message || 'Please try again.'}</p>`;

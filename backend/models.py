@@ -94,6 +94,17 @@ def init_db():
             FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS stat_sheet_analyses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            file_name TEXT DEFAULT '',
+            file_path TEXT DEFAULT '',
+            analysis_html TEXT DEFAULT '',
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS analysis_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             game_id INTEGER NOT NULL UNIQUE,
@@ -128,6 +139,21 @@ def init_db():
             conn.commit()
         except sqlite3.OperationalError:
             pass
+
+    # Stat sheet analyses table (migration: create if not exists)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS stat_sheet_analyses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            file_name TEXT DEFAULT '',
+            file_path TEXT DEFAULT '',
+            analysis_html TEXT DEFAULT '',
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    """)
+    conn.commit()
 
     # Ensure demo coach (coachw@gmail.com / 12345) always works
     conn.execute(
@@ -465,6 +491,60 @@ def delete_game(game_id):
     conn.execute("DELETE FROM games WHERE id = ?", (game_id,))
     conn.commit()
     conn.close()
+
+
+# ===== STAT SHEET ANALYSES =====
+
+def create_stat_sheet(user_id, title, file_name, file_path, analysis_html):
+    """Create a stat sheet analysis record. Returns the new id."""
+    conn = get_db()
+    cur = conn.execute(
+        """INSERT INTO stat_sheet_analyses (user_id, title, file_name, file_path, analysis_html)
+           VALUES (?, ?, ?, ?, ?)""",
+        (user_id, title, file_name, file_path, analysis_html)
+    )
+    sid = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return sid
+
+
+def get_stat_sheet(stat_id, user_id=None):
+    """Get a stat sheet by id. If user_id given, verify ownership."""
+    conn = get_db()
+    row = conn.execute("SELECT * FROM stat_sheet_analyses WHERE id = ?", (stat_id,)).fetchone()
+    conn.close()
+    if not row:
+        return None
+    d = dict(row)
+    if user_id is not None and d.get('user_id') != user_id:
+        return None
+    return d
+
+
+def get_all_stat_sheets(user_id):
+    """Get all stat sheet analyses for a user, newest first."""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM stat_sheet_analyses WHERE user_id = ? ORDER BY created_at DESC",
+        (user_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def delete_stat_sheet(stat_id, user_id=None):
+    """Delete a stat sheet. If user_id given, verify ownership."""
+    stat = get_stat_sheet(stat_id, user_id)
+    if not stat:
+        return False
+    conn = get_db()
+    if stat.get('file_path') and os.path.exists(stat['file_path']):
+        os.remove(stat['file_path'])
+    conn.execute("DELETE FROM stat_sheet_analyses WHERE id = ?", (stat_id,))
+    conn.commit()
+    conn.close()
+    return True
 
 
 # ===== ANALYSIS RESULTS =====

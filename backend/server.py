@@ -480,7 +480,7 @@ def upload_video(current_user):
 @require_auth
 def upload_stats(current_user):
     """
-    Upload a game stat sheet (image or CSV) for analysis directly via AI Coach (bypassing video tracking).
+    Upload a game stat sheet (image or CSV) for analysis. Saves to DB and returns analysis.
     """
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
@@ -489,6 +489,8 @@ def upload_stats(current_user):
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
 
+    title = (request.form.get('title') or '').strip() or secure_filename(file.filename)
+
     # Save file with unique name
     original_name = secure_filename(file.filename)
     unique_name = f"{uuid.uuid4().hex}_stats_{original_name}"
@@ -496,9 +498,21 @@ def upload_stats(current_user):
     file.save(file_path)
 
     try:
-        # Pass straight to Claude Vision / Text analyzer
         analysis_html = analyze_stat_sheet(file_path)
-        return jsonify({'status': 'success', 'analysis': analysis_html}), 200
+        sid = models.create_stat_sheet(
+            user_id=current_user['id'],
+            title=title,
+            file_name=original_name,
+            file_path=file_path,
+            analysis_html=analysis_html or ''
+        )
+        return jsonify({
+            'status': 'success',
+            'analysis': analysis_html,
+            'id': sid,
+            'title': title,
+            'created_at': __import__('datetime').datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        }), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -566,18 +580,21 @@ def get_analysis_status(game_id, current_user):
 @app.route('/api/clips')
 @require_auth
 def list_clips(current_user):
-    """List all uploaded/analyzed games for the current user."""
+    """List all clips: video games + stat sheet analyses, merged and sorted by created_at."""
     games = models.get_all_games(user_id=current_user['id'])
+    stat_sheets = models.get_all_stat_sheets(current_user['id'])
+
     result = []
     for game in games:
         analysis = models.get_analysis(game['id'])
         result.append({
             'id': game['id'],
+            'type': 'video',
             'title': game['title'],
-            'opponent': game['opponent'],
-            'date': game['date'],
+            'opponent': game.get('opponent', ''),
+            'date': game.get('date', ''),
             'status': game['status'],
-            'progress': game['progress'],
+            'progress': game.get('progress', 0),
             'duration': game.get('duration_seconds', 0),
             'file_name': game.get('file_name', ''),
             'created_at': game.get('created_at', ''),
@@ -585,13 +602,31 @@ def list_clips(current_user):
             'player_count': analysis['total_players_detected'] if analysis else 0,
             'event_count': analysis['total_events'] if analysis else 0
         })
+    for s in stat_sheets:
+        result.append({
+            'id': s['id'],
+            'type': 'stat_sheet',
+            'title': s['title'],
+            'opponent': '',
+            'date': '',
+            'status': 'complete',
+            'progress': 100,
+            'file_name': s.get('file_name', ''),
+            'created_at': s.get('created_at', ''),
+            'analysis_html': s.get('analysis_html', ''),
+            'player_count': 0,
+            'event_count': 0
+        })
+
+    # Sort by created_at descending
+    result.sort(key=lambda x: x.get('created_at', '') or '', reverse=True)
     return jsonify(result)
 
 
 @app.route('/api/clips/<int:game_id>', methods=['DELETE'])
 @require_auth
 def delete_clip(game_id, current_user):
-    """Delete a game and its analysis data."""
+    """Delete a video game and its analysis data."""
     game = models.get_game(game_id)
     if not game:
         return jsonify({'error': 'Game not found'}), 404
@@ -600,6 +635,31 @@ def delete_clip(game_id, current_user):
 
     models.delete_game(game_id)
     return jsonify({'message': f'Game #{game_id} deleted'})
+
+
+@app.route('/api/stat-sheets/<int:stat_id>')
+@require_auth
+def get_stat_sheet(stat_id, current_user):
+    """Get a single stat sheet analysis."""
+    stat = models.get_stat_sheet(stat_id, current_user['id'])
+    if not stat:
+        return jsonify({'error': 'Stat sheet not found'}), 404
+    return jsonify({
+        'id': stat['id'],
+        'title': stat['title'],
+        'file_name': stat.get('file_name', ''),
+        'analysis_html': stat.get('analysis_html', ''),
+        'created_at': stat.get('created_at', '')
+    })
+
+
+@app.route('/api/stat-sheets/<int:stat_id>', methods=['DELETE'])
+@require_auth
+def delete_stat_sheet(stat_id, current_user):
+    """Delete a stat sheet analysis."""
+    if not models.delete_stat_sheet(stat_id, current_user['id']):
+        return jsonify({'error': 'Stat sheet not found'}), 404
+    return jsonify({'message': f'Stat sheet #{stat_id} deleted'})
 
 
 # ===== API: PLAYERS =====
