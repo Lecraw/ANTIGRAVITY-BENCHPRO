@@ -20,6 +20,7 @@ from .config import (  # type: ignore
     APP_URL, GOOGLE_CLIENT_ID, APPLE_CLIENT_ID
 )
 from . import models  # type: ignore
+from . import challenges_service  # type: ignore
 from .analyzer import get_analyzer  # type: ignore
 from .ai_coach import generate_coach_feedback, analyze_stat_sheet  # type: ignore
 from .swish_analyzer import analyze_basketball_shot  # type: ignore
@@ -69,6 +70,18 @@ def require_auth(f):
         if not user:
             return jsonify({'error': 'Authentication required'}), 401
         kwargs['current_user'] = user
+        return f(*args, **kwargs)
+    return wrapped
+
+
+def require_coach(f):
+    """Decorator: require coach. Use after require_auth."""
+    from functools import wraps
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        user = kwargs.get('current_user')
+        if not user or user.get('user_type') != 'coach':
+            return jsonify({'error': 'Coach access required'}), 403
         return f(*args, **kwargs)
     return wrapped
 
@@ -734,6 +747,243 @@ def get_game_events(game_id, current_user):
         'events': events,
         'total': len(events)
     })
+
+
+# ===== API: CHALLENGES =====
+
+def _get_team_code(user):
+    """Get team_code for coach (their code) or player (their joined code)."""
+    return (user.get('team_code') or '').strip()
+
+
+@app.route('/api/challenges', methods=['GET'])
+@require_auth
+def list_challenges(current_user):
+    """List challenges for the user's team. Coach sees all; player sees active."""
+    team_code = _get_team_code(current_user)
+    if not team_code:
+        return jsonify({'challenges': [], 'message': 'No team assigned'}), 200
+    include_expired = current_user.get('user_type') == 'coach'
+    challenges = models.get_challenges_for_team(team_code, include_expired=include_expired)
+    return jsonify({'challenges': challenges}), 200
+
+
+@app.route('/api/challenges', methods=['POST'])
+@require_auth
+@require_coach
+def create_challenge(current_user):
+    """Create a new challenge. Coach only."""
+    team_code = _get_team_code(current_user)
+    if not team_code:
+        return jsonify({'error': 'Create a team code first in Settings'}), 400
+    data = request.get_json() or {}
+    title = (data.get('title') or '').strip()
+    description = (data.get('description') or '').strip()
+    challenge_type = (data.get('challenge_type') or 'custom').lower()
+    xp_reward = int(data.get('xp_reward', 50))
+    goal_value = float(data.get('goal_value', 1))
+    start_date = (data.get('start_date') or '').strip()
+    end_date = (data.get('end_date') or '').strip()
+    verification_type = (data.get('verification_type') or 'manual').lower()
+    if not title or not start_date or not end_date:
+        return jsonify({'error': 'Title, start date, and end date are required'}), 400
+    valid_types = ('shooting', 'defense', 'workout', 'film', 'custom')
+    if challenge_type not in valid_types:
+        challenge_type = 'custom'
+    valid_ver = ('manual', 'stat_based', 'submission')
+    if verification_type not in valid_ver:
+        verification_type = 'manual'
+    xp_reward = max(1, min(500, xp_reward))
+    cid = models.create_challenge(
+        team_code=team_code,
+        title=title,
+        description=description,
+        challenge_type=challenge_type,
+        xp_reward=xp_reward,
+        goal_value=goal_value,
+        start_date=start_date,
+        end_date=end_date,
+        created_by_coach_id=current_user['id'],
+        verification_type=verification_type
+    )
+    challenge = models.get_challenge(cid)
+    # Notify team players
+    players = models.get_players_with_team_code(team_code)
+    for p in players:
+        models.create_notification(
+            p['id'], 'challenge_created',
+            'New Challenge: ' + title,
+            description or 'Your coach created a new challenge.',
+            '{"challenge_id": %d}' % cid
+        )
+    return jsonify({'challenge': challenge}), 201
+
+
+@app.route('/api/challenges/<int:challenge_id>')
+@require_auth
+def get_challenge_detail(challenge_id, current_user):
+    """Get challenge with participation data. Coach sees all participations; player sees own."""
+    challenge = models.get_challenge(challenge_id)
+    if not challenge:
+        return jsonify({'error': 'Challenge not found'}), 404
+    team_code = _get_team_code(current_user)
+    if challenge['team_code'] != team_code:
+        return jsonify({'error': 'Access denied'}), 403
+    if current_user.get('user_type') == 'coach':
+        participations = models.get_participations_for_challenge(challenge_id)
+        return jsonify({'challenge': challenge, 'participations': participations}), 200
+    part = models.get_or_create_participation(challenge_id, current_user['id'])
+    return jsonify({'challenge': challenge, 'participation': part}), 200
+
+
+@app.route('/api/challenges/<int:challenge_id>/progress', methods=['POST'])
+@require_auth
+def submit_progress(challenge_id, current_user):
+    """Player submits progress. Only for own participation."""
+    if current_user.get('user_type') != 'player':
+        return jsonify({'error': 'Only players can submit progress'}), 403
+    challenge = models.get_challenge(challenge_id)
+    if not challenge:
+        return jsonify({'error': 'Challenge not found'}), 404
+    team_code = _get_team_code(current_user)
+    if challenge['team_code'] != team_code:
+        return jsonify({'error': 'Access denied'}), 403
+    part = models.get_or_create_participation(challenge_id, current_user['id'])
+    if part.get('completed'):
+        return jsonify({'error': 'Challenge already completed'}), 400
+    data = request.get_json() or {}
+    progress_value = float(data.get('progress_value', 0))
+    proof_note = (data.get('proof_note') or '').strip()
+    goal_value = float(challenge.get('goal_value', 1))
+    models.update_participation_progress(part['id'], progress_value, proof_note=proof_note)
+    part = models.get_or_create_participation(challenge_id, current_user['id'])
+    completed = progress_value >= goal_value
+    result = {'participation': part, 'completed': completed}
+        if completed:
+            outcome = challenges_service.complete_challenge(part['id'], current_user['id'])
+            if outcome:
+                result['completion'] = outcome
+                models.create_notification(
+                    current_user['id'], 'challenge_complete',
+                    'Challenge Complete! +%d XP' % outcome.get('xp_awarded', 0),
+                    'You earned %d XP. Level %d!' % (outcome.get('xp_awarded', 0), outcome.get('level', 1)),
+                    '{"challenge_id": %d}' % challenge_id
+                )
+                prev_r, new_r = outcome.get('prev_rank'), outcome.get('new_rank')
+                if prev_r and new_r and new_r < prev_r:
+                    models.create_notification(
+                        current_user['id'], 'rank_change',
+                        'Leaderboard: You moved up to #%d!' % new_r,
+                        'You climbed %d spots on the team leaderboard.' % (prev_r - new_r),
+                        '{}'
+                    )
+                for b in outcome.get('badges_unlocked', []):
+                models.create_notification(
+                    current_user['id'], 'badge_unlock',
+                    'Badge Unlocked: %s' % b.get('name', ''),
+                    b.get('description', '') + ' +%d XP bonus!' % (b.get('xp_bonus', 0)),
+                    '{"badge_id": %d}' % b.get('id', 0)
+                )
+    return jsonify(result), 200
+
+
+@app.route('/api/challenges/<int:challenge_id>/complete', methods=['POST'])
+@require_auth
+def complete_challenge_manual(challenge_id, current_user):
+    """Player marks challenge complete (manual verification). Only for own participation."""
+    if current_user.get('user_type') != 'player':
+        return jsonify({'error': 'Only players can complete challenges'}), 403
+    challenge = models.get_challenge(challenge_id)
+    if not challenge:
+        return jsonify({'error': 'Challenge not found'}), 404
+    team_code = _get_team_code(current_user)
+    if challenge['team_code'] != team_code:
+        return jsonify({'error': 'Access denied'}), 403
+    part = models.get_or_create_participation(challenge_id, current_user['id'])
+    if part.get('completed'):
+        return jsonify({'error': 'Challenge already completed'}), 400
+    goal_value = float(challenge.get('goal_value', 1))
+    progress_value = float(part.get('progress_value', 0))
+    data = request.get_json() or {}
+    if data.get('progress_value') is not None:
+        progress_value = float(data['progress_value'])
+        models.update_participation_progress(part['id'], progress_value)
+        part = models.get_or_create_participation(challenge_id, current_user['id'])
+    if progress_value < goal_value:
+        return jsonify({'error': 'Progress must meet goal to complete', 'participation': part}), 400
+    outcome = challenges_service.complete_challenge(part['id'], current_user['id'])
+    if not outcome:
+        return jsonify({'error': 'Could not complete challenge'}), 500
+    models.create_notification(
+        current_user['id'], 'challenge_complete',
+        'Challenge Complete! +%d XP' % outcome.get('xp_awarded', 0),
+        'You earned %d XP. Level %d!' % (outcome.get('xp_awarded', 0), outcome.get('level', 1)),
+        '{"challenge_id": %d}' % challenge_id
+    )
+    prev_r, new_r = outcome.get('prev_rank'), outcome.get('new_rank')
+    if prev_r and new_r and new_r < prev_r:
+        models.create_notification(
+            current_user['id'], 'rank_change',
+            'Leaderboard: You moved up to #%d!' % new_r,
+            'You climbed %d spots on the team leaderboard.' % (prev_r - new_r),
+            '{}'
+        )
+    for b in outcome.get('badges_unlocked', []):
+        models.create_notification(
+            current_user['id'], 'badge_unlock',
+            'Badge Unlocked: %s' % b.get('name', ''),
+            b.get('description', '') + ' +%d XP bonus!' % (b.get('xp_bonus', 0)),
+            '{"badge_id": %d}' % b.get('id', 0)
+        )
+    return jsonify({'completion': outcome}), 200
+
+
+@app.route('/api/leaderboard')
+@require_auth
+def get_leaderboard(current_user):
+    """Get team leaderboard with XP, level, badges."""
+    team_code = _get_team_code(current_user)
+    if not team_code:
+        return jsonify({'leaderboard': []}), 200
+    leaderboard = models.get_leaderboard(team_code)
+    for row in leaderboard:
+        row['badges'] = [{'name': b['name'], 'icon': b['icon'], 'xp_bonus': b['xp_bonus']}
+                        for b in models.get_player_badges(row['player_id'])]
+    return jsonify({'leaderboard': leaderboard}), 200
+
+
+@app.route('/api/me/xp')
+@require_auth
+def get_my_xp(current_user):
+    """Get current user's XP and badges (players only)."""
+    if current_user.get('user_type') != 'player':
+        return jsonify({'total_xp': 0, 'level': 1, 'badges': []}), 200
+    pxp = models.get_or_create_player_xp(current_user['id'])
+    badges = models.get_player_badges(current_user['id'])
+    return jsonify({
+        'total_xp': pxp.get('total_xp', 0),
+        'level': pxp.get('level', 1),
+        'challenges_completed': pxp.get('challenges_completed', 0),
+        'badges': badges
+    }), 200
+
+
+@app.route('/api/notifications')
+@require_auth
+def list_notifications(current_user):
+    """Get user notifications."""
+    unread_only = request.args.get('unread') == '1'
+    notifications = models.get_notifications(current_user['id'], unread_only=unread_only)
+    unread_count = models.get_unread_notification_count(current_user['id'])
+    return jsonify({'notifications': notifications, 'unread_count': unread_count}), 200
+
+
+@app.route('/api/notifications/<int:nid>/read', methods=['POST'])
+@require_auth
+def mark_notification_read(nid, current_user):
+    """Mark notification as read."""
+    models.mark_notification_read(nid, current_user['id'])
+    return jsonify({'ok': True}), 200
 
 
 # ===== MAIN =====

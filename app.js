@@ -59,8 +59,32 @@ let preDrawSnapshot = null;
 let canvasHistory = [];
 let tipStore = [];  // Empty for new accounts — tips added when coach sends feedback
 
+// ===== MOBILE SIDEBAR =====
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (sidebar && overlay) {
+    const isOpen = sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('show', isOpen);
+    overlay.setAttribute('aria-hidden', !isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (sidebar && overlay && sidebar.classList.contains('mobile-open')) {
+    sidebar.classList.remove('mobile-open');
+    overlay.classList.remove('show');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+}
+
 // ===== NAVIGATION =====
 function navigateTo(page) {
+  closeMobileSidebar();
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const pageEl = document.getElementById('page-' + page);
@@ -83,6 +107,10 @@ function navigateTo(page) {
       if (n) n.value = currentUser.name || '';
       if (e) e.value = currentUser.email || '';
     }
+  }
+  if (page === 'challenges') {
+    loadChallengesList();
+    loadChallengesLeaderboard();
   }
 }
 
@@ -887,16 +915,56 @@ document.addEventListener('click', (e) => {
 });
 
 // ===== NOTIFICATIONS =====
+async function loadNotifications() {
+  const list = document.getElementById('notif-list');
+  const dot = document.getElementById('notif-dot');
+  if (!list || !getAuthToken()) return;
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/notifications`);
+    if (!res.ok) return;
+    const { notifications, unread_count } = await res.json();
+    if (dot) dot.style.display = unread_count > 0 ? '' : 'none';
+    if (!notifications || notifications.length === 0) {
+      list.innerHTML = '<div class="search-dropdown-empty">No notifications</div>';
+      return;
+    }
+    const typeIcons = {
+      challenge_created: [IC.target, 'orange'],
+      challenge_complete: [IC.check, 'green'],
+      badge_unlock: [IC.star, 'yellow'],
+      rank_change: [IC.trendUp, 'green'],
+      analysis: [IC.chart, 'blue'],
+      tip: [IC.bulb, 'orange'],
+      drill: [IC.bolt, 'blue'],
+      upload: [IC.upload, 'purple']
+    };
+    list.innerHTML = notifications.map(n => {
+      const [icon, color] = typeIcons[n.type] || [IC.bell, 'blue'];
+      const timeStr = n.created_at ? (() => {
+        const d = new Date(n.created_at.replace(' ', 'T'));
+        const diff = (Date.now() - d) / 60000;
+        if (diff < 60) return 'Just now';
+        if (diff < 1440) return Math.floor(diff / 60) + ' hours ago';
+        return Math.floor(diff / 1440) + ' days ago';
+      })() : '';
+      return `<div class="notif-item ${n.read_at ? '' : 'unread'}" data-id="${n.id}" data-type="${n.type || ''}" onclick="handleNotifClick('${(n.type || '').replace(/'/g, "\\'")}', ${n.id})">
+        <div class="notif-icon ${color}">${icon}</div>
+        <div class="notif-body">
+          <div class="notif-text">${escapeHtml(n.title)}</div>
+          <div class="notif-time">${timeStr}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = '<div class="search-dropdown-empty">Could not load notifications</div>';
+  }
+}
+
 function toggleNotifications() {
   const dropdown = document.getElementById('notif-dropdown');
   dropdown.classList.toggle('show');
-  // Mark all as read
   if (dropdown.classList.contains('show')) {
-    setTimeout(() => {
-      document.querySelectorAll('.notif-item.unread').forEach(n => n.classList.remove('unread'));
-      const dot = document.getElementById('notif-dot');
-      if (dot) dot.style.display = 'none';
-    }, 1000);
+    loadNotifications();
   }
 }
 
@@ -907,24 +975,24 @@ function clearNotifications() {
 
 function addNotification(icon, color, text, time) {
   const list = document.getElementById('notif-list');
-  // Remove "no notifications" message if present
   const empty = list.querySelector('.search-dropdown-empty');
   if (empty) empty.remove();
   const item = document.createElement('div');
   item.className = 'notif-item unread';
   item.innerHTML = `<div class="notif-icon ${color}">${icon}</div><div class="notif-body"><div class="notif-text">${text}</div><div class="notif-time">${time}</div></div>`;
   list.prepend(item);
-  // Show notification dot
   const dot = document.getElementById('notif-dot');
   if (dot) dot.style.display = '';
 }
 
-function handleNotifClick(type) {
+function handleNotifClick(type, id) {
   document.getElementById('notif-dropdown').classList.remove('show');
+  if (id) fetchWithAuth(`${BACKEND_URL}/api/notifications/${id}/read`, { method: 'POST' }).then(() => loadNotifications()).catch(() => {});
   if (type === 'analysis') navigateTo('ai-analysis');
   else if (type === 'tip') navigateTo('send-tips');
   else if (type === 'drill') navigateTo('ai-drills');
-  else if (type === 'upload') navigateTo('old-clips');
+  else if (type === 'upload') navigateTo('analysis-history');
+  else if (type === 'challenge_created' || type === 'challenge_complete' || type === 'badge_unlock' || type === 'rank_change') navigateTo('challenges');
 }
 
 // ===== BACKEND API INTEGRATION =====
@@ -2416,6 +2484,159 @@ async function loadDashboardRecentGames() {
   }
 }
 
+// ===== CHALLENGES (Coach) =====
+async function loadChallengesList() {
+  const container = document.getElementById('coach-challenges-list');
+  if (!container) return;
+  container.innerHTML = '<div class="skeleton skeleton-card"></div>';
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/challenges`);
+    if (!res.ok) throw new Error('Failed to load challenges');
+    const { challenges } = await res.json();
+    if (!challenges || challenges.length === 0) {
+      container.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><h3>No challenges yet</h3><p>Create a challenge to motivate your team.</p><button class="btn btn-primary" onclick="openChallengeCreateModal()">Create Challenge</button></div>`;
+      return;
+    }
+    container.innerHTML = challenges.map(c => {
+      const typeLabels = { shooting: 'Shooting', defense: 'Defense', workout: 'Workout', film: 'Film', custom: 'Custom' };
+      const typeLabel = typeLabels[c.challenge_type] || c.challenge_type;
+      const endDate = c.end_date ? new Date(c.end_date + 'T23:59:59') : null;
+      const isExpired = endDate && endDate < new Date();
+      return `<div class="challenge-card ${isExpired ? 'expired' : ''}" onclick="openChallengeDetail(${c.id})">
+        <div class="challenge-card-header">
+          <span class="challenge-type-badge">${typeLabel}</span>
+          <span class="challenge-xp">+${c.xp_reward} XP</span>
+        </div>
+        <h4 class="challenge-card-title">${escapeHtml(c.title)}</h4>
+        <p class="challenge-card-desc">${escapeHtml(c.description || '')}</p>
+        <div class="challenge-card-meta">${c.start_date} – ${c.end_date}</div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><p>Could not load challenges.</p></div>`;
+  }
+}
+
+async function loadChallengesLeaderboard() {
+  const container = document.getElementById('coach-leaderboard');
+  if (!container) return;
+  container.innerHTML = '<div class="skeleton skeleton-card"></div>';
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/leaderboard`);
+    if (!res.ok) throw new Error('Failed to load leaderboard');
+    const { leaderboard } = await res.json();
+    if (!leaderboard || leaderboard.length === 0) {
+      container.innerHTML = `<div class="empty-state"><p>No players on leaderboard yet.</p></div>`;
+      return;
+    }
+    container.innerHTML = leaderboard.map((r, i) => {
+      const badges = (r.badges || []).map(b => `<span class="leaderboard-badge" title="${escapeHtml(b.name)}">${b.icon || '🏆'}</span>`).join('');
+      return `<div class="leaderboard-row">
+        <span class="leaderboard-rank">#${r.rank}</span>
+        <span class="leaderboard-name">${escapeHtml(r.name)}</span>
+        <span class="leaderboard-xp">${r.total_xp} XP</span>
+        <span class="leaderboard-level">Lv.${r.level}</span>
+        <span class="leaderboard-badges">${badges}</span>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><p>Could not load leaderboard.</p></div>`;
+  }
+}
+
+function openChallengeDetail(challengeId) {
+  fetchWithAuth(`${BACKEND_URL}/api/challenges/${challengeId}`)
+    .then(r => r.json())
+    .then(({ challenge, participations }) => {
+      document.getElementById('challenge-detail-title').textContent = challenge.title;
+      const typeLabels = { shooting: 'Shooting', defense: 'Defense', workout: 'Workout', film: 'Film', custom: 'Custom' };
+      const typeLabel = typeLabels[challenge.challenge_type] || challenge.challenge_type;
+      let html = `<p style="margin-bottom:12px;color:var(--text-muted)">${escapeHtml(challenge.description || '')}</p>`;
+      html += `<p><strong>Type:</strong> ${typeLabel} · <strong>Reward:</strong> +${challenge.xp_reward} XP</p>`;
+      html += `<p><strong>Dates:</strong> ${challenge.start_date} – ${challenge.end_date}</p>`;
+      html += `<h4 style="margin-top:16px;font-size:14px">Participations</h4>`;
+      if (!participations || participations.length === 0) {
+        html += `<p style="color:var(--text-muted);font-size:13px">No players have joined yet.</p>`;
+      } else {
+        html += `<div class="participation-list">`;
+        participations.forEach(p => {
+          const pct = challenge.goal_value ? Math.min(100, Math.round((p.progress_value / challenge.goal_value) * 100)) : 0;
+          html += `<div class="participation-row">
+            <span class="part-name">${escapeHtml(p.player_name)}</span>
+            <span class="part-progress">${p.progress_value} / ${challenge.goal_value}</span>
+            <span class="part-status">${p.completed ? '✓ Complete' : pct + '%'}</span>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+      document.getElementById('challenge-detail-body').innerHTML = html;
+      openModal('challenge-detail-modal');
+    })
+    .catch(() => showToast('Could not load challenge', IC.warn));
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function createChallenge() {
+  const title = document.getElementById('challenge-title')?.value?.trim();
+  const description = document.getElementById('challenge-description')?.value?.trim();
+  const challengeType = document.getElementById('challenge-type')?.value || 'custom';
+  const xpReward = parseInt(document.getElementById('challenge-xp')?.value || '100', 10);
+  const goalValue = parseFloat(document.getElementById('challenge-goal')?.value || '1');
+  const startDate = document.getElementById('challenge-start')?.value;
+  const endDate = document.getElementById('challenge-end')?.value;
+  const verificationType = document.getElementById('challenge-verification')?.value || 'manual';
+  if (!title || !startDate || !endDate) {
+    showToast('Title, start date, and end date are required', IC.warn);
+    return;
+  }
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/challenges`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        description,
+        challenge_type: challengeType,
+        xp_reward: xpReward,
+        goal_value: goalValue,
+        start_date: startDate,
+        end_date: endDate,
+        verification_type: verificationType
+      })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Failed to create challenge');
+    }
+    closeModal('challenge-create-modal');
+    document.getElementById('challenge-title').value = '';
+    document.getElementById('challenge-description').value = '';
+    document.getElementById('challenge-xp').value = '100';
+    document.getElementById('challenge-goal').value = '1';
+    loadChallengesList();
+    loadChallengesLeaderboard();
+    showToast('Challenge created!', IC.check);
+  } catch (err) {
+    showToast(err.message || 'Could not create challenge', IC.warn);
+  }
+}
+
+function openChallengeCreateModal() {
+  const today = new Date().toISOString().slice(0, 10);
+  const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const startEl = document.getElementById('challenge-start');
+  const endEl = document.getElementById('challenge-end');
+  if (startEl) startEl.value = today;
+  if (endEl) endEl.value = nextWeek;
+  openModal('challenge-create-modal');
+}
+
 // ===== ANALYSIS HISTORY DYNAMIC LIST =====
 async function loadClips() {
   const clipsList = document.getElementById('clips-list');
@@ -2846,6 +3067,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           initUpload();
           setupCanvasEvents();
           renderSparklines();
+          loadNotifications();
         }
       } else {
         setAuthToken(null);

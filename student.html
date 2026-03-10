@@ -549,6 +549,54 @@
                 </div>
             </div>
 
+            <!-- ===== CHALLENGES TAB ===== -->
+            <div class="tab-page" id="page-challenges">
+                <h1 class="page-title">Challenges</h1>
+                <p class="page-subtitle">Complete challenges, earn XP, and climb the leaderboard.</p>
+
+                <!-- XP & Level Summary -->
+                <div class="player-xp-card" id="player-xp-summary">
+                    <div class="xp-level-badge" id="xp-level">Lv.1</div>
+                    <div class="xp-info">
+                        <div class="xp-total" id="xp-total">0 XP</div>
+                        <div class="xp-badges" id="xp-badges"></div>
+                    </div>
+                </div>
+
+                <!-- Active Challenges -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                            Active Challenges
+                        </h3>
+                    </div>
+                    <div class="card-body card-body-flush" id="student-challenges-list">
+                        <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Loading challenges...</div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="20" x2="12" y2="10"></line>
+                                <line x1="18" y1="20" x2="18" y2="4"></line>
+                                <line x1="6" y1="20" x2="6" y2="16"></line>
+                            </svg>
+                            Team Leaderboard
+                        </h3>
+                    </div>
+                    <div class="card-body" id="student-leaderboard">
+                        <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Loading leaderboard...</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ===== MESSAGES TAB ===== -->
             <div class="tab-page" id="page-messages">
                 <div id="message-list-view">
@@ -765,6 +813,13 @@
                 </svg>
                 Drills
             </button>
+            <button class="tab-btn" data-tab="challenges" onclick="switchTab('challenges')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
+                Challenges
+            </button>
             <button class="tab-btn" data-tab="messages" onclick="switchTab('messages')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"></path>
@@ -797,6 +852,36 @@
             </div>
             <div class="settings-modal-body" id="settings-modal-body"></div>
         </div>
+    </div>
+
+    <!-- Challenge Progress Modal -->
+    <div class="challenge-modal-overlay" id="challenge-progress-modal" onclick="if(event.target===this)closeChallengeProgressModal()">
+        <div class="modal" style="max-width:400px">
+            <div class="modal-header">
+                <h3 id="challenge-progress-title">Submit Progress</h3>
+                <button class="btn-icon" onclick="closeChallengeProgressModal()" style="background:none;border:none;cursor:pointer;color:var(--text-secondary)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="challenge-progress-desc" style="color:var(--text-muted);font-size:13px;margin-bottom:12px"></p>
+                <div class="form-group">
+                    <label class="form-label">Progress Value</label>
+                    <input type="number" class="form-input" id="challenge-progress-value" min="0" step="0.1" placeholder="e.g. 150 shots">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Note (optional)</label>
+                    <input type="text" class="form-input" id="challenge-progress-note" placeholder="e.g. Made 150 at practice">
+                </div>
+                <button class="btn btn-primary" style="width:100%" onclick="submitChallengeProgress()">Submit Progress</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- XP Toast (animated) -->
+    <div id="xp-toast" class="xp-toast" style="display:none">
+        <span class="xp-toast-icon">🔥</span>
+        <span class="xp-toast-text" id="xp-toast-text">+100 XP — Challenge Complete!</span>
     </div>
 
     <!-- Game Detail Modal -->

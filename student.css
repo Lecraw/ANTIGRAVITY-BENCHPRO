@@ -2086,6 +2086,265 @@ body {
     color: var(--orange);
 }
 
+/* ===== CHALLENGES ===== */
+.player-xp-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--orange-glow) 0%, rgba(240, 74, 0, 0.05) 100%);
+    border: 1px solid var(--orange-glow-strong);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+}
+
+.xp-level-badge {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--orange);
+    min-width: 56px;
+    text-align: center;
+}
+
+.xp-info {
+    flex: 1;
+}
+
+.xp-total {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.xp-badges {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+}
+
+.xp-badge {
+    font-size: 18px;
+}
+
+.student-challenge-item {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.student-challenge-item:last-child {
+    border-bottom: none;
+}
+
+.student-challenge-item.completed {
+    background: rgba(34, 197, 94, 0.05);
+}
+
+.student-challenge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.student-challenge-type {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--orange);
+}
+
+.student-challenge-xp {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--green);
+}
+
+.student-challenge-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.student-challenge-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.student-challenge-progress {
+    margin-bottom: 12px;
+}
+
+.student-challenge-progress .progress-bar {
+    height: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.student-challenge-progress .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange-dark), var(--orange));
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.student-challenge-progress .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.leaderboard-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+
+.leaderboard-row:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-rank {
+    font-weight: 800;
+    color: var(--orange);
+    min-width: 24px;
+}
+
+.leaderboard-name {
+    flex: 1;
+}
+
+.leaderboard-xp {
+    font-weight: 700;
+    color: var(--green);
+}
+
+.leaderboard-level {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.leaderboard-badges {
+    display: flex;
+    gap: 2px;
+}
+
+.challenge-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.challenge-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.challenge-modal-overlay .modal {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.challenge-modal-overlay.active .modal {
+    transform: scale(1);
+}
+
+.challenge-modal-overlay .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.challenge-modal-overlay .modal-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.challenge-modal-overlay .modal-body {
+    padding: 20px;
+}
+
+.challenge-modal-overlay .form-group {
+    margin-bottom: 16px;
+}
+
+.challenge-modal-overlay .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.challenge-modal-overlay .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.xp-toast {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(240, 74, 0, 0.4);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+}
+
+.xp-toast.active {
+    opacity: 1;
+    visibility: visible;
+    animation: xpToastBounce 0.5s ease;
+}
+
+@keyframes xpToastBounce {
+    0% { transform: translateX(-50%) scale(0.8); }
+    50% { transform: translateX(-50%) scale(1.05); }
+    100% { transform: translateX(-50%) scale(1); }
+}
+
 /* ===== GAME DETAIL MODAL ===== */
 .game-detail-overlay {
     position: fixed;

@@ -656,6 +656,150 @@ body.light-mode ::-webkit-scrollbar-thumb:hover {
   margin-bottom: 28px;
 }
 
+/* ===== CHALLENGES ===== */
+.challenges-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  margin-bottom: 28px;
+}
+
+.challenge-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.challenge-card:hover {
+  border-color: var(--orange);
+  background: var(--bg-card-hover);
+  box-shadow: 0 4px 20px rgba(240, 74, 0, 0.08);
+}
+
+.challenge-card.expired {
+  opacity: 0.7;
+}
+
+.challenge-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.challenge-type-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--orange);
+  background: var(--orange-glow);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.challenge-xp {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.challenge-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.challenge-card-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.challenge-card-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.leaderboard-row:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-rank {
+  font-weight: 800;
+  color: var(--orange);
+  min-width: 28px;
+}
+
+.leaderboard-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.leaderboard-xp {
+  font-weight: 700;
+  color: var(--green);
+}
+
+.leaderboard-level {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.leaderboard-badges {
+  display: flex;
+  gap: 4px;
+}
+
+.leaderboard-badge {
+  font-size: 14px;
+}
+
+.participation-list {
+  margin-top: 8px;
+}
+
+.participation-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.participation-row:last-child {
+  border-bottom: none;
+}
+
+.part-name {
+  flex: 1;
+}
+
+.part-progress {
+  color: var(--text-secondary);
+}
+
+.part-status {
+  font-weight: 600;
+  color: var(--green);
+}
+
 /* ===== BUTTONS ===== */
 .btn {
   display: inline-flex;
@@ -1614,13 +1758,59 @@ body.light-mode ::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* Hamburger button - hidden on desktop */
+.hamburger-btn {
+  display: none;
+}
+
 @media (max-width: 768px) {
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
   .sidebar {
     width: 0;
+    transform: translateX(-100%);
+    box-shadow: none;
   }
 
   .sidebar:hover {
-    width: var(--sidebar-expanded);
+    width: 0;
+    transform: translateX(-100%);
+  }
+
+  /* Mobile: sidebar slides in from left */
+  .sidebar.mobile-open {
+    width: min(280px, 85vw);
+    transform: translateX(0);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+  }
+
+  .sidebar.mobile-open .nav-item span,
+  .sidebar.mobile-open .nav-section-label,
+  .sidebar.mobile-open .sidebar-logo span,
+  .sidebar.mobile-open .plan-badge-text {
+    opacity: 1;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+
+  .sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
   }
 
   .main-content {
@@ -1652,7 +1842,24 @@ body.light-mode ::-webkit-scrollbar-thumb:hover {
   }
 
   .header-search {
-    min-width: 160px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .header-search input {
+    min-width: 0;
+  }
+
+  .header {
+    padding: 0 16px;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .connection-dot {
+    display: none;
   }
 
   .page-title {
@@ -1666,6 +1873,29 @@ body.light-mode ::-webkit-scrollbar-thumb:hover {
   .form-row {
     flex-direction: column;
     gap: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 16px 12px;
+  }
+
+  .page-title {
+    font-size: 18px;
+  }
+
+  .game-card,
+  .analysis-entry {
+    padding: 12px;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+
+  .section-grid {
+    gap: 16px;
   }
 }
 

@@ -319,6 +319,12 @@ function switchTab(tab) {
     if (tab === 'upload' && typeof loadStudentClips === 'function') {
         loadStudentClips();
     }
+    // Load challenges when switching to challenges tab
+    if (tab === 'challenges' && typeof loadStudentChallenges === 'function') {
+        loadStudentChallenges();
+        loadStudentLeaderboard();
+        loadStudentXP();
+    }
 }
 
 // ===== TOAST =====
@@ -651,6 +657,172 @@ async function loadStudentClips() {
         console.error('Failed to load clips:', err);
         clipsList.innerHTML = `<div class="empty-state" style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Could not load clips. ${err.message}</div>`;
     }
+}
+
+// ===== CHALLENGES (Player) =====
+let currentChallengeProgressId = null;
+let currentChallengeProgressCid = null;
+
+async function loadStudentChallenges() {
+    const list = document.getElementById('student-challenges-list');
+    if (!list) return;
+    if (!getStudentAuthToken()) {
+        list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Log in to see challenges.</div>';
+        return;
+    }
+    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Loading challenges...</div>';
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/challenges`);
+        if (!res.ok) throw new Error('Failed to load challenges');
+        const { challenges } = await res.json();
+        if (!challenges || challenges.length === 0) {
+            list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">No active challenges. Your coach will add some soon!</div>';
+            return;
+        }
+        list.innerHTML = '';
+        for (const c of challenges) {
+            const detailRes = await fetchWithAuth(`${BACKEND_URL}/api/challenges/${c.id}`);
+            const { challenge, participation } = await detailRes.json();
+            const part = participation || { progress_value: 0, completed: 0 };
+            const goal = parseFloat(challenge.goal_value) || 1;
+            const progress = parseFloat(part.progress_value) || 0;
+            const pct = goal > 0 ? Math.min(100, Math.round((progress / goal) * 100)) : 0;
+            const endDate = challenge.end_date ? new Date(challenge.end_date + 'T23:59:59') : null;
+            const daysLeft = endDate ? Math.max(0, Math.ceil((endDate - new Date()) / (24 * 60 * 60 * 1000))) : 0;
+            const typeLabels = { shooting: 'Shooting', defense: 'Defense', workout: 'Workout', film: 'Film', custom: 'Custom' };
+            const typeLabel = typeLabels[challenge.challenge_type] || challenge.challenge_type;
+            const item = document.createElement('div');
+            item.className = 'student-challenge-item' + (part.completed ? ' completed' : '');
+            item.innerHTML = `
+                <div class="student-challenge-header">
+                    <span class="student-challenge-type">${typeLabel}</span>
+                    <span class="student-challenge-xp">+${challenge.xp_reward} XP</span>
+                </div>
+                <h4 class="student-challenge-title">${escapeHtml(challenge.title)}</h4>
+                <p class="student-challenge-desc">${escapeHtml(challenge.description || '')}</p>
+                <div class="student-challenge-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:${pct}%"></div>
+                    </div>
+                    <div class="progress-labels">
+                        <span>${progress} / ${goal}</span>
+                        <span>${daysLeft} days left</span>
+                    </div>
+                </div>
+                ${part.completed ? '<span class="badge badge-green">Complete</span>' : `<button class="btn btn-primary btn-sm" data-submit-challenge="${c.id}">Submit Progress</button>`}
+            `;
+            list.appendChild(item);
+            if (!part.completed) {
+                const btn = item.querySelector(`[data-submit-challenge="${c.id}"]`);
+                btn.addEventListener('click', () => openChallengeProgressModal(c.id, challenge));
+            }
+        }
+    } catch (err) {
+        list.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Could not load challenges.</div>`;
+    }
+}
+
+async function loadStudentLeaderboard() {
+    const list = document.getElementById('student-leaderboard');
+    if (!list) return;
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/leaderboard`);
+        if (!res.ok) throw new Error('Failed to load leaderboard');
+        const { leaderboard } = await res.json();
+        if (!leaderboard || leaderboard.length === 0) {
+            list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">No players on leaderboard yet.</div>';
+            return;
+        }
+        list.innerHTML = leaderboard.map(r => {
+            const badges = (r.badges || []).map(b => `<span title="${escapeHtml(b.name)}">${b.icon || '🏆'}</span>`).join('');
+            return `<div class="leaderboard-row"><span class="leaderboard-rank">#${r.rank}</span><span class="leaderboard-name">${escapeHtml(r.name)}</span><span class="leaderboard-xp">${r.total_xp} XP</span><span class="leaderboard-level">Lv.${r.level}</span><span class="leaderboard-badges">${badges}</span></div>`;
+        }).join('');
+    } catch (err) {
+        list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Could not load leaderboard.</div>';
+    }
+}
+
+async function loadStudentXP() {
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/me/xp`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const levelEl = document.getElementById('xp-level');
+        const totalEl = document.getElementById('xp-total');
+        const badgesEl = document.getElementById('xp-badges');
+        if (levelEl) levelEl.textContent = 'Lv.' + (data.level || 1);
+        if (totalEl) totalEl.textContent = (data.total_xp || 0) + ' XP';
+        if (badgesEl && data.badges && data.badges.length) {
+            badgesEl.innerHTML = data.badges.map(b => `<span class="xp-badge" title="${escapeHtml(b.name)}">${b.icon || '🏆'}</span>`).join('');
+        } else if (badgesEl) badgesEl.innerHTML = '';
+    } catch (err) {}
+}
+
+function escapeHtml(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+function openChallengeProgressModal(challengeId, challenge) {
+    currentChallengeProgressId = challengeId;
+    currentChallengeProgressCid = challenge;
+    document.getElementById('challenge-progress-title').textContent = challenge.title;
+    document.getElementById('challenge-progress-desc').textContent = challenge.description || 'Enter your progress toward the goal.';
+    document.getElementById('challenge-progress-value').value = challenge.goal_value || '';
+    document.getElementById('challenge-progress-value').placeholder = 'e.g. ' + (challenge.goal_value || 1);
+    document.getElementById('challenge-progress-note').value = '';
+    document.getElementById('challenge-progress-modal').classList.add('active');
+}
+
+function closeChallengeProgressModal() {
+    currentChallengeProgressId = null;
+    currentChallengeProgressCid = null;
+    document.getElementById('challenge-progress-modal').classList.remove('active');
+}
+
+async function submitChallengeProgress() {
+    if (!currentChallengeProgressId) return;
+    const val = parseFloat(document.getElementById('challenge-progress-value').value);
+    const note = document.getElementById('challenge-progress-note').value.trim();
+    if (isNaN(val) || val < 0) {
+        showToast('Enter a valid progress value', SIC.warn);
+        return;
+    }
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/challenges/${currentChallengeProgressId}/progress`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ progress_value: val, proof_note: note })
+        });
+        const data = await res.json();
+        closeChallengeProgressModal();
+        if (data.completion) {
+            showXPToast('+' + data.completion.xp_awarded + ' XP — Challenge Complete!');
+            loadStudentChallenges();
+            loadStudentLeaderboard();
+            loadStudentXP();
+        } else {
+            showToast('Progress updated!', SIC.check);
+            loadStudentChallenges();
+        }
+    } catch (err) {
+        showToast(err.message || 'Could not submit progress', SIC.warn);
+    }
+}
+
+function showXPToast(text) {
+    const el = document.getElementById('xp-toast');
+    const textEl = document.getElementById('xp-toast-text');
+    if (!el || !textEl) return;
+    textEl.textContent = text;
+    el.style.display = 'flex';
+    el.classList.add('active');
+    setTimeout(() => {
+        el.classList.remove('active');
+        setTimeout(() => { el.style.display = 'none'; }, 400);
+    }, 2500);
 }
 
 function buildStudentChartData(playerStats, ballStats, eventStats, teamStats, aiInsights) {
