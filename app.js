@@ -2915,7 +2915,7 @@ async function showResults(gameId) {
     const res = await fetchWithAuth(`${BACKEND_URL}/api/analysis/${gameId}`);
     const data = await res.json();
 
-    const detailPanel = document.getElementById(`video-detail-${gameId}`);
+    const detailPanel = document.getElementById(`clip-detail-${gameId}`);
     if (!detailPanel) return;
 
     const analysis = data.analysis || {};
@@ -3017,7 +3017,7 @@ async function showResults(gameId) {
     }
   } catch (err) {
     console.error('Failed to load results:', err);
-    const detailPanel = document.getElementById(`video-detail-${gameId}`);
+    const detailPanel = document.getElementById(`clip-detail-${gameId}`);
     if (detailPanel) {
       detailPanel.innerHTML = `<div style="color:var(--red);font-size:13px">Failed to load analysis results: ${err.message}</div>`;
     }
