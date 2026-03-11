@@ -859,31 +859,31 @@ def submit_progress(challenge_id, current_user):
     part = models.get_or_create_participation(challenge_id, current_user['id'])
     completed = progress_value >= goal_value
     result = {'participation': part, 'completed': completed}
-        if completed:
-            outcome = challenges_service.complete_challenge(part['id'], current_user['id'])
-            if outcome:
-                result['completion'] = outcome
+    if completed:
+        outcome = challenges_service.complete_challenge(part['id'], current_user['id'])
+        if outcome:
+            result['completion'] = outcome
+            models.create_notification(
+                current_user['id'], 'challenge_complete',
+                'Challenge Complete! +%d XP' % outcome.get('xp_awarded', 0),
+                'You earned %d XP. Level %d!' % (outcome.get('xp_awarded', 0), outcome.get('level', 1)),
+                '{"challenge_id": %d}' % challenge_id
+            )
+            prev_r, new_r = outcome.get('prev_rank'), outcome.get('new_rank')
+            if prev_r and new_r and new_r < prev_r:
                 models.create_notification(
-                    current_user['id'], 'challenge_complete',
-                    'Challenge Complete! +%d XP' % outcome.get('xp_awarded', 0),
-                    'You earned %d XP. Level %d!' % (outcome.get('xp_awarded', 0), outcome.get('level', 1)),
-                    '{"challenge_id": %d}' % challenge_id
+                    current_user['id'], 'rank_change',
+                    'Leaderboard: You moved up to #%d!' % new_r,
+                    'You climbed %d spots on the team leaderboard.' % (prev_r - new_r),
+                    '{}'
                 )
-                prev_r, new_r = outcome.get('prev_rank'), outcome.get('new_rank')
-                if prev_r and new_r and new_r < prev_r:
-                    models.create_notification(
-                        current_user['id'], 'rank_change',
-                        'Leaderboard: You moved up to #%d!' % new_r,
-                        'You climbed %d spots on the team leaderboard.' % (prev_r - new_r),
-                        '{}'
-                    )
                 for b in outcome.get('badges_unlocked', []):
-                models.create_notification(
-                    current_user['id'], 'badge_unlock',
-                    'Badge Unlocked: %s' % b.get('name', ''),
-                    b.get('description', '') + ' +%d XP bonus!' % (b.get('xp_bonus', 0)),
-                    '{"badge_id": %d}' % b.get('id', 0)
-                )
+                    models.create_notification(
+                        current_user['id'], 'badge_unlock',
+                        'Badge Unlocked: %s' % b.get('name', ''),
+                        b.get('description', '') + ' +%d XP bonus!' % (b.get('xp_bonus', 0)),
+                        '{"badge_id": %d}' % b.get('id', 0)
+                    )
     return jsonify(result), 200
 
 
