@@ -341,7 +341,7 @@ def _init_users():
 
 # ===== USER CRUD =====
 
-def create_user(email, password_hash, name, user_type='coach', team_code='', plan='standard'):
+def create_user(email, password_hash, name, user_type='coach', team_code='', plan='free'):
     """Create a new user. Returns user dict or None if email exists. New users start unverified."""
     conn = get_db()
     try:
@@ -397,8 +397,8 @@ def get_or_create_oauth_user(provider, subject_id, email, name, user_type='coach
     conn = get_db()
     try:
         cur = conn.execute(
-            """INSERT INTO users (email, password_hash, name, user_type, oauth_provider, oauth_subject_id, email_verified)
-               VALUES (?, ?, ?, ?, ?, ?, 1)""",
+            """INSERT INTO users (email, password_hash, name, user_type, oauth_provider, oauth_subject_id, plan, email_verified)
+               VALUES (?, ?, ?, ?, ?, ?, 'free', 1)""",
             (email.lower(), placeholder, name, user_type, provider, subject_id)
         )
         user_id = cur.lastrowid
@@ -814,6 +814,30 @@ def get_challenges_for_team(team_code, include_expired=False):
         ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+FREE_UPLOADS_PER_WEEK = 2  # Video uploads per 7 days for free plan
+
+
+def count_uploads_this_week(user_id):
+    """Count video uploads (games) by user in the last 7 days."""
+    conn = get_db()
+    row = conn.execute("""
+        SELECT COUNT(*) as n FROM games
+        WHERE user_id = ? AND created_at >= datetime('now', '-7 days')
+    """, (user_id,)).fetchone()
+    conn.close()
+    return row['n'] if row else 0
+
+
+def can_upload_video(user_id, plan):
+    """Check if user can upload a video (free plan has weekly limit)."""
+    if plan not in ('free',):
+        return True, None
+    count = count_uploads_this_week(user_id)
+    if count >= FREE_UPLOADS_PER_WEEK:
+        return False, f'Free plan limit: {FREE_UPLOADS_PER_WEEK} uploads per week. Upgrade for unlimited.'
+    return True, None
 
 
 def get_players_with_team_code(team_code):

@@ -168,7 +168,7 @@ def auth_signup():
     if user_type not in ('coach', 'player'):
         user_type = 'coach'
     team_code = (data.get('team_code') or '').strip()
-    plan = (data.get('plan') or 'standard').lower()
+    plan = (data.get('plan') or 'free').lower()
 
     if not email or not password or not name:
         return jsonify({'error': 'Email, password, and name are required'}), 400
@@ -444,6 +444,12 @@ def upload_video(current_user):
     - opponent: opponent team name (optional)
     - date: game date (optional)
     """
+    # Freemium: free plan has weekly upload limit
+    plan = current_user.get('plan') or 'free'
+    ok, err = models.can_upload_video(current_user['id'], plan)
+    if not ok:
+        return jsonify({'error': err}), 403
+
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
 
@@ -499,7 +505,12 @@ def upload_video(current_user):
 def upload_stats(current_user):
     """
     Upload a game stat sheet (image or CSV) for analysis. Saves to DB and returns analysis.
+    Freemium: stat sheet upload is not available on free plan.
     """
+    plan = current_user.get('plan') or 'free'
+    if plan == 'free':
+        return jsonify({'error': 'Stat sheet upload is a premium feature. Upgrade to Standard or Elite for access.'}), 403
+
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
 
@@ -1002,6 +1013,23 @@ def list_flairs(current_user):
         f['unlocked'] = f['id'] in unlocked_ids
         f['equipped'] = f['id'] == equipped_id
     return jsonify({'flairs': flairs}), 200
+
+
+@app.route('/api/me/usage')
+@require_auth
+def get_my_usage(current_user):
+    """Get upload usage for freemium (coaches on free plan)."""
+    plan = current_user.get('plan') or 'free'
+    if plan != 'free':
+        return jsonify({'plan': plan, 'unlimited': True}), 200
+    count = models.count_uploads_this_week(current_user['id'])
+    limit = models.FREE_UPLOADS_PER_WEEK
+    return jsonify({
+        'plan': 'free',
+        'upload_count': count,
+        'upload_limit': limit,
+        'remaining': max(0, limit - count)
+    }), 200
 
 
 @app.route('/api/me/flair', methods=['POST'])

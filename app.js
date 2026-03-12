@@ -48,7 +48,7 @@ const IC = {
 
 // ===== STATE =====
 let currentPage = 'dashboard';
-let currentPlan = 'elite';
+let currentPlan = 'free';  // Synced from currentUser.plan
 let currentUser = null;  // { id, email, name, user_type, team_code, plan } from auth
 let drawTool = 'pen';
 let drawColor = '#F04A00';
@@ -94,6 +94,7 @@ function navigateTo(page) {
   if (page === 'dashboard') loadDashboardRecentGames();
   if (page === 'draw-plays') initCanvas();
   if (page === 'player-stats') renderPlayerCharts();
+  if (page === 'upload-film') updateFreePlanUI();
   if (page === 'ai-analysis') renderAnalysisCharts();
   if (page === 'analysis-history') {
     document.querySelector('.main-content')?.scrollTo(0, 0);
@@ -201,6 +202,36 @@ document.addEventListener('click', (e) => {
 });
 
 // ===== UPLOAD GAME FILM =====
+function updateFreePlanUI() {
+  const plan = (currentUser && currentUser.plan) || 'free';
+  currentPlan = plan;
+  const statCard = document.getElementById('stat-sheet-card');
+  const aiCard = document.getElementById('ai-chat-card');
+  const usageEl = document.getElementById('upload-usage-free');
+  const planNameEl = document.querySelector('.plan-badge .plan-name');
+  if (statCard) statCard.style.display = plan === 'free' ? 'none' : '';
+  if (aiCard) aiCard.style.display = plan === 'free' ? 'none' : '';
+  if (planNameEl) planNameEl.textContent = (plan === 'elite' ? 'Elite' : plan === 'standard' ? 'Standard' : 'Free') + ' Plan';
+  if (usageEl) {
+    if (plan === 'free') {
+      usageEl.style.display = '';
+      fetchUploadUsage().then(u => {
+        if (u && !u.unlimited) usageEl.textContent = `${u.upload_count} / ${u.upload_limit} uploads this week`;
+      });
+    } else {
+      usageEl.style.display = 'none';
+    }
+  }
+}
+
+async function fetchUploadUsage() {
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/me/usage`);
+    if (res.ok) return res.json();
+  } catch {}
+  return null;
+}
+
 function initUpload() {
   const zone = document.getElementById('upload-zone');
   const fileInput = document.getElementById('file-input');
@@ -1233,6 +1264,7 @@ async function realUploadAndAnalyze(file, title, opponent, displayDate) {
           showToast(`Analysis of "${title}" complete!`, IC.check);
           addNotification(IC.upload, 'purple', `Film <strong>${title}</strong> analyzed.`, 'Just now');
 
+          if (currentUser && currentUser.plan === 'free') updateFreePlanUI();
           loadDashboardRecentGames();
           if (currentPage === 'analysis-history' && typeof loadClips === 'function') {
             await loadClips();
@@ -1946,7 +1978,7 @@ function switchPlayer(name) {
 
 // ===== AUTH SCREEN =====
 let signupStep = 1;
-let selectedSignupPlan = 'elite';
+let selectedSignupPlan = 'free';
 
 function showAuthTab(tab) {
   document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -2069,6 +2101,7 @@ async function handleLogin() {
     const userName = user.name || 'Coach';
     const initials = userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     updateUserUI(userName, initials, user.email || email);
+    updateFreePlanUI();
     const authScreen = document.getElementById('auth-screen');
     authScreen.classList.add('hidden');
     setTimeout(() => {
@@ -3070,6 +3103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           const name = user.name || 'Coach';
           const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
           updateUserUI(name, initials, user.email || '');
+          updateFreePlanUI();
           const authScreen = document.getElementById('auth-screen');
           if (authScreen) {
             authScreen.classList.add('hidden');

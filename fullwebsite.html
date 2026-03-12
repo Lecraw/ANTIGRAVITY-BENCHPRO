@@ -298,7 +298,21 @@
           <div class="signup-step" id="signup-step-3">
             <h2 class="step-title">Choose Your Plan</h2>
             <p class="step-desc">Select the plan that fits your coaching needs.</p>
-            <div class="signup-plans">
+            <div class="signup-plans signup-plans-three">
+              <div class="signup-plan-card selected" data-plan="free" onclick="selectSignupPlan('free')">
+                <div class="plan-card-header">
+                  <h3>Free</h3>
+                  <p>Try BenchPro</p>
+                </div>
+                <div class="plan-price">$0<span>/month</span></div>
+                <ul class="plan-features">
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12" /></svg> 2 Video Uploads / Week</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12" /></svg> Basic Analysis</li>
+                  <li><svg viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12" /></svg> Play Designer</li>
+                  <li style="color:var(--text-muted)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No AI Chatbot</li>
+                  <li style="color:var(--text-muted)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> No Stat Sheet Upload</li>
+                </ul>
+              </div>
               <div class="signup-plan-card" data-plan="standard" onclick="selectSignupPlan('standard')">
                 <div class="plan-card-header">
                   <h3>Standard</h3>
@@ -324,7 +338,7 @@
                     </svg> Play Designer</li>
                 </ul>
               </div>
-              <div class="signup-plan-card popular selected" data-plan="elite" onclick="selectSignupPlan('elite')">
+              <div class="signup-plan-card popular" data-plan="elite" onclick="selectSignupPlan('elite')">
                 <div class="plan-badge-label">MOST POPULAR</div>
                 <div class="plan-card-header">
                   <h3>Elite</h3>
@@ -809,6 +823,7 @@
             </svg>
             <p><span class="highlight">Click to browse</span> or drag and drop your game film here</p>
             <p style="font-size:12px;color:var(--text-muted);margin-top:8px">MP4, MOV, AVI · Max 5GB</p>
+            <p id="upload-usage-free" style="display:none;font-size:12px;color:var(--text-muted);margin-top:4px"></p>
           </div>
           <input type="file" id="file-input-clip" style="display:none" accept="video/*"
             onchange="handleClipFileSelect(this)">
@@ -830,8 +845,8 @@
         </div>
       </div>
 
-      <!-- ===== STAT SHEET UPLOAD SECTION ===== -->
-      <div class="card" style="max-width:100%;margin-top:20px">
+      <!-- ===== STAT SHEET UPLOAD SECTION (Premium) ===== -->
+      <div class="card" id="stat-sheet-card" style="max-width:100%;margin-top:20px">
         <div class="card-header">
           <h3><span class="inline-icon"><i data-lucide="file-spreadsheet" style="width:20px;height:20px;"></i></span>
             Upload Stat Sheet</h3>
@@ -1305,8 +1320,8 @@
         </div>
       </div>
 
-      <!-- AI Chat Analysis -->
-      <div class="card" style="margin-top:20px">
+      <!-- AI Chat Analysis (Premium) -->
+      <div class="card" id="ai-chat-card" style="margin-top:20px">
         <div class="card-header">
           <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />

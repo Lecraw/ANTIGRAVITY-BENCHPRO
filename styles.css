@@ -3277,6 +3277,10 @@ body.light-mode ::-webkit-scrollbar-thumb:hover {
   gap: 16px;
 }
 
+.signup-plans-three {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
 .signup-plan-card {
   background: var(--bg-secondary);
   border: 2px solid var(--border);
@@ -3425,7 +3429,8 @@ body.light-mode ::-webkit-scrollbar-thumb:hover {
     font-size: 22px;
   }
 
-  .signup-plans {
+  .signup-plans,
+  .signup-plans-three {
     grid-template-columns: 1fr;
   }
 
