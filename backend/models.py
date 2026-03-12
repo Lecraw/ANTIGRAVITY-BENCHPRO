@@ -295,9 +295,9 @@ def init_db():
         )
         conn.commit()
 
-    # Ensure demo coach (coachw@gmail.com / 12345) always works and has team_code for challenges
+    # Ensure demo coach (coachw@gmail.com / 12345) always works: elite plan, team_code for challenges
     conn.execute(
-        "UPDATE users SET email_verified = 1 WHERE email = 'coachw@gmail.com'"
+        "UPDATE users SET email_verified = 1, plan = 'elite' WHERE email = 'coachw@gmail.com'"
     )
     coach = conn.execute("SELECT id, team_code FROM users WHERE email = 'coachw@gmail.com'").fetchone()
     if coach and (not coach['team_code'] or coach['team_code'] == ''):
@@ -316,7 +316,7 @@ def _init_users():
     row = conn.execute("SELECT COUNT(*) as n FROM users").fetchone()
     if row and row['n'] == 0:
         conn.execute(
-            "INSERT INTO users (email, password_hash, name, user_type, email_verified) VALUES (?, ?, ?, 'coach', 1)",
+            "INSERT INTO users (email, password_hash, name, user_type, plan, email_verified) VALUES (?, ?, ?, 'coach', 'elite', 1)",
             ('coachw@gmail.com', generate_password_hash('12345'), 'Coach Wilson')
         )
         conn.execute(
@@ -329,12 +329,12 @@ def _init_users():
         coach = conn.execute("SELECT id FROM users WHERE email = 'coachw@gmail.com'").fetchone()
         if not coach:
             conn.execute(
-                "INSERT INTO users (email, password_hash, name, user_type, email_verified) VALUES (?, ?, ?, 'coach', 1)",
+                "INSERT INTO users (email, password_hash, name, user_type, plan, email_verified) VALUES (?, ?, ?, 'coach', 'elite', 1)",
                 ('coachw@gmail.com', generate_password_hash('12345'), 'Coach Wilson')
             )
             conn.commit()
         else:
-            conn.execute("UPDATE users SET email_verified = 1 WHERE email = 'coachw@gmail.com'")
+            conn.execute("UPDATE users SET email_verified = 1, plan = 'elite' WHERE email = 'coachw@gmail.com'")
             conn.commit()
     conn.close()
 

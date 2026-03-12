@@ -1051,7 +1051,19 @@ async function fetchWithAuth(url, opts = {}) {
   const token = getAuthToken();
   const headers = { ...(opts.headers || {}) };
   if (token) headers['Authorization'] = 'Bearer ' + token;
-  return fetch(url, { ...opts, headers });
+  const res = await fetch(url, { ...opts, headers });
+  // On 401, clear stale token and show login so user can re-authenticate
+  if (res.status === 401 && !url.includes('/api/auth/me') && !url.includes('/api/auth/login')) {
+    setAuthToken(null);
+    currentUser = null;
+    const authScreen = document.getElementById('auth-screen');
+    if (authScreen) {
+      authScreen.classList.remove('hidden');
+      authScreen.style.display = '';
+    }
+    showToast('Session expired. Please log in again.', IC.warn);
+  }
+  return res;
 }
 
 let _lastBackendState = null;

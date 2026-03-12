@@ -34,8 +34,9 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 app.config['SECRET_KEY'] = SECRET_KEY or 'dev-secret-change-in-production'
 
 # CORS — restrict origins in production (set CORS_ORIGINS env var)
+# Explicitly allow Authorization header for Bearer token auth
 cors_kw = {'origins': CORS_ORIGINS.split(',')} if CORS_ORIGINS != '*' else {}
-CORS(app, **cors_kw)
+CORS(app, allow_headers=['Authorization', 'Content-Type'], **cors_kw)
 
 # Rate limiting (in-memory; use Redis for multi-worker production)
 limiter = Limiter(
