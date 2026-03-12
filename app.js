@@ -2519,19 +2519,31 @@ async function loadChallengesList() {
 
 async function loadChallengesLeaderboard() {
   const container = document.getElementById('coach-leaderboard');
+  const spotEl = document.getElementById('coach-weekly-winner');
+  const winnerName = document.getElementById('coach-weekly-winner-name');
+  const winnerXp = document.getElementById('coach-weekly-winner-xp');
   if (!container) return;
   container.innerHTML = '<div class="skeleton skeleton-card"></div>';
   try {
     const res = await fetchWithAuth(`${BACKEND_URL}/api/leaderboard`);
     if (!res.ok) throw new Error('Failed to load leaderboard');
-    const { leaderboard } = await res.json();
+    const { leaderboard, weekly_winner } = await res.json();
+    if (weekly_winner && spotEl && winnerName && winnerXp) {
+      winnerName.textContent = weekly_winner.name;
+      winnerXp.textContent = weekly_winner.weekly_xp + ' XP this week';
+      spotEl.style.display = 'flex';
+    } else if (spotEl) spotEl.style.display = 'none';
     if (!leaderboard || leaderboard.length === 0) {
       container.innerHTML = `<div class="empty-state"><p>No players on leaderboard yet.</p></div>`;
       return;
     }
-    container.innerHTML = leaderboard.map((r, i) => {
+    const winnerId = weekly_winner ? weekly_winner.player_id : null;
+    container.innerHTML = leaderboard.map((r) => {
       const badges = (r.badges || []).map(b => `<span class="leaderboard-badge" title="${escapeHtml(b.name)}">${b.icon || '🏆'}</span>`).join('');
-      return `<div class="leaderboard-row">
+      const flair = (r.flair && r.flair.icon) ? r.flair.icon : '🌱';
+      const isWinner = r.is_weekly_winner || r.player_id === winnerId;
+      return `<div class="leaderboard-row ${isWinner ? 'weekly-winner-row' : ''}">
+        <span class="leaderboard-flair">${flair}</span>
         <span class="leaderboard-rank">#${r.rank}</span>
         <span class="leaderboard-name">${escapeHtml(r.name)}</span>
         <span class="leaderboard-xp">${r.total_xp} XP</span>

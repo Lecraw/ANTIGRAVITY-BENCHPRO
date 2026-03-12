@@ -195,8 +195,26 @@ def init_db():
             total_xp INTEGER DEFAULT 0,
             level INTEGER DEFAULT 1,
             challenges_completed INTEGER DEFAULT 0,
+            last_daily_login_date TEXT DEFAULT NULL,
             updated_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (player_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS flairs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            icon TEXT NOT NULL,
+            unlock_criteria_type TEXT NOT NULL DEFAULT 'level',
+            unlock_criteria_value INTEGER NOT NULL DEFAULT 1,
+            sort_order INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS player_flair (
+            player_id INTEGER PRIMARY KEY,
+            flair_id INTEGER NOT NULL,
+            FOREIGN KEY (player_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (flair_id) REFERENCES flairs(id) ON DELETE CASCADE
         );
 
         CREATE TABLE IF NOT EXISTS badges (
@@ -233,6 +251,31 @@ def init_db():
         );
     """)
     conn.commit()
+
+    # Migration: add last_daily_login_date to player_xp if missing
+    try:
+        conn.execute("ALTER TABLE player_xp ADD COLUMN last_daily_login_date TEXT DEFAULT NULL")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
+
+    # Seed default flairs if empty
+    row = conn.execute("SELECT COUNT(*) as n FROM flairs").fetchone()
+    if row and row['n'] == 0:
+        conn.executemany(
+            """INSERT INTO flairs (name, icon, unlock_criteria_type, unlock_criteria_value, sort_order)
+               VALUES (?, ?, ?, ?, ?)""",
+            [
+                ('Rookie', '🌱', 'level', 1, 0),
+                ('Rising Star', '⭐', 'level', 2, 1),
+                ('Baller', '🏀', 'level', 3, 2),
+                ('Clutch', '⚡', 'level', 4, 3),
+                ('All-Star', '🌟', 'level', 5, 4),
+                ('MVP', '👑', 'level', 7, 5),
+                ('Legend', '🏆', 'level', 10, 6),
+            ]
+        )
+        conn.commit()
 
     # Seed default badges if empty
     row = conn.execute("SELECT COUNT(*) as n FROM badges").fetchone()
@@ -890,6 +933,7 @@ def get_or_create_player_xp(player_id):
         "INSERT INTO player_xp (player_id, total_xp, level, challenges_completed) VALUES (?, 0, 1, 0)",
         (player_id,)
     )
+    conn.execute("INSERT OR IGNORE INTO player_flair (player_id, flair_id) VALUES (?, 1)", (player_id,))
     conn.commit()
     row = conn.execute("SELECT * FROM player_xp WHERE player_id = ?", (player_id,)).fetchone()
     conn.close()
@@ -1040,6 +1084,129 @@ def get_unread_notification_count(user_id):
     ).fetchone()
     conn.close()
     return row['n'] if row else 0
+
+
+# ===== FLAIRS =====
+
+def get_all_flairs():
+    """Get all flair definitions ordered by sort_order."""
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM flairs ORDER BY sort_order, id").fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_unlocked_flair_ids(player_id):
+    """Get flair IDs the player has unlocked (by level)."""
+    pxp = get_or_create_player_xp(player_id)
+    level = pxp.get('level') or 1
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id FROM flairs WHERE unlock_criteria_type = 'level' AND unlock_criteria_value <= ? ORDER BY unlock_criteria_value DESC",
+        (level,)
+    ).fetchall()
+    conn.close()
+    return [r['id'] for r in rows]
+
+
+def get_equipped_flair(player_id):
+    """Get the flair the player has equipped. Returns flair dict or None."""
+    conn = get_db()
+    row = conn.execute("""
+        SELECT f.* FROM flairs f
+        JOIN player_flair pf ON pf.flair_id = f.id
+        WHERE pf.player_id = ?
+    """, (player_id,)).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def set_equipped_flair(player_id, flair_id):
+    """Set player's equipped flair. Flair must be unlocked. Returns True if set."""
+    unlocked = get_unlocked_flair_ids(player_id)
+    if flair_id not in unlocked:
+        return False
+    conn = get_db()
+    conn.execute(
+        "INSERT OR REPLACE INTO player_flair (player_id, flair_id) VALUES (?, ?)",
+        (player_id, flair_id)
+    )
+    conn.commit()
+    conn.close()
+    return True
+
+
+# ===== DAILY LOGIN BONUS =====
+
+DAILY_BONUS_XP = 5
+
+def claim_daily_login_bonus(player_id):
+    """Claim daily login bonus if not yet claimed today. Returns (awarded: bool, xp: int)."""
+    from datetime import date
+    today = date.today().isoformat()
+    conn = get_db()
+    pxp = get_or_create_player_xp(player_id)
+    last = pxp.get('last_daily_login_date')
+    if last == today:
+        conn.close()
+        return False, 0
+    conn.execute(
+        "UPDATE player_xp SET last_daily_login_date = ?, total_xp = total_xp + ?, updated_at = datetime('now') WHERE player_id = ?",
+        (today, DAILY_BONUS_XP, player_id)
+    )
+    conn.commit()
+    # Recalc level
+    row = conn.execute("SELECT total_xp FROM player_xp WHERE player_id = ?", (player_id,)).fetchone()
+    new_total = row['total_xp'] if row else 0
+    new_level = max(1, (new_total // 100) + 1)
+    conn.execute("UPDATE player_xp SET level = ? WHERE player_id = ?", (new_level, player_id))
+    conn.commit()
+    conn.close()
+    return True, DAILY_BONUS_XP
+
+
+# ===== WEEKLY WINNER =====
+
+def get_weekly_winner(team_code):
+    """Get the player with most XP earned in the last 7 days. Returns dict or None."""
+    conn = get_db()
+    row = conn.execute("""
+        SELECT u.id as player_id, u.name, COALESCE(SUM(cp.xp_awarded), 0) as weekly_xp
+        FROM users u
+        LEFT JOIN challenge_participation cp ON cp.player_id = u.id AND cp.completed = 1
+            AND cp.completed_at >= datetime('now', '-7 days')
+        LEFT JOIN challenges c ON c.id = cp.challenge_id AND c.team_code = ?
+        WHERE u.user_type = 'player' AND u.team_code = ?
+        GROUP BY u.id
+        HAVING weekly_xp > 0
+        ORDER BY weekly_xp DESC
+        LIMIT 1
+    """, (team_code, team_code)).fetchone()
+    conn.close()
+    if not row or (row.get('weekly_xp') or 0) == 0:
+        return None
+    return dict(row)
+
+
+# ===== RIVALRY HINTS =====
+
+def get_rivalry_hints(player_id, team_code):
+    """Get rivalry hints: player ahead (to catch) and behind (chasing you). Returns dict."""
+    lb = get_leaderboard(team_code, limit=50)
+    my_rank = next((r['rank'] for r in lb if r['player_id'] == player_id), None)
+    if not my_rank:
+        return {}
+    ahead = next((r for r in lb if r['rank'] == my_rank - 1), None)
+    behind = next((r for r in lb if r['rank'] == my_rank + 1), None)
+    my_xp = next((r['total_xp'] for r in lb if r['player_id'] == player_id), 0)
+    result = {}
+    if ahead:
+        xp_gap = ahead['total_xp'] - my_xp
+        result['ahead'] = {'name': ahead['name'], 'xp_gap': xp_gap, 'rank': ahead['rank']}
+    if behind:
+        xp_gap = my_xp - behind['total_xp']
+        result['behind'] = {'name': behind['name'], 'xp_gap': xp_gap, 'rank': behind['rank']}
+    return result
 
 
 # Initialize on import

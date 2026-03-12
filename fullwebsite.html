@@ -1846,8 +1846,18 @@
         <div class="card-header">
           <h3><span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span> Team Leaderboard</h3>
         </div>
-        <div class="card-body" id="coach-leaderboard">
+        <div class="card-body">
+          <div class="weekly-winner-spotlight" id="coach-weekly-winner" style="display:none;margin-bottom:16px">
+            <span class="weekly-winner-crown">⭐</span>
+            <div>
+              <div class="weekly-winner-label">Weekly Champion</div>
+              <div class="weekly-winner-name" id="coach-weekly-winner-name"></div>
+              <div class="weekly-winner-xp" id="coach-weekly-winner-xp"></div>
+            </div>
+          </div>
+          <div id="coach-leaderboard">
           <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Loading leaderboard...</div>
+          </div>
         </div>
       </div>
     </div>

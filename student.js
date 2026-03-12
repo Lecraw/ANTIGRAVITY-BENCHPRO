@@ -172,14 +172,14 @@ async function handleStudentLogin() {
         currentStudentUser = user;
         STUDENT.name = user.name || '';
         STUDENT.email = user.email || '';
-        finishLogin(user.name || 'Player');
+        finishLogin(user.name || 'Player', data);
     } catch (err) {
         showFieldError(codeEl, 'Could not connect. Please try again.');
         if (btn) { btn.disabled = false; btn.innerHTML = 'Log In'; }
     }
 }
 
-function finishLogin(playerName) {
+function finishLogin(playerName, loginData) {
     const btn = document.getElementById('student-login-btn');
     btn.innerHTML = '<div class="login-spinner"></div> Signing in...';
     btn.disabled = true;
@@ -191,6 +191,9 @@ function finishLogin(playerName) {
         const titleEl = document.querySelector('#page-home .page-title');
         if (titleEl) titleEl.textContent = `Hey, ${firstName}!`;
         showToast(`Welcome back, ${firstName}!`, SIC.check);
+        if (loginData && loginData.daily_bonus && loginData.daily_bonus.claimed) {
+            setTimeout(() => showToast(`Daily login bonus! +${loginData.daily_bonus.xp} XP`, SIC.star), 600);
+        }
     }, 800);
 }
 
@@ -324,6 +327,10 @@ function switchTab(tab) {
         loadStudentChallenges();
         loadStudentLeaderboard();
         loadStudentXP();
+    }
+    // Load flairs when switching to profile tab
+    if (tab === 'profile' && typeof loadStudentFlairs === 'function') {
+        loadStudentFlairs();
     }
 }
 
@@ -728,14 +735,17 @@ async function loadStudentLeaderboard() {
     try {
         const res = await fetchWithAuth(`${BACKEND_URL}/api/leaderboard`);
         if (!res.ok) throw new Error('Failed to load leaderboard');
-        const { leaderboard } = await res.json();
+        const { leaderboard, weekly_winner } = await res.json();
         if (!leaderboard || leaderboard.length === 0) {
             list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">No players on leaderboard yet.</div>';
             return;
         }
+        const winnerId = weekly_winner ? weekly_winner.player_id : null;
         list.innerHTML = leaderboard.map(r => {
             const badges = (r.badges || []).map(b => `<span title="${escapeHtml(b.name)}">${b.icon || '🏆'}</span>`).join('');
-            return `<div class="leaderboard-row"><span class="leaderboard-rank">#${r.rank}</span><span class="leaderboard-name">${escapeHtml(r.name)}</span><span class="leaderboard-xp">${r.total_xp} XP</span><span class="leaderboard-level">Lv.${r.level}</span><span class="leaderboard-badges">${badges}</span></div>`;
+            const flair = (r.flair && r.flair.icon) ? r.flair.icon : '🌱';
+            const isWinner = r.is_weekly_winner || r.player_id === winnerId;
+            return `<div class="leaderboard-row ${isWinner ? 'weekly-winner-row' : ''}"><span class="leaderboard-flair">${flair}</span><span class="leaderboard-rank">#${r.rank}</span><span class="leaderboard-name">${escapeHtml(r.name)}</span><span class="leaderboard-xp">${r.total_xp} XP</span><span class="leaderboard-level">Lv.${r.level}</span><span class="leaderboard-badges">${badges}</span></div>`;
         }).join('');
     } catch (err) {
         list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Could not load leaderboard.</div>';
@@ -750,12 +760,87 @@ async function loadStudentXP() {
         const levelEl = document.getElementById('xp-level');
         const totalEl = document.getElementById('xp-total');
         const badgesEl = document.getElementById('xp-badges');
+        const flairEl = document.getElementById('xp-flair');
         if (levelEl) levelEl.textContent = 'Lv.' + (data.level || 1);
         if (totalEl) totalEl.textContent = (data.total_xp || 0) + ' XP';
+        if (flairEl) flairEl.textContent = (data.equipped_flair && data.equipped_flair.icon) ? data.equipped_flair.icon : '🌱';
         if (badgesEl && data.badges && data.badges.length) {
             badgesEl.innerHTML = data.badges.map(b => `<span class="xp-badge" title="${escapeHtml(b.name)}">${b.icon || '🏆'}</span>`).join('');
         } else if (badgesEl) badgesEl.innerHTML = '';
+        if (data.daily_bonus && data.daily_bonus.claimed) {
+            showToast(`Daily login bonus! +${data.daily_bonus.xp} XP`, SIC.star);
+        }
+        const rivalry = data.rivalry_hints || {};
+        const aheadEl = document.getElementById('rivalry-ahead');
+        const behindEl = document.getElementById('rivalry-behind');
+        const rivalryWrap = document.getElementById('rivalry-hints');
+        if (rivalryWrap) {
+            let show = false;
+            if (rivalry.ahead && rivalry.ahead.xp_gap > 0) {
+                if (aheadEl) {
+                    aheadEl.textContent = `Catch ${rivalry.ahead.name} — ${rivalry.ahead.xp_gap} XP ahead`;
+                    aheadEl.style.display = '';
+                    show = true;
+                }
+            } else if (aheadEl) aheadEl.style.display = 'none';
+            if (rivalry.behind && rivalry.behind.xp_gap > 0) {
+                if (behindEl) {
+                    behindEl.textContent = `${rivalry.behind.name} is ${rivalry.behind.xp_gap} XP behind you`;
+                    behindEl.style.display = '';
+                    show = true;
+                }
+            } else if (behindEl) behindEl.style.display = 'none';
+            rivalryWrap.style.display = show ? 'flex' : 'none';
+        }
+        const spotEl = document.getElementById('weekly-winner-spotlight');
+        const winnerName = document.getElementById('weekly-winner-name');
+        const winnerXp = document.getElementById('weekly-winner-xp');
+        if (data.weekly_winner && spotEl && winnerName && winnerXp) {
+            winnerName.textContent = data.weekly_winner.name;
+            winnerXp.textContent = data.weekly_winner.weekly_xp + ' XP this week';
+            spotEl.style.display = 'flex';
+        } else if (spotEl) spotEl.style.display = 'none';
     } catch (err) {}
+}
+
+async function loadStudentFlairs() {
+    const grid = document.getElementById('flair-grid');
+    if (!grid) return;
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/flairs`);
+        if (!res.ok) throw new Error('Failed to load flairs');
+        const { flairs } = await res.json();
+        if (!flairs || flairs.length === 0) {
+            grid.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">No flairs yet.</div>';
+            return;
+        }
+        grid.innerHTML = flairs.map(f => `
+            <div class="flair-option ${f.unlocked ? 'unlocked' : 'locked'} ${f.equipped ? 'equipped' : ''}" data-flair-id="${f.id}" onclick="selectFlair(${f.id}, ${f.unlocked})">
+                <span class="flair-icon">${f.icon}</span>
+                <span class="flair-name">${escapeHtml(f.name)}</span>
+                <span class="flair-unlock">${f.unlocked ? (f.equipped ? '✓ Equipped' : 'Tap to equip') : 'Lv.' + f.unlock_criteria_value}</span>
+            </div>
+        `).join('');
+    } catch (err) {
+        grid.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Could not load flairs.</div>';
+    }
+}
+
+async function selectFlair(flairId, unlocked) {
+    if (!unlocked) return;
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/me/flair`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ flair_id: flairId })
+        });
+        if (!res.ok) throw new Error('Could not equip flair');
+        loadStudentFlairs();
+        loadStudentXP();
+        showToast('Flair equipped!', SIC.check);
+    } catch (err) {
+        showToast(err.message || 'Could not equip flair', SIC.warn);
+    }
 }
 
 function escapeHtml(s) {

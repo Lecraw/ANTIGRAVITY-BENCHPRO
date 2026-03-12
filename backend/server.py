@@ -223,7 +223,7 @@ def auth_login():
 
     token = secrets.token_urlsafe(32)
     models.set_user_token(user['id'], token)
-    return jsonify({
+    resp = {
         'token': token,
         'user': {
             'id': user['id'],
@@ -233,7 +233,12 @@ def auth_login():
             'team_code': user.get('team_code', ''),
             'plan': user.get('plan', 'standard')
         }
-    }), 200
+    }
+    if user.get('user_type') == 'player':
+        daily_awarded, daily_xp = models.claim_daily_login_bonus(user['id'])
+        if daily_awarded:
+            resp['daily_bonus'] = {'claimed': True, 'xp': daily_xp}
+    return jsonify(resp), 200
 
 
 @app.route('/api/auth/me')
@@ -941,31 +946,77 @@ def complete_challenge_manual(challenge_id, current_user):
 @app.route('/api/leaderboard')
 @require_auth
 def get_leaderboard(current_user):
-    """Get team leaderboard with XP, level, badges."""
+    """Get team leaderboard with XP, level, badges, flair, and weekly winner."""
     team_code = _get_team_code(current_user)
     if not team_code:
-        return jsonify({'leaderboard': []}), 200
+        return jsonify({'leaderboard': [], 'weekly_winner': None}), 200
     leaderboard = models.get_leaderboard(team_code)
+    weekly_winner = models.get_weekly_winner(team_code)
     for row in leaderboard:
         row['badges'] = [{'name': b['name'], 'icon': b['icon'], 'xp_bonus': b['xp_bonus']}
                         for b in models.get_player_badges(row['player_id'])]
-    return jsonify({'leaderboard': leaderboard}), 200
+        flair = models.get_equipped_flair(row['player_id'])
+        row['flair'] = flair
+        row['is_weekly_winner'] = weekly_winner and weekly_winner.get('player_id') == row['player_id']
+    return jsonify({'leaderboard': leaderboard, 'weekly_winner': weekly_winner}), 200
 
 
 @app.route('/api/me/xp')
 @require_auth
 def get_my_xp(current_user):
-    """Get current user's XP and badges (players only)."""
+    """Get current user's XP, badges, daily bonus, rivalry hints, weekly winner (players only)."""
     if current_user.get('user_type') != 'player':
         return jsonify({'total_xp': 0, 'level': 1, 'badges': []}), 200
+    # Claim daily login bonus if eligible
+    daily_awarded, daily_xp = models.claim_daily_login_bonus(current_user['id'])
     pxp = models.get_or_create_player_xp(current_user['id'])
     badges = models.get_player_badges(current_user['id'])
-    return jsonify({
+    team_code = _get_team_code(current_user)
+    rivalry = models.get_rivalry_hints(current_user['id'], team_code) if team_code else {}
+    weekly_winner = models.get_weekly_winner(team_code) if team_code else None
+    equipped_flair = models.get_equipped_flair(current_user['id'])
+    result = {
         'total_xp': pxp.get('total_xp', 0),
         'level': pxp.get('level', 1),
         'challenges_completed': pxp.get('challenges_completed', 0),
-        'badges': badges
-    }), 200
+        'badges': badges,
+        'daily_bonus': {'claimed': daily_awarded, 'xp': daily_xp} if daily_awarded else None,
+        'rivalry_hints': rivalry,
+        'weekly_winner': weekly_winner,
+        'equipped_flair': equipped_flair
+    }
+    return jsonify(result), 200
+
+
+@app.route('/api/flairs')
+@require_auth
+def list_flairs(current_user):
+    """Get all flairs with unlock status for current player."""
+    if current_user.get('user_type') != 'player':
+        return jsonify({'flairs': []}), 200
+    flairs = models.get_all_flairs()
+    unlocked_ids = set(models.get_unlocked_flair_ids(current_user['id']))
+    equipped = models.get_equipped_flair(current_user['id'])
+    equipped_id = equipped['id'] if equipped else None
+    for f in flairs:
+        f['unlocked'] = f['id'] in unlocked_ids
+        f['equipped'] = f['id'] == equipped_id
+    return jsonify({'flairs': flairs}), 200
+
+
+@app.route('/api/me/flair', methods=['POST'])
+@require_auth
+def set_my_flair(current_user):
+    """Set equipped flair. Players only."""
+    if current_user.get('user_type') != 'player':
+        return jsonify({'error': 'Players only'}), 403
+    data = request.get_json() or {}
+    flair_id = data.get('flair_id')
+    if flair_id is None:
+        return jsonify({'error': 'flair_id required'}), 400
+    if models.set_equipped_flair(current_user['id'], int(flair_id)):
+        return jsonify({'equipped_flair': models.get_equipped_flair(current_user['id'])}), 200
+    return jsonify({'error': 'Flair not unlocked'}), 400
 
 
 @app.route('/api/notifications')

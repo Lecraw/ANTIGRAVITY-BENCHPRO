@@ -554,8 +554,25 @@
                 <h1 class="page-title">Challenges</h1>
                 <p class="page-subtitle">Complete challenges, earn XP, and climb the leaderboard.</p>
 
+                <!-- Weekly Winner Spotlight -->
+                <div class="weekly-winner-spotlight" id="weekly-winner-spotlight" style="display:none">
+                    <div class="weekly-winner-crown">⭐</div>
+                    <div class="weekly-winner-content">
+                        <div class="weekly-winner-label">Weekly Champion</div>
+                        <div class="weekly-winner-name" id="weekly-winner-name"></div>
+                        <div class="weekly-winner-xp" id="weekly-winner-xp"></div>
+                    </div>
+                </div>
+
+                <!-- Rivalry Hints -->
+                <div class="rivalry-hints" id="rivalry-hints" style="display:none">
+                    <div class="rivalry-hint ahead" id="rivalry-ahead"></div>
+                    <div class="rivalry-hint behind" id="rivalry-behind"></div>
+                </div>
+
                 <!-- XP & Level Summary -->
                 <div class="player-xp-card" id="player-xp-summary">
+                    <div class="xp-flair-badge" id="xp-flair">🌱</div>
                     <div class="xp-level-badge" id="xp-level">Lv.1</div>
                     <div class="xp-info">
                         <div class="xp-total" id="xp-total">0 XP</div>
@@ -653,6 +670,19 @@
                     </div>
                     <div class="card-body">
                         <div class="profile-stats-grid" id="profile-stats"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-header">
+                        <h3>Profile Flair</h3>
+                        <span class="badge badge-orange">Unlock by leveling up</span>
+                    </div>
+                    <div class="card-body">
+                        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Show off your progress with flair. Unlock new flairs as you level up.</p>
+                        <div class="flair-grid" id="flair-grid">
+                            <div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Loading flairs...</div>
+                        </div>
                     </div>
                 </div>
 
