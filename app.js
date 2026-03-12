@@ -112,7 +112,9 @@ function navigateTo(page) {
   if (page === 'challenges') {
     loadChallengesList();
     loadChallengesLeaderboard();
+    if (typeof loadCoachHustleLeaderboard === 'function') loadCoachHustleLeaderboard();
   }
+  if (page === 'send-tips') loadTipPlayers();
 }
 
 // ===== AVATAR MENU =====
@@ -476,12 +478,28 @@ function savePlay() {
 }
 
 // ===== SEND TIPS =====
-function sendTip() {
-  const player = document.getElementById('tip-player').value;
-  const message = document.getElementById('tip-message').value;
-  if (!player || !message) { showToast('Please select a player and enter a message', IC.warn); return; }
-  tipStore.unshift({ player, message, date: 'Just now', category: 'General Feedback' });
-  showToast(`Tip sent to ${player}!`, IC.bulb);
+async function sendTip() {
+  const playerId = document.getElementById('tip-player').value;
+  const playerOpt = document.getElementById('tip-player').selectedOptions[0];
+  const playerName = playerOpt ? playerOpt.textContent : '';
+  const message = document.getElementById('tip-message').value.trim();
+  if (!playerId || !message) { showToast('Please select a player and enter a message', IC.warn); return; }
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/tips`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ player_id: parseInt(playerId, 10), message })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to send tip');
+    }
+  } catch (err) {
+    showToast(err.message || 'Could not send tip', IC.warn);
+    return;
+  }
+  tipStore.unshift({ player: playerName, player_id: playerId, message, date: 'Just now', category: 'General Feedback' });
+  showToast(`Tip sent to ${playerName}!`, IC.bulb);
   document.getElementById('tip-message').value = '';
   closeModal('tip-modal');
   renderTipHistory();
@@ -493,7 +511,7 @@ function sendTip() {
       <div class="timeline-dot success"></div>
       <div class="timeline-time">Now</div>
       <div class="timeline-content">
-        <h4>Tip sent to ${player}</h4>
+        <h4>Tip sent to ${playerName}</h4>
         <p>${message}</p>
       </div>`;
     history.prepend(item);
@@ -1027,7 +1045,9 @@ function handleNotifClick(type, id) {
 }
 
 // ===== BACKEND API INTEGRATION =====
-const BACKEND_URL = typeof window !== 'undefined' ? window.location.origin : '';
+const BACKEND_URL = (typeof window !== 'undefined' && window.location.origin && window.location.origin !== 'null' && !String(window.location.protocol).startsWith('file'))
+  ? window.location.origin
+  : 'http://localhost:5050';
 const AUTH_STORAGE_KEY = 'benchpro_coach_token';
 const AUTH_STORAGE_KEY_SESSION = 'benchpro_coach_token_session';
 
@@ -1629,18 +1649,52 @@ function addStatSheetToHistory(fileName, analysisHtml) {
 }
 
 // ===== SEND TIP (from Page) =====
-function sendTipFromPage() {
-  const player = document.getElementById('tip-player-page').value;
-  const message = document.getElementById('tip-message-page').value;
+async function loadTipPlayers() {
+  const selPage = document.getElementById('tip-player-page');
+  const selModal = document.getElementById('tip-player');
+  const opts = '<option value="">Choose a player...</option>';
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/team/players`);
+    const data = await res.json().catch(() => ({}));
+    const players = data.players || [];
+    const html = opts + players.map(p => `<option value="${p.id}">${p.name || p.email}</option>`).join('');
+    if (selPage) selPage.innerHTML = html;
+    if (selModal) selModal.innerHTML = html;
+  } catch (err) {
+    if (selPage) selPage.innerHTML = opts;
+    if (selModal) selModal.innerHTML = opts;
+  }
+}
+
+async function sendTipFromPage() {
+  const playerId = document.getElementById('tip-player-page').value;
+  const playerOpt = document.getElementById('tip-player-page').selectedOptions[0];
+  const playerName = playerOpt ? playerOpt.textContent : '';
+  const message = document.getElementById('tip-message-page').value.trim();
   const catSelect = document.querySelector('#page-send-tips .card-body select:not(#tip-player-page)');
   const category = catSelect?.value || 'General Feedback';
-  if (!player || !message) { showToast('Please select a player and enter a message', IC.warn); return; }
+  if (!playerId || !message) { showToast('Please select a player and enter a message', IC.warn); return; }
 
-  tipStore.unshift({ player, message, date: 'Just now', category });
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/tips`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ player_id: parseInt(playerId, 10), message })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to send tip');
+    }
+  } catch (err) {
+    showToast(err.message || 'Could not send tip', IC.warn);
+    return;
+  }
 
-  showToast(`Tip sent to ${player}!`, IC.bulb);
+  tipStore.unshift({ player: playerName, player_id: playerId, message, date: 'Just now', category });
+
+  showToast(`Tip sent to ${playerName}!`, IC.bulb);
   document.getElementById('tip-message-page').value = '';
-  addNotification(IC.bulb, 'green', `Tip delivered to <strong>${player}</strong>`, 'Just now');
+  addNotification(IC.bulb, 'green', `Tip delivered to <strong>${playerName}</strong>`, 'Just now');
   renderTipHistory();
 
   const dashHistory = document.getElementById('tip-history');
@@ -1651,7 +1705,7 @@ function sendTipFromPage() {
       <div class="timeline-dot success"></div>
       <div class="timeline-time">Now</div>
       <div class="timeline-content">
-        <h4>Tip sent to ${player}</h4>
+        <h4>Tip sent to ${playerName}</h4>
         <p>${message}</p>
       </div>`;
     dashHistory.prepend(item);
@@ -1659,8 +1713,7 @@ function sendTipFromPage() {
 }
 
 function renderTipHistory() {
-  const historyCards = document.querySelectorAll('#page-send-tips .card-body');
-  const historyDiv = historyCards.length > 1 ? historyCards[1] : null;
+  const historyDiv = document.getElementById('tip-history-container');
   if (!historyDiv) return;
   if (tipStore.length === 0) {
     historyDiv.innerHTML = `<div class="empty-state"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18l6-6-6-6"/></svg><h3>No tips sent yet</h3><p>Send your first tip to a player above.</p></div>`;
@@ -2543,7 +2596,7 @@ async function loadChallengesList() {
       return;
     }
     container.innerHTML = challenges.map(c => {
-      const typeLabels = { shooting: 'Shooting', defense: 'Defense', workout: 'Workout', film: 'Film', custom: 'Custom' };
+      const typeLabels = { shooting: 'Shooting', defense: 'Defense', playmaking: 'Playmaking', workout: 'Workout', film: 'Film', custom: 'Custom' };
       const typeLabel = typeLabels[c.challenge_type] || c.challenge_type;
       const endDate = c.end_date ? new Date(c.end_date + 'T23:59:59') : null;
       const isExpired = endDate && endDate < new Date();
@@ -2606,7 +2659,7 @@ function openChallengeDetail(challengeId) {
     .then(r => r.json())
     .then(({ challenge, participations }) => {
       document.getElementById('challenge-detail-title').textContent = challenge.title;
-      const typeLabels = { shooting: 'Shooting', defense: 'Defense', workout: 'Workout', film: 'Film', custom: 'Custom' };
+      const typeLabels = { shooting: 'Shooting', defense: 'Defense', playmaking: 'Playmaking', workout: 'Workout', film: 'Film', custom: 'Custom' };
       const typeLabel = typeLabels[challenge.challenge_type] || challenge.challenge_type;
       let html = `<p style="margin-bottom:12px;color:var(--text-muted)">${escapeHtml(challenge.description || '')}</p>`;
       html += `<p><strong>Type:</strong> ${typeLabel} · <strong>Reward:</strong> +${challenge.xp_reward} XP</p>`;
@@ -2692,6 +2745,100 @@ function openChallengeCreateModal() {
   if (startEl) startEl.value = today;
   if (endEl) endEl.value = nextWeek;
   openModal('challenge-create-modal');
+}
+
+// ===== HUSTLE LEADERBOARD =====
+async function loadCoachHustleLeaderboard() {
+  const container = document.getElementById('coach-hustle-leaderboard');
+  if (!container) return;
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/hustle-leaderboard`);
+    if (!res.ok) {
+        const errText = await res.text();
+        console.error('Hustle leaderboard API:', res.status, errText);
+        throw new Error('Failed to load hustle leaderboard');
+    }
+    const { leaderboard } = await res.json();
+    if (!leaderboard || leaderboard.length === 0) {
+      container.innerHTML = `<div class="empty-state"><p>No hustle stats yet. Click "Update Stats" to add deflections, charges, rebounds, loose balls, and screen assists.</p></div>`;
+      return;
+    }
+    container.innerHTML = `<div style="display:grid;grid-template-columns:40px 1fr 50px 50px 50px 50px 50px 60px;gap:8px;font-size:12px;font-weight:600;padding:8px 0;border-bottom:1px solid var(--border);color:var(--text-muted)">
+      <span>#</span><span>Player</span><span>Def</span><span>Chg</span><span>Reb</span><span>LB</span><span>SA</span><span>Total</span>
+    </div>` + leaderboard.map(r => `
+      <div style="display:grid;grid-template-columns:40px 1fr 50px 50px 50px 50px 50px 60px;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <span><strong>#${r.rank}</strong></span>
+        <span><strong>${escapeHtml(r.name)}</strong></span>
+        <span>${r.deflections || 0}</span>
+        <span>${r.charges || 0}</span>
+        <span>${r.rebounds || 0}</span>
+        <span>${r.loose_balls || 0}</span>
+        <span>${r.screen_assists || 0}</span>
+        <span style="font-weight:700;color:var(--orange)">${r.total_hustle || 0}</span>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><p>Could not load hustle leaderboard.</p></div>`;
+  }
+}
+
+function openHustleUpdateModal() {
+  const modal = document.getElementById('hustle-update-modal');
+  const select = document.getElementById('hustle-player-select');
+  if (!modal || !select) return;
+  fetchWithAuth(`${BACKEND_URL}/api/team/players`).then(r => r.json()).then(data => {
+    const players = data.players || [];
+    select.innerHTML = '<option value="">Select player...</option>' + players.map(p =>
+      `<option value="${p.id}">${escapeHtml(p.name)}</option>`
+    ).join('');
+  }).catch(() => {});
+  document.getElementById('hustle-deflections').value = '';
+  document.getElementById('hustle-charges').value = '';
+  document.getElementById('hustle-rebounds').value = '';
+  document.getElementById('hustle-loose-balls').value = '';
+  document.getElementById('hustle-screen-assists').value = '';
+  document.getElementById('hustle-add-mode').checked = true;
+  modal.classList.add('show');
+}
+
+async function submitHustleStats() {
+  const playerId = document.getElementById('hustle-player-select')?.value;
+  if (!playerId) {
+    showToast('Select a player', IC.warn);
+    return;
+  }
+  const deflections = document.getElementById('hustle-deflections')?.value;
+  const charges = document.getElementById('hustle-charges')?.value;
+  const rebounds = document.getElementById('hustle-rebounds')?.value;
+  const looseBalls = document.getElementById('hustle-loose-balls')?.value;
+  const screenAssists = document.getElementById('hustle-screen-assists')?.value;
+  const add = document.getElementById('hustle-add-mode')?.checked || false;
+  const body = { player_id: parseInt(playerId), add };
+  if (deflections !== '' && deflections !== undefined) body.deflections = parseInt(deflections) || 0;
+  if (charges !== '' && charges !== undefined) body.charges = parseInt(charges) || 0;
+  if (rebounds !== '' && rebounds !== undefined) body.rebounds = parseInt(rebounds) || 0;
+  if (looseBalls !== '' && looseBalls !== undefined) body.loose_balls = parseInt(looseBalls) || 0;
+  if (screenAssists !== '' && screenAssists !== undefined) body.screen_assists = parseInt(screenAssists) || 0;
+  if (Object.keys(body).length <= 3) {
+    showToast('Enter at least one stat value', IC.warn);
+    return;
+  }
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/hustle-stats`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      throw new Error(d.error || 'Failed to update stats');
+    }
+    closeModal('hustle-update-modal');
+    loadCoachHustleLeaderboard();
+    showToast('Hustle stats updated!', IC.check);
+  } catch (err) {
+    showToast(err.message || 'Could not update stats', IC.warn);
+  }
 }
 
 // ===== ANALYSIS HISTORY DYNAMIC LIST =====

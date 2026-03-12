@@ -252,7 +252,7 @@
             </div>
 
             <p class="auth-switch" style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-muted)">
-                Are you a coach? <a href="fullwebsite.html" style="color:var(--orange);text-decoration:none;font-weight:600">Switch to Coach Dashboard</a>
+                Are you a coach? <a href="/" style="color:var(--orange);text-decoration:none;font-weight:600">Switch to Coach Dashboard</a>
             </p>
             <p class="auth-footer">&copy; 2026 BenchPro. All rights reserved.</p>
         </div>
@@ -361,7 +361,24 @@
                     <div class="card-body card-body-stack" id="home-insights"></div>
                 </div>
 
-                <!-- Recommended Drills Preview -->
+                <!-- Challenges Preview -->
+                <div class="card" id="home-challenges-preview">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                            Challenges
+                        </h3>
+                        <button class="badge badge-orange badge-btn" onclick="switchTab('challenges')">View All</button>
+                    </div>
+                    <div class="card-body card-body-list" id="home-challenges-list">
+                        <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Today's Drills -->
                 <div class="card">
                     <div class="card-header">
                         <h3>
@@ -570,6 +587,17 @@
                     <div class="rivalry-hint behind" id="rivalry-behind"></div>
                 </div>
 
+                <!-- Streaks -->
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-header">
+                        <h3>🔥 Streaks</h3>
+                        <span class="badge badge-orange">Keep it going!</span>
+                    </div>
+                    <div class="card-body" id="student-streaks">
+                        <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px">Loading...</div>
+                    </div>
+                </div>
+
                 <!-- XP & Level Summary -->
                 <div class="player-xp-card" id="player-xp-summary">
                     <div class="xp-flair-badge" id="xp-flair">🌱</div>
@@ -577,6 +605,17 @@
                     <div class="xp-info">
                         <div class="xp-total" id="xp-total">0 XP</div>
                         <div class="xp-badges" id="xp-badges"></div>
+                    </div>
+                </div>
+
+                <!-- Skill Trees -->
+                <div class="card" style="margin-bottom:16px">
+                    <div class="card-header">
+                        <h3>🎮 Skill Trees</h3>
+                        <span class="badge badge-blue">Level up like a game</span>
+                    </div>
+                    <div class="card-body" id="student-skill-trees">
+                        <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:13px">Loading...</div>
                     </div>
                 </div>
 
@@ -610,6 +649,22 @@
                     </div>
                     <div class="card-body" id="student-leaderboard">
                         <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Loading leaderboard...</div>
+                    </div>
+                </div>
+
+                <!-- Hustle Leaderboard -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                            Hustle Leaderboard
+                        </h3>
+                        <span class="badge badge-green">Effort stats</span>
+                    </div>
+                    <div class="card-body" id="student-hustle-leaderboard">
+                        <div style="text-align:center;padding:24px;color:var(--text-muted);font-size:13px">Loading...</div>
                     </div>
                 </div>
             </div>

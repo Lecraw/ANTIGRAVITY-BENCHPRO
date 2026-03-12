@@ -1,0 +1,16 @@
+# Render Blueprint — BenchPro
+# Deploy: Connect repo at render.com and use this blueprint, or create Web Service manually.
+
+services:
+  - type: web
+    name: benchpro
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn backend.server:app -b 0.0.0.0:$PORT --timeout 3600 --workers 1
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: false
+      - key: PYTHON_VERSION
+        value: 3.11.0

@@ -131,14 +131,6 @@ def serve_reset_password():
     return send_from_directory(FRONTEND_DIR, 'reset-password.html')
 
 
-@app.route('/<path:path>')
-def serve_static(path):
-    """Serve any static file (CSS, JS, images)."""
-    if os.path.exists(os.path.join(FRONTEND_DIR, path)):
-        return send_from_directory(FRONTEND_DIR, path)
-    return jsonify({'error': 'Not found'}), 404
-
-
 # ===== API: HEALTH CHECK =====
 
 @app.route('/api/health')
@@ -715,6 +707,44 @@ def list_players(current_user):
 
 # ===== API: TEAM =====
 
+@app.route('/api/team/players')
+@require_auth
+@require_coach
+def list_team_players(current_user):
+    """List players in coach's team (for send tips dropdown)."""
+    team_code = _get_team_code(current_user)
+    if not team_code:
+        return jsonify({'players': [], 'message': 'Create a team code first in Settings'}), 200
+    players = models.get_players_with_team_code(team_code)
+    return jsonify({'players': [{'id': p['id'], 'name': p['name'], 'email': p['email']} for p in players]}), 200
+
+
+@app.route('/api/tips', methods=['POST'])
+@require_auth
+@require_coach
+def send_tip(current_user):
+    """Send a coaching tip to a player. Creates a notification the player sees in Messages."""
+    data = request.get_json() or {}
+    player_id = data.get('player_id')
+    message = (data.get('message') or '').strip()
+    if not player_id or not message:
+        return jsonify({'error': 'player_id and message required'}), 400
+    team_code = _get_team_code(current_user)
+    if not team_code:
+        return jsonify({'error': 'Create a team code first in Settings'}), 400
+    players = models.get_players_with_team_code(team_code)
+    if not any(p['id'] == player_id for p in players):
+        return jsonify({'error': 'Player not in your team'}), 403
+    coach_name = current_user.get('name') or 'Coach'
+    models.create_notification(
+        player_id, 'tip',
+        f'Tip from {coach_name}',
+        message,
+        '{}'
+    )
+    return jsonify({'ok': True, 'message': 'Tip sent'}), 200
+
+
 @app.route('/api/team')
 @require_auth
 def team_stats(current_user):
@@ -804,7 +834,7 @@ def create_challenge(current_user):
     verification_type = (data.get('verification_type') or 'manual').lower()
     if not title or not start_date or not end_date:
         return jsonify({'error': 'Title, start date, and end date are required'}), 400
-    valid_types = ('shooting', 'defense', 'workout', 'film', 'custom')
+    valid_types = ('shooting', 'defense', 'playmaking', 'workout', 'film', 'custom')
     if challenge_type not in valid_types:
         challenge_type = 'custom'
     valid_ver = ('manual', 'stat_based', 'submission')
@@ -987,6 +1017,18 @@ def get_my_xp(current_user):
     rivalry = models.get_rivalry_hints(current_user['id'], team_code) if team_code else {}
     weekly_winner = models.get_weekly_winner(team_code) if team_code else None
     equipped_flair = models.get_equipped_flair(current_user['id'])
+    streaks = models.get_player_streaks(current_user['id'])
+    skill_progress = models.get_player_skill_progress(current_user['id'])
+    # Include skill trees and hustle leaderboard for challenges tab (single-call fallback)
+    categories = models.get_skill_tree_categories()
+    for c in categories:
+        p = skill_progress.get(c['id'], {})
+        c['player_level'] = p.get('level', 1)
+        c['player_xp'] = p.get('xp_in_category', 0)
+        next_lvl = next((l for l in c.get('levels', []) if l['level'] > c['player_level']), None)
+        c['xp_to_next'] = (next_lvl['xp_required'] - c['player_xp']) if next_lvl else 0
+        c['next_badge'] = next_lvl.get('badge_name') if next_lvl and next_lvl.get('badge_name') else None
+    hustle_lb = models.get_hustle_leaderboard(team_code) if team_code else []
     result = {
         'total_xp': pxp.get('total_xp', 0),
         'level': pxp.get('level', 1),
@@ -995,7 +1037,11 @@ def get_my_xp(current_user):
         'daily_bonus': {'claimed': daily_awarded, 'xp': daily_xp} if daily_awarded else None,
         'rivalry_hints': rivalry,
         'weekly_winner': weekly_winner,
-        'equipped_flair': equipped_flair
+        'equipped_flair': equipped_flair,
+        'streaks': streaks,
+        'skill_progress': {str(k): v for k, v in skill_progress.items()},
+        'skill_trees': categories,
+        'hustle_leaderboard': hustle_lb,
     }
     return jsonify(result), 200
 
@@ -1066,6 +1112,96 @@ def mark_notification_read(nid, current_user):
     return jsonify({'ok': True}), 200
 
 
+# ===== SKILL TREES =====
+
+@app.route('/api/skill-trees')
+@require_auth
+def get_skill_trees(current_user):
+    """Get skill tree categories with player progress (players only)."""
+    if current_user.get('user_type') != 'player':
+        return jsonify({'categories': []}), 200
+    categories = models.get_skill_tree_categories()
+    progress = models.get_player_skill_progress(current_user['id'])
+    for c in categories:
+        p = progress.get(c['id'], {})
+        c['player_level'] = p.get('level', 1)
+        c['player_xp'] = p.get('xp_in_category', 0)
+        # Next level XP
+        next_lvl = next((l for l in c['levels'] if l['level'] > c['player_level']), None)
+        c['xp_to_next'] = (next_lvl['xp_required'] - c['player_xp']) if next_lvl else 0
+        c['next_badge'] = next_lvl.get('badge_name') if next_lvl and next_lvl.get('badge_name') else None
+    return jsonify({'categories': categories}), 200
+
+
+# ===== STREAKS =====
+
+@app.route('/api/streaks')
+@require_auth
+def get_streaks(current_user):
+    """Get player streaks (players only)."""
+    if current_user.get('user_type') != 'player':
+        return jsonify({'streaks': []}), 200
+    streaks = models.get_player_streaks(current_user['id'])
+    return jsonify({'streaks': streaks}), 200
+
+
+# ===== HUSTLE LEADERBOARD =====
+
+@app.route('/api/hustle-leaderboard')
+@require_auth
+def get_hustle_leaderboard(current_user):
+    """Get hustle leaderboard for team."""
+    team_code = _get_team_code(current_user)
+    if not team_code:
+        return jsonify({'leaderboard': []}), 200
+    leaderboard = models.get_hustle_leaderboard(team_code)
+    return jsonify({'leaderboard': leaderboard}), 200
+
+
+@app.route('/api/hustle-stats', methods=['POST'])
+@require_auth
+def update_hustle_stats(current_user):
+    """Update hustle stats for a player. Coach only, or self for players."""
+    if current_user.get('user_type') not in ('coach', 'player'):
+        return jsonify({'error': 'Forbidden'}), 403
+    data = request.get_json() or {}
+    player_id = data.get('player_id')
+    if not player_id:
+        return jsonify({'error': 'player_id required'}), 400
+    player_id = int(player_id)
+    team_code = _get_team_code(current_user)
+    if not team_code:
+        return jsonify({'error': 'No team'}), 400
+    # Coach can update any player on team; player can only update self
+    if current_user.get('user_type') == 'player' and player_id != current_user['id']:
+        return jsonify({'error': 'Players can only update own stats'}), 403
+    target = models.get_user_by_id(player_id)
+    if not target or target.get('user_type') != 'player':
+        return jsonify({'error': 'Player not found'}), 404
+    if (target.get('team_code') or '') != team_code:
+        return jsonify({'error': 'Player not on your team'}), 404
+    stats = models.update_player_hustle_stats(
+        player_id,
+        deflections=data.get('deflections'),
+        charges=data.get('charges'),
+        rebounds=data.get('rebounds'),
+        loose_balls=data.get('loose_balls'),
+        screen_assists=data.get('screen_assists'),
+        add=data.get('add', False),
+    )
+    return jsonify({'stats': stats}), 200
+
+
+# ===== CATCH-ALL FOR STATIC FILES (must be last so API routes match first) =====
+
+@app.route('/<path:path>')
+def serve_static(path):
+    """Serve any static file (CSS, JS, images)."""
+    if os.path.exists(os.path.join(FRONTEND_DIR, path)):
+        return send_from_directory(FRONTEND_DIR, path)
+    return jsonify({'error': 'Not found'}), 404
+
+
 # ===== MAIN =====
 
 if __name__ == '__main__':
@@ -1080,9 +1216,13 @@ if __name__ == '__main__':
 ╚══════════════════════════════════════════════╝
     """)
 
-    # Pre-load the YOLO model so first upload isn't slow
-    print("[INIT] Pre-loading YOLO model...")
-    get_analyzer()
-    print("Ready to analyze game film!\n")
+    # Pre-load the YOLO model so first upload isn't slow (optional - server runs without it)
+    try:
+        print("[INIT] Pre-loading YOLO model...")
+        get_analyzer()
+        print("Ready to analyze game film!\n")
+    except Exception as e:
+        print(f"[WARN] YOLO not available: {e}")
+        print("Server will run, but video analysis may use fallback.\n")
 
     app.run(host=HOST, port=PORT, debug=DEBUG, use_reloader=False)

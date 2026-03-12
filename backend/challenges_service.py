@@ -36,6 +36,22 @@ def complete_challenge(participation_id, player_id):
     models.complete_participation(participation_id, xp_reward)
     pxp = models.add_player_xp(player_id, xp_reward)
 
+    # Skill tree: add XP to matching category
+    challenge_type = (challenge.get('challenge_type') or 'custom').lower()
+    cat_name = models.CHALLENGE_TO_CATEGORY.get(challenge_type)
+    if cat_name:
+        cats = {c['name']: c['id'] for c in models.get_skill_tree_categories()}
+        cat_id = cats.get(cat_name)
+        if cat_id:
+            models.add_skill_xp(player_id, cat_id, xp_reward)
+
+    # Streak: update streak for challenge type
+    streak_type = models.CHALLENGE_TO_STREAK.get(challenge_type, 'practice')
+    streak_days, streak_xp = models.update_streak(player_id, streak_type)
+    if streak_xp:
+        models.add_player_xp(player_id, streak_xp)
+        pxp = models.get_or_create_player_xp(player_id)
+
     # Check badge unlocks
     badges_unlocked = _check_badge_unlocks(player_id, challenge, part)
 

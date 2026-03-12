@@ -46,7 +46,9 @@ const MESSAGES = [];
 const MY_CLIPS = [];
 const DRILLS = [];
 
-const BACKEND_URL = window.location.origin;
+const BACKEND_URL = (window.location.origin && window.location.origin !== 'null' && !String(window.location.protocol).startsWith('file'))
+  ? window.location.origin
+  : 'http://localhost:5050';
 const AUTH_STORAGE_KEY = 'benchpro_student_token';
 const AUTH_STORAGE_KEY_SESSION = 'benchpro_student_token_session';
 
@@ -70,7 +72,17 @@ async function fetchWithAuth(url, opts = {}) {
   const token = getStudentAuthToken();
   const headers = { ...(opts.headers || {}) };
   if (token) headers['Authorization'] = 'Bearer ' + token;
-  return fetch(url, { ...opts, headers });
+  const res = await fetch(url, { ...opts, headers });
+  if (res.status === 401 && !url.includes('/api/auth/me') && !url.includes('/api/auth/login')) {
+    setStudentAuthToken(null);
+    currentStudentUser = null;
+    const authEl = document.getElementById('student-auth');
+    const appEl = document.getElementById('student-app');
+    if (authEl) { authEl.classList.remove('hidden'); authEl.style.display = ''; }
+    if (appEl) appEl.classList.remove('active');
+    showToast('Session expired. Please sign in again.', SIC.warn);
+  }
+  return res;
 }
 
 // ===== FORM VALIDATION =====
@@ -172,14 +184,14 @@ async function handleStudentLogin() {
         currentStudentUser = user;
         STUDENT.name = user.name || '';
         STUDENT.email = user.email || '';
-        finishLogin(user.name || 'Player', data);
+        finishLogin(user.name || 'Player', data, user);
     } catch (err) {
         showFieldError(codeEl, 'Could not connect. Please try again.');
         if (btn) { btn.disabled = false; btn.innerHTML = 'Log In'; }
     }
 }
 
-function finishLogin(playerName, loginData) {
+function finishLogin(playerName, loginData, user) {
     const btn = document.getElementById('student-login-btn');
     btn.innerHTML = '<div class="login-spinner"></div> Signing in...';
     btn.disabled = true;
@@ -190,6 +202,8 @@ function finishLogin(playerName, loginData) {
         const firstName = playerName.split(' ')[0];
         const titleEl = document.querySelector('#page-home .page-title');
         if (titleEl) titleEl.textContent = `Hey, ${firstName}!`;
+        if (user) updateStudentProfileUI(user);
+        loadHomeChallengesPreview();
         showToast(`Welcome back, ${firstName}!`, SIC.check);
         if (loginData && loginData.daily_bonus && loginData.daily_bonus.claimed) {
             setTimeout(() => showToast(`Daily login bonus! +${loginData.daily_bonus.xp} XP`, SIC.star), 600);
@@ -285,12 +299,27 @@ async function handleStudentSignupFinish() {
         const firstName = name.split(' ')[0];
         const titleEl = document.querySelector('#page-home .page-title');
         if (titleEl) titleEl.textContent = `Hey, ${firstName}!`;
+        updateStudentProfileUI(currentStudentUser);
         const planLabel = studentSignupOption === 'join' ? 'Team' : (plan === 'elite' ? 'Elite' : 'Standard');
         showToast(`Welcome to BenchPro, ${firstName}! (${planLabel} Plan)`, SIC.star);
     } catch (err) {
         showToast('Could not create account. Please try again.', SIC.warn);
         if (btn) { btn.disabled = false; btn.innerHTML = 'Create Account'; }
     }
+}
+
+function updateStudentProfileUI(user) {
+  const name = user?.name || 'Player';
+  const email = user?.email || '';
+  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const avatarEl = document.querySelector('.avatar-sm');
+  if (avatarEl) { avatarEl.textContent = initials; avatarEl.title = name; }
+  const profileAvatar = document.querySelector('.profile-avatar');
+  if (profileAvatar) profileAvatar.textContent = initials;
+  const profileName = document.querySelector('.profile-name');
+  if (profileName) profileName.textContent = name;
+  const logoutDesc = document.querySelector('.settings-item[onclick="handleLogout()"] .settings-item-desc');
+  if (logoutDesc) logoutDesc.textContent = email;
 }
 
 // ===== NAVIGATION =====
@@ -327,11 +356,51 @@ function switchTab(tab) {
         loadStudentChallenges();
         loadStudentLeaderboard();
         loadStudentXP();
+        if (typeof loadStudentStreaks === 'function') loadStudentStreaks();
+        if (typeof loadStudentSkillTrees === 'function') loadStudentSkillTrees();
+        if (typeof loadStudentHustleLeaderboard === 'function') loadStudentHustleLeaderboard();
     }
     // Load flairs when switching to profile tab
     if (tab === 'profile' && typeof loadStudentFlairs === 'function') {
         loadStudentFlairs();
     }
+    // Refresh challenges preview when switching to home
+    if (tab === 'home' && getStudentAuthToken()) {
+        loadHomeChallengesPreview();
+    }
+    // Load messages when switching to messages tab
+    if (tab === 'messages' && typeof loadStudentMessages === 'function') {
+        loadStudentMessages();
+    }
+}
+
+async function loadHomeChallengesPreview() {
+  const list = document.getElementById('home-challenges-list');
+  if (!list || !getStudentAuthToken()) return;
+  try {
+    const res = await fetchWithAuth(`${BACKEND_URL}/api/challenges`);
+    if (!res.ok) throw new Error('Failed to load');
+    const { challenges } = await res.json();
+    const listChallenges = challenges || [];
+    if (listChallenges.length === 0) {
+      list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px">No active challenges. Tap View All to check back!</div>';
+      return;
+    }
+    list.innerHTML = listChallenges.slice(0, 3).map(c => {
+      const typeLabels = { shooting: 'Shooting', defense: 'Defense', workout: 'Workout', film: 'Film', custom: 'Custom' };
+      const typeLabel = typeLabels[c.challenge_type] || c.challenge_type;
+      return `<div class="drill-preview-item" onclick="switchTab('challenges')">
+        <div class="drill-preview-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="drill-preview-info">
+          <div class="drill-preview-title">${escapeHtml(c.title)}</div>
+          <div class="drill-preview-meta">+${c.xp_reward || 0} XP · ${typeLabel}</div>
+        </div>
+        <span class="badge badge-orange">Active</span>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px">Could not load challenges</div>';
+  }
 }
 
 // ===== TOAST =====
@@ -696,7 +765,7 @@ async function loadStudentChallenges() {
             const pct = goal > 0 ? Math.min(100, Math.round((progress / goal) * 100)) : 0;
             const endDate = challenge.end_date ? new Date(challenge.end_date + 'T23:59:59') : null;
             const daysLeft = endDate ? Math.max(0, Math.ceil((endDate - new Date()) / (24 * 60 * 60 * 1000))) : 0;
-            const typeLabels = { shooting: 'Shooting', defense: 'Defense', workout: 'Workout', film: 'Film', custom: 'Custom' };
+            const typeLabels = { shooting: 'Shooting', defense: 'Defense', playmaking: 'Playmaking', workout: 'Workout', film: 'Film', custom: 'Custom' };
             const typeLabel = typeLabels[challenge.challenge_type] || challenge.challenge_type;
             const item = document.createElement('div');
             item.className = 'student-challenge-item' + (part.completed ? ' completed' : '');
@@ -752,6 +821,110 @@ async function loadStudentLeaderboard() {
     }
 }
 
+function renderStudentStreaks(streaks) {
+    const el = document.getElementById('student-streaks');
+    if (!el) return;
+    const labels = { practice: 'Practice', film_study: 'Film Study', workout: 'Workout' };
+    if (!streaks || streaks.length === 0) {
+        el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px">Complete challenges to start streaks!</div>';
+        return;
+    }
+    el.innerHTML = streaks.map(s => {
+        const label = labels[s.streak_type] || s.streak_type;
+        const days = s.current_days || 0;
+        const bonus = days >= 6 ? '<span style="font-size:11px;color:var(--orange)">+30 XP tomorrow</span>' : '';
+        const status = s.active_today ? '✓ Today' : (s.will_reset ? 'Start today!' : '');
+        return `<div class="streak-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div><strong>${label}</strong><br><span style="font-size:12px;color:var(--text-muted)">${status}</span></div>
+            <div style="text-align:right"><span style="font-size:18px;font-weight:700">Day ${days}</span> 🔥<br>${bonus}</div>
+        </div>`;
+    }).join('');
+}
+
+async function loadStudentStreaks() {
+    const el = document.getElementById('student-streaks');
+    if (!el) return;
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/streaks`);
+        if (!res.ok) throw new Error('Failed to load streaks');
+        const { streaks } = await res.json();
+        renderStudentStreaks(streaks);
+    } catch (err) {
+        console.error('loadStudentStreaks:', err);
+        el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px">Could not load streaks. <button class="btn btn-sm btn-secondary" onclick="loadStudentStreaks()" style="margin-top:8px">Retry</button></div>';
+    }
+}
+
+function renderStudentSkillTrees(categories) {
+    const el = document.getElementById('student-skill-trees');
+    if (!el) return;
+    if (!categories || categories.length === 0) {
+        el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px">No skill trees yet.</div>';
+        return;
+    }
+    el.innerHTML = categories.map(c => {
+        const lvl = c.player_level || 1;
+        const xp = c.player_xp || 0;
+        const nextBadge = c.next_badge ? `Next: ${c.next_badge}` : 'Max level!';
+        const maxXp = c.levels && c.levels.length ? Math.max(...c.levels.map(l => l.xp_required || 0)) : 100;
+        const pct = maxXp > 0 ? Math.min(100, (xp / maxXp) * 100) : 0;
+        return `<div class="skill-tree-card" style="padding:12px;margin-bottom:8px;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span>${c.icon || '🏀'} ${escapeHtml(c.name)}</span>
+                <span style="font-weight:700">Lv.${lvl}</span>
+            </div>
+            <div class="progress-bar" style="height:6px;border-radius:3px;background:var(--border);overflow:hidden;margin-bottom:4px">
+                <div style="height:100%;width:${pct}%;background:var(--orange);transition:width 0.3s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted)">${xp} XP · ${nextBadge}</div>
+        </div>`;
+    }).join('');
+}
+
+async function loadStudentSkillTrees() {
+    const el = document.getElementById('student-skill-trees');
+    if (!el) return;
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/skill-trees`);
+        if (!res.ok) throw new Error('Failed to load skill trees');
+        const { categories } = await res.json();
+        renderStudentSkillTrees(categories);
+    } catch (err) {
+        console.error('loadStudentSkillTrees:', err);
+        el.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted);font-size:13px">Could not load skill trees. <button class="btn btn-sm btn-secondary" onclick="loadStudentSkillTrees()" style="margin-top:8px">Retry</button></div>';
+    }
+}
+
+function renderStudentHustleLeaderboard(leaderboard) {
+    const el = document.getElementById('student-hustle-leaderboard');
+    if (!el) return;
+    if (!leaderboard || leaderboard.length === 0) {
+        el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">No hustle stats yet. Coach will add them!</div>';
+        return;
+    }
+    el.innerHTML = leaderboard.map(r => `
+        <div class="leaderboard-row" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+            <span style="font-weight:600;min-width:24px">#${r.rank}</span>
+            <span style="flex:1">${escapeHtml(r.name)}</span>
+            <span style="font-weight:700;color:var(--orange)">${r.total_hustle || 0}</span>
+        </div>
+    `).join('');
+}
+
+async function loadStudentHustleLeaderboard() {
+    const el = document.getElementById('student-hustle-leaderboard');
+    if (!el) return;
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/hustle-leaderboard`);
+        if (!res.ok) throw new Error('Failed to load hustle leaderboard');
+        const { leaderboard } = await res.json();
+        renderStudentHustleLeaderboard(leaderboard);
+    } catch (err) {
+        console.error('loadStudentHustleLeaderboard:', err);
+        el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">Could not load hustle leaderboard. <button class="btn btn-sm btn-secondary" onclick="loadStudentHustleLeaderboard()" style="margin-top:8px">Retry</button></div>';
+    }
+}
+
 async function loadStudentXP() {
     try {
         const res = await fetchWithAuth(`${BACKEND_URL}/api/me/xp`);
@@ -767,6 +940,10 @@ async function loadStudentXP() {
         if (badgesEl && data.badges && data.badges.length) {
             badgesEl.innerHTML = data.badges.map(b => `<span class="xp-badge" title="${escapeHtml(b.name)}">${b.icon || '🏆'}</span>`).join('');
         } else if (badgesEl) badgesEl.innerHTML = '';
+        // Populate streaks, skill trees, hustle from same response (single API call)
+        if (data.streaks) renderStudentStreaks(data.streaks);
+        if (data.skill_trees) renderStudentSkillTrees(data.skill_trees);
+        if (data.hustle_leaderboard) renderStudentHustleLeaderboard(data.hustle_leaderboard);
         if (data.daily_bonus && data.daily_bonus.claimed) {
             showToast(`Daily login bonus! +${data.daily_bonus.xp} XP`, SIC.star);
         }
@@ -888,6 +1065,8 @@ async function submitChallengeProgress() {
             loadStudentChallenges();
             loadStudentLeaderboard();
             loadStudentXP();
+            if (typeof loadStudentStreaks === 'function') loadStudentStreaks();
+            if (typeof loadStudentSkillTrees === 'function') loadStudentSkillTrees();
         } else {
             showToast('Progress updated!', SIC.check);
             loadStudentChallenges();
@@ -1133,18 +1312,45 @@ function addClipToList(title, status) {
     else renderMyClips();
 }
 
-// ===== MESSAGES =====
+// ===== MESSAGES (from /api/notifications) =====
+async function loadStudentMessages() {
+    if (!getStudentAuthToken()) return;
+    try {
+        const res = await fetchWithAuth(`${BACKEND_URL}/api/notifications`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const notifs = data.notifications || [];
+        MESSAGES.length = 0;
+        notifs.forEach(n => {
+            const body = n.body || '';
+            MESSAGES.push({
+                id: n.id,
+                from: n.title || 'Coach',
+                body,
+                preview: body.length > 80 ? body.slice(0, 80) + '...' : body,
+                category: n.type === 'tip' ? 'Tip' : (n.type || 'Message'),
+                time: n.created_at ? new Date(n.created_at.replace(' ', 'T')).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Recently',
+                unread: !n.read_at
+            });
+        });
+        renderMessages();
+        updateUnreadBadge();
+    } catch (err) {}
+}
+
 function openMessage(id) {
     const msg = MESSAGES.find(m => m.id === id);
     if (!msg) return;
 
-    // Mark as read
+    // Mark as read on backend
+    fetchWithAuth(`${BACKEND_URL}/api/notifications/${msg.id}/read`, { method: 'POST' }).catch(() => {});
     msg.unread = false;
     updateUnreadBadge();
 
     const detail = document.getElementById('message-detail-view');
     const list = document.getElementById('message-list-view');
 
+    const body = msg.body || msg.full || '';
     detail.innerHTML = `
     <button class="message-detail-back" onclick="closeMessageDetail()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1161,9 +1367,9 @@ function openMessage(id) {
         </div>
         <span style="font-size:11px;color:var(--text-muted)">${msg.time}</span>
       </div>
-      <span class="badge badge-blue">${msg.category}</span>
+      <span class="badge badge-blue">${msg.category || 'Tip'}</span>
     </div>
-    <div class="message-detail-body">${msg.full}</div>
+    <div class="message-detail-body">${body}</div>
     ${msg.clip ? `
       <div class="attached-clip">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1442,6 +1648,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const firstName = (user.name || 'Player').split(' ')[0];
                     const titleEl = document.querySelector('#page-home .page-title');
                     if (titleEl) titleEl.textContent = `Hey, ${firstName}!`;
+                    updateStudentProfileUI(user);
                 } else {
                     setStudentAuthToken(null);
                 }
@@ -1454,9 +1661,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     renderHome();
-    renderMessages();
-    updateUnreadBadge();
+    loadStudentMessages();
     loadStudentClips();
+    loadHomeChallengesPreview();
     renderDrills();
 
     // Draw sparklines after a short delay to ensure layout (skip if no data)

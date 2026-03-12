@@ -249,6 +249,61 @@ def init_db():
             created_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
+
+        -- Skill Trees: categories and level definitions
+        CREATE TABLE IF NOT EXISTS skill_tree_categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            icon TEXT DEFAULT '🏀',
+            sort_order INTEGER DEFAULT 0,
+            challenge_type_map TEXT DEFAULT '{}'
+        );
+
+        CREATE TABLE IF NOT EXISTS skill_tree_levels (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category_id INTEGER NOT NULL,
+            level INTEGER NOT NULL,
+            xp_required INTEGER NOT NULL,
+            badge_name TEXT DEFAULT '',
+            badge_icon TEXT DEFAULT '⭐',
+            UNIQUE(category_id, level),
+            FOREIGN KEY (category_id) REFERENCES skill_tree_categories(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS player_skill_progress (
+            player_id INTEGER NOT NULL,
+            category_id INTEGER NOT NULL,
+            level INTEGER DEFAULT 1,
+            xp_in_category INTEGER DEFAULT 0,
+            updated_at TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (player_id, category_id),
+            FOREIGN KEY (player_id) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (category_id) REFERENCES skill_tree_categories(id) ON DELETE CASCADE
+        );
+
+        -- Streak System: practice, film_study, workout
+        CREATE TABLE IF NOT EXISTS player_streaks (
+            player_id INTEGER NOT NULL,
+            streak_type TEXT NOT NULL,
+            current_days INTEGER DEFAULT 0,
+            last_activity_date TEXT NOT NULL,
+            xp_bonus_claimed INTEGER DEFAULT 0,
+            updated_at TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (player_id, streak_type),
+            FOREIGN KEY (player_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        -- Hustle Leaderboard: effort stats
+        CREATE TABLE IF NOT EXISTS player_hustle_stats (
+            player_id INTEGER PRIMARY KEY,
+            deflections INTEGER DEFAULT 0,
+            charges INTEGER DEFAULT 0,
+            rebounds INTEGER DEFAULT 0,
+            loose_balls INTEGER DEFAULT 0,
+            screen_assists INTEGER DEFAULT 0,
+            updated_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (player_id) REFERENCES users(id) ON DELETE CASCADE
+        );
     """)
     conn.commit()
 
@@ -295,14 +350,75 @@ def init_db():
         )
         conn.commit()
 
+    # Seed skill tree categories and levels
+    row = conn.execute("SELECT COUNT(*) as n FROM skill_tree_categories").fetchone()
+    if row and row['n'] == 0:
+        conn.executemany(
+            """INSERT INTO skill_tree_categories (name, icon, sort_order) VALUES (?, ?, ?)""",
+            [
+                ('Shooting', '🎯', 0),
+                ('Defense', '🛡️', 1),
+                ('Playmaking', '🎮', 2),
+                ('Athleticism', '⚡', 3),
+                ('Basketball IQ', '🧠', 4),
+            ]
+        )
+        conn.commit()
+        # Level definitions: level N requires (N-1)*50 XP in category
+        # Level 3 Shooting: Catch & Shoot badge, Range Boost
+        # Level 5 Defense: Lockdown badge
+        cats = {r['name']: r['id'] for r in conn.execute("SELECT id, name FROM skill_tree_categories").fetchall()}
+        levels_data = [
+            (cats['Shooting'], 1, 0, '', ''),
+            (cats['Shooting'], 2, 25, 'Range', '📏'),
+            (cats['Shooting'], 3, 50, 'Catch & Shoot', '🎯'),
+            (cats['Shooting'], 4, 100, 'Range Boost', '📈'),
+            (cats['Shooting'], 5, 150, 'Elite Shooter', '🏆'),
+            (cats['Defense'], 1, 0, '', ''),
+            (cats['Defense'], 2, 25, 'Active Hands', '✋'),
+            (cats['Defense'], 3, 50, 'Defender', '🛡️'),
+            (cats['Defense'], 4, 100, 'Lockdown', '🔒'),
+            (cats['Defense'], 5, 150, 'Elite Defender', '🏆'),
+            (cats['Playmaking'], 1, 0, '', ''),
+            (cats['Playmaking'], 2, 25, 'Vision', '👁️'),
+            (cats['Playmaking'], 3, 50, 'Playmaker', '🎮'),
+            (cats['Playmaking'], 4, 100, 'Floor General', '⭐'),
+            (cats['Playmaking'], 5, 150, 'Elite Playmaker', '🏆'),
+            (cats['Athleticism'], 1, 0, '', ''),
+            (cats['Athleticism'], 2, 25, 'Quick', '⚡'),
+            (cats['Athleticism'], 3, 50, 'Athlete', '💪'),
+            (cats['Athleticism'], 4, 100, 'Explosive', '🔥'),
+            (cats['Athleticism'], 5, 150, 'Elite Athlete', '🏆'),
+            (cats['Basketball IQ'], 1, 0, '', ''),
+            (cats['Basketball IQ'], 2, 25, 'Student', '📚'),
+            (cats['Basketball IQ'], 3, 50, 'Film Student', '📽️'),
+            (cats['Basketball IQ'], 4, 100, 'Tactician', '🧠'),
+            (cats['Basketball IQ'], 5, 150, 'Elite IQ', '🏆'),
+        ]
+        for cat_id, lvl, xp, badge_name, badge_icon in levels_data:
+            conn.execute(
+                "INSERT INTO skill_tree_levels (category_id, level, xp_required, badge_name, badge_icon) VALUES (?, ?, ?, ?, ?)",
+                (cat_id, lvl, xp, badge_name, badge_icon)
+            )
+        conn.commit()
+
     # Ensure demo coach (coachw@gmail.com / 12345) always works: elite plan, team_code for challenges
     conn.execute(
         "UPDATE users SET email_verified = 1, plan = 'elite' WHERE email = 'coachw@gmail.com'"
     )
     coach = conn.execute("SELECT id, team_code FROM users WHERE email = 'coachw@gmail.com'").fetchone()
-    if coach and (not coach['team_code'] or coach['team_code'] == ''):
+    coach_team = (coach['team_code'] or '').strip() if coach else ''
+    if coach and (not coach_team):
         conn.execute("UPDATE users SET team_code = 'HARKER' WHERE email = 'coachw@gmail.com'")
-    conn.execute("UPDATE users SET team_code = 'HARKER' WHERE email = 'marcus@school.edu'")
+        coach_team = 'HARKER'
+    # Marcus must have same team_code as coachw to see challenges and receive tips
+    if coach_team:
+        conn.execute("UPDATE users SET team_code = ? WHERE email = 'marcus@school.edu'", (coach_team,))
+    # Ensure demo student (marcus@school.edu / 12345) always works
+    conn.execute(
+        "UPDATE users SET password_hash = ? WHERE email = 'marcus@school.edu'",
+        (generate_password_hash('12345'),)
+    )
     conn.commit()
 
     conn.close()
@@ -321,7 +437,7 @@ def _init_users():
         )
         conn.execute(
             "INSERT INTO users (email, password_hash, name, user_type, team_code) VALUES (?, ?, ?, 'player', ?)",
-            ('marcus@school.edu', generate_password_hash('HARKER2026'), 'Marcus James', 'HARKER')
+            ('marcus@school.edu', generate_password_hash('12345'), 'Marcus James', 'HARKER')
         )
         conn.commit()
     else:
@@ -1231,6 +1347,251 @@ def get_rivalry_hints(player_id, team_code):
         xp_gap = my_xp - behind['total_xp']
         result['behind'] = {'name': behind['name'], 'xp_gap': xp_gap, 'rank': behind['rank']}
     return result
+
+
+# ===== SKILL TREES =====
+
+CHALLENGE_TO_CATEGORY = {
+    'shooting': 'Shooting',
+    'defense': 'Defense',
+    'playmaking': 'Playmaking',
+    'workout': 'Athleticism',
+    'film': 'Basketball IQ',
+    'custom': 'Playmaking',
+}
+
+def get_skill_tree_categories():
+    """Get all skill tree categories with levels."""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM skill_tree_categories ORDER BY sort_order, id"
+    ).fetchall()
+    categories = [dict(r) for r in rows]
+    for c in categories:
+        levels = conn.execute(
+            "SELECT * FROM skill_tree_levels WHERE category_id = ? ORDER BY level",
+            (c['id'],)
+        ).fetchall()
+        c['levels'] = [dict(l) for l in levels]
+    conn.close()
+    return categories
+
+
+def get_player_skill_progress(player_id):
+    """Get player's skill progress for all categories."""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM player_skill_progress WHERE player_id = ?",
+        (player_id,)
+    ).fetchall()
+    conn.close()
+    return {(r['category_id']): dict(r) for r in rows}
+
+
+def add_skill_xp(player_id, category_id, xp_amount):
+    """Add XP to a skill category and recalc level. Returns updated progress dict."""
+    conn = get_db()
+    row = conn.execute(
+        "SELECT * FROM player_skill_progress WHERE player_id = ? AND category_id = ?",
+        (player_id, category_id)
+    ).fetchone()
+    if not row:
+        conn.execute(
+            "INSERT INTO player_skill_progress (player_id, category_id, level, xp_in_category) VALUES (?, ?, 1, 0)",
+            (player_id, category_id)
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM player_skill_progress WHERE player_id = ? AND category_id = ?",
+            (player_id, category_id)
+        ).fetchone()
+    d = dict(row)
+    new_xp = (d.get('xp_in_category') or 0) + xp_amount
+    levels = conn.execute(
+        "SELECT level, xp_required FROM skill_tree_levels WHERE category_id = ? ORDER BY level DESC",
+        (category_id,)
+    ).fetchall()
+    new_level = 1
+    for l in levels:
+        if new_xp >= l['xp_required']:
+            new_level = l['level']
+            break
+    conn.execute(
+        """UPDATE player_skill_progress SET xp_in_category = ?, level = ?, updated_at = datetime('now')
+           WHERE player_id = ? AND category_id = ?""",
+        (new_xp, new_level, player_id, category_id)
+    )
+    conn.commit()
+    row = conn.execute(
+        "SELECT * FROM player_skill_progress WHERE player_id = ? AND category_id = ?",
+        (player_id, category_id)
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+# ===== STREAKS =====
+
+STREAK_TYPES = ['practice', 'film_study', 'workout']
+CHALLENGE_TO_STREAK = {
+    'shooting': 'practice',
+    'defense': 'practice',
+    'playmaking': 'practice',
+    'workout': 'workout',
+    'film': 'film_study',
+    'custom': 'practice',
+}
+
+def update_streak(player_id, streak_type):
+    """Record activity for today. Increment if yesterday, reset if gap, set 1 if first. Returns (current_days, xp_bonus)."""
+    from datetime import date, timedelta
+    today = date.today().isoformat()
+    conn = get_db()
+    row = conn.execute(
+        "SELECT * FROM player_streaks WHERE player_id = ? AND streak_type = ?",
+        (player_id, streak_type)
+    ).fetchone()
+    current = row['current_days'] if row else 0
+    last = row['last_activity_date'] if row else None
+    xp_bonus = 0
+    if not last:
+        new_days = 1
+    else:
+        last_d = date.fromisoformat(last)
+        if last_d == date.today():
+            conn.close()
+            return current, 0  # Already counted today
+        if last_d == date.today() - timedelta(days=1):
+            new_days = current + 1
+            if new_days >= 6:
+                xp_bonus = 30  # +30 XP bonus for 6+ day streak
+        else:
+            new_days = 1
+    if row:
+        conn.execute(
+            "UPDATE player_streaks SET current_days = ?, last_activity_date = ?, updated_at = datetime('now') WHERE player_id = ? AND streak_type = ?",
+            (new_days, today, player_id, streak_type)
+        )
+    else:
+        conn.execute(
+            "INSERT INTO player_streaks (player_id, streak_type, current_days, last_activity_date) VALUES (?, ?, ?, ?)",
+            (player_id, streak_type, new_days, today)
+        )
+    conn.commit()
+    conn.close()
+    return new_days, xp_bonus
+
+
+def get_player_streaks(player_id):
+    """Get all streaks for a player. Returns list of dicts."""
+    from datetime import date, timedelta
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM player_streaks WHERE player_id = ?",
+        (player_id,)
+    ).fetchall()
+    conn.close()
+    today = date.today().isoformat()
+    result = []
+    for r in rows:
+        d = dict(r)
+        last = d.get('last_activity_date')
+        if last:
+            last_d = date.fromisoformat(last)
+            if last_d < date.today() - timedelta(days=1):
+                d['active_today'] = False
+                d['will_reset'] = True
+            else:
+                d['active_today'] = last_d == date.today()
+                d['will_reset'] = False
+        else:
+            d['active_today'] = False
+            d['will_reset'] = True
+        result.append(d)
+    # Ensure all streak types exist with 0
+    for st in STREAK_TYPES:
+        if not any(x['streak_type'] == st for x in result):
+            result.append({
+                'streak_type': st,
+                'current_days': 0,
+                'last_activity_date': None,
+                'active_today': False,
+                'will_reset': True,
+            })
+    return result
+
+
+# ===== HUSTLE STATS =====
+
+def get_hustle_leaderboard(team_code, limit=50):
+    """Get hustle leaderboard: players sorted by total hustle (deflections + charges + rebounds + loose_balls + screen_assists)."""
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT u.id as player_id, u.name,
+               COALESCE(h.deflections, 0) as deflections,
+               COALESCE(h.charges, 0) as charges,
+               COALESCE(h.rebounds, 0) as rebounds,
+               COALESCE(h.loose_balls, 0) as loose_balls,
+               COALESCE(h.screen_assists, 0) as screen_assists,
+               (COALESCE(h.deflections, 0) + COALESCE(h.charges, 0) + COALESCE(h.rebounds, 0)
+                + COALESCE(h.loose_balls, 0) + COALESCE(h.screen_assists, 0)) as total_hustle
+        FROM users u
+        LEFT JOIN player_hustle_stats h ON h.player_id = u.id
+        WHERE u.user_type = 'player' AND u.team_code = ?
+        ORDER BY total_hustle DESC, u.name ASC
+        LIMIT ?
+    """, (team_code, limit)).fetchall()
+    conn.close()
+    result = []
+    for i, r in enumerate(rows):
+        d = dict(r)
+        d['rank'] = i + 1
+        d['total_hustle'] = d.get('total_hustle') or 0
+        result.append(d)
+    return result
+
+
+def get_player_hustle_stats(player_id):
+    """Get hustle stats for a single player."""
+    conn = get_db()
+    row = conn.execute("SELECT * FROM player_hustle_stats WHERE player_id = ?", (player_id,)).fetchone()
+    conn.close()
+    if not row:
+        return {'deflections': 0, 'charges': 0, 'rebounds': 0, 'loose_balls': 0, 'screen_assists': 0, 'total_hustle': 0}
+    d = dict(row)
+    d['total_hustle'] = (d.get('deflections') or 0) + (d.get('charges') or 0) + (d.get('rebounds') or 0) + (d.get('loose_balls') or 0) + (d.get('screen_assists') or 0)
+    return d
+
+
+def update_player_hustle_stats(player_id, deflections=None, charges=None, rebounds=None, loose_balls=None, screen_assists=None, add=False):
+    """Update hustle stats for a player. If add=True, values are added to existing; else they replace."""
+    conn = get_db()
+    row = conn.execute("SELECT * FROM player_hustle_stats WHERE player_id = ?", (player_id,)).fetchone()
+    if not row:
+        conn.execute(
+            "INSERT INTO player_hustle_stats (player_id, deflections, charges, rebounds, loose_balls, screen_assists) VALUES (?, 0, 0, 0, 0, 0)",
+            (player_id,)
+        )
+        conn.commit()
+        row = conn.execute("SELECT * FROM player_hustle_stats WHERE player_id = ?", (player_id,)).fetchone()
+    d = dict(row)
+    if deflections is not None:
+        d['deflections'] = (d.get('deflections') or 0) + deflections if add else deflections
+    if charges is not None:
+        d['charges'] = (d.get('charges') or 0) + charges if add else charges
+    if rebounds is not None:
+        d['rebounds'] = (d.get('rebounds') or 0) + rebounds if add else rebounds
+    if loose_balls is not None:
+        d['loose_balls'] = (d.get('loose_balls') or 0) + loose_balls if add else loose_balls
+    if screen_assists is not None:
+        d['screen_assists'] = (d.get('screen_assists') or 0) + screen_assists if add else screen_assists
+    conn.execute(
+        """UPDATE player_hustle_stats SET deflections = ?, charges = ?, rebounds = ?, loose_balls = ?, screen_assists = ?, updated_at = datetime('now') WHERE player_id = ?""",
+        (d['deflections'], d['charges'], d['rebounds'], d['loose_balls'], d['screen_assists'], player_id)
+    )
+    conn.commit()
+    conn.close()
+    return get_player_hustle_stats(player_id)
 
 
 # Initialize on import
