@@ -419,41 +419,10 @@ def init_db():
         "UPDATE users SET password_hash = ? WHERE email = 'marcus@school.edu'",
         (generate_password_hash('12345'),)
     )
-    # Seed 11 more players on coachw's team (same as Marcus)
-    _seed_team_players(conn, coach_team, generate_password_hash('12345'))
     conn.commit()
 
     conn.close()
     _init_users()
-
-
-def _seed_team_players(conn, team_code, password_hash):
-    """Seed 11 additional players on the coach's team. Idempotent - skips if email exists."""
-    if not team_code:
-        return
-    players = [
-        ('jayden@school.edu', 'Jayden Williams'),
-        ('leo@school.edu', 'Leo Martinez'),
-        ('tyler@school.edu', 'Tyler Johnson'),
-        ('jordan@school.edu', 'Jordan Davis'),
-        ('cameron@school.edu', 'Cameron Brown'),
-        ('alex@school.edu', 'Alex Thompson'),
-        ('ryan@school.edu', 'Ryan Wilson'),
-        ('blake@school.edu', 'Blake Anderson'),
-        ('drew@school.edu', 'Drew Jackson'),
-        ('kai@school.edu', 'Kai Rodriguez'),
-        ('miles@school.edu', 'Miles Taylor'),
-    ]
-    for email, name in players:
-        try:
-            conn.execute(
-                """INSERT INTO users (email, password_hash, name, user_type, team_code, email_verified)
-                   VALUES (?, ?, ?, 'player', ?, 1)""",
-                (email.lower(), password_hash, name, team_code)
-            )
-        except sqlite3.IntegrityError:
-            pass  # already exists
-        conn.commit()
 
 
 def _init_users():

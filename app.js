@@ -91,11 +91,11 @@ function navigateTo(page) {
   const navEl = document.querySelector(`[data-page="${page}"]`);
   if (pageEl) { pageEl.classList.add('active'); currentPage = page; }
   if (navEl) navEl.classList.add('active');
-  if (page === 'dashboard') { loadDashboardRecentGames(); loadDashboardStats(); }
+  if (page === 'dashboard') loadDashboardRecentGames();
   if (page === 'draw-plays') initCanvas();
-  if (page === 'player-stats') { loadPlayerStatsPage(); renderPlayerCharts(); }
+  if (page === 'player-stats') renderPlayerCharts();
   if (page === 'upload-film') updateFreePlanUI();
-  if (page === 'ai-analysis') { loadAIAnalysisData(); renderAnalysisCharts(); }
+  if (page === 'ai-analysis') renderAnalysisCharts();
   if (page === 'analysis-history') {
     document.querySelector('.main-content')?.scrollTo(0, 0);
     if (typeof loadClips === 'function') loadClips();
@@ -114,7 +114,7 @@ function navigateTo(page) {
     loadChallengesLeaderboard();
     if (typeof loadCoachHustleLeaderboard === 'function') loadCoachHustleLeaderboard();
   }
-  if (page === 'send-tips') { loadTipPlayers(); loadTipClipsDropdown(); }
+  if (page === 'send-tips') loadTipPlayers();
 }
 
 // ===== AVATAR MENU =====
@@ -237,20 +237,27 @@ async function fetchUploadUsage() {
 function initUpload() {
   const zone = document.getElementById('upload-zone');
   const fileInput = document.getElementById('file-input');
-  if (!zone || !fileInput) return;
-  // Make zone clickable to open file picker
+  if (!zone) return;
   zone.addEventListener('click', () => fileInput.click());
   zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
   zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
   zone.addEventListener('drop', (e) => {
     e.preventDefault(); zone.classList.remove('dragover');
-    if (e.dataTransfer.files.length > 0) {
-      fileInput.files = e.dataTransfer.files;
-    }
+    handleFiles(e.dataTransfer.files);
   });
-  fileInput.addEventListener('change', () => {
-    // File selected in modal — the "Upload & Analyze" button handles the actual upload
-  });
+  fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+}
+
+function handleFiles(files) {
+  if (files.length === 0) return;
+  const file = files[0];
+  showToast(`Uploading "${file.name}"...`, IC.upload);
+  // Simulate upload
+  setTimeout(() => {
+    showToast(`"${file.name}" uploaded successfully!`, IC.check);
+    addToClips(file.name);
+    closeModal('upload-modal');
+  }, 1500);
 }
 
 function addToClips(fileName) {
@@ -1931,18 +1938,18 @@ function renderSparklines() {
 // ===== AI ANALYSIS CHARTS =====
 function renderAnalysisCharts() {
   renderBarChart('chart-team-shooting', [
-    { label: 'Team FG%', value: 0, color: '#F04A00' },
-    { label: 'Team 3PT%', value: 0, color: '#FF6A00' },
-    { label: 'Team FT%', value: 0, color: '#FF8C42' },
-    { label: 'Opp FG%', value: 0, color: '#ef4444' },
+    { label: 'Team FG%', value: 46, color: '#F04A00' },
+    { label: 'Team 3PT%', value: 33, color: '#FF6A00' },
+    { label: 'Team FT%', value: 72, color: '#FF8C42' },
+    { label: 'Opp FG%', value: 41, color: '#ef4444' },
   ]);
   renderBarChart('chart-quarters', [
-    { label: 'Q1 Points', value: 0, color: '#F04A00' },
-    { label: 'Q2 Points', value: 0, color: '#FF6A00' },
-    { label: 'Q3 Points', value: 0, color: '#FF8C42' },
-    { label: 'Q4 Points', value: 0, color: '#ef4444' },
+    { label: 'Q1 Points', value: 75, color: '#F04A00' },
+    { label: 'Q2 Points', value: 60, color: '#FF6A00' },
+    { label: 'Q3 Points', value: 85, color: '#FF8C42' },
+    { label: 'Q4 Points', value: 45, color: '#ef4444' },
   ]);
-  renderDonutChart('chart-win-rate', 0, 'Win Rate');
+  renderDonutChart('chart-win-rate', 67, 'Win Rate');
   renderFatigueHeatmap();
   renderPaceChart();
   renderShotDistChart();
@@ -1951,21 +1958,21 @@ function renderAnalysisCharts() {
 
 function renderPaceChart() {
   renderBarChart('chart-pace', [
-    { label: 'Possessions/Game', value: 0, color: '#F04A00' },
-    { label: 'Points/Possession', value: 0, color: '#FF8C42' },
-    { label: 'Pace Rating', value: 0, color: '#3b82f6' },
-    { label: 'Half-Court Eff.', value: 0, color: '#FF6A00' },
-    { label: 'Transition Eff.', value: 0, color: '#a855f7' },
+    { label: 'Possessions/Game', value: 72, color: '#F04A00' },
+    { label: 'Points/Possession', value: 65, color: '#FF8C42' },
+    { label: 'Pace Rating', value: 78, color: '#3b82f6' },
+    { label: 'Half-Court Eff.', value: 54, color: '#FF6A00' },
+    { label: 'Transition Eff.', value: 82, color: '#a855f7' },
   ]);
 }
 
 function renderShotDistChart() {
   renderBarChart('chart-shot-dist', [
-    { label: 'At Rim', value: 0, color: '#FF8C42' },
-    { label: 'Short Mid', value: 0, color: '#FF6A00' },
-    { label: 'Long Mid', value: 0, color: '#eab308' },
-    { label: '3PT Corner', value: 0, color: '#3b82f6' },
-    { label: '3PT Above Break', value: 0, color: '#a855f7' },
+    { label: 'At Rim', value: 38, color: '#FF8C42' },
+    { label: 'Short Mid', value: 18, color: '#FF6A00' },
+    { label: 'Long Mid', value: 12, color: '#eab308' },
+    { label: '3PT Corner', value: 14, color: '#3b82f6' },
+    { label: '3PT Above Break', value: 18, color: '#a855f7' },
   ]);
 }
 
@@ -1973,14 +1980,14 @@ function renderFatigueHeatmap() {
   const container = document.getElementById('fatigue-heatmap');
   if (!container) return;
   const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-  const players = ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'];
-  // fatigue levels 1-5 (5 = high fatigue) - zeroed until real data
+  const players = ['#3 James', '#11 Davis', '#7 Wright', '#23 Carter', '#5 Johnson'];
+  // fatigue levels 1-5 (5 = high fatigue)
   const data = [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
+    [1, 2, 3, 4],
+    [1, 1, 2, 3],
+    [2, 3, 4, 5],
+    [1, 2, 2, 3],
+    [1, 1, 3, 5],
   ];
   const colors = ['#F04A00', '#FF8C42', '#eab308', '#3b82f6', '#ef4444'];
   let html = '<div style="display:flex;gap:8px;margin-bottom:8px;padding-left:90px">';
@@ -2229,67 +2236,23 @@ async function handleForgotPassword() {
 }
 
 function updateUserUI(name, initials, email) {
-  // Update header avatar
+  // Update avatar
   const avatar = document.querySelector('.avatar');
   if (avatar) {
     avatar.textContent = initials;
     avatar.title = name;
+    avatar.onclick = () => showToast(`Profile: ${name}`, IC.user);
   }
-
-  // Update avatar menu
-  const menuName = document.getElementById('avatar-menu-name');
-  const menuEmail = document.getElementById('avatar-menu-email');
-  if (menuName) menuName.textContent = name;
-  if (menuEmail) menuEmail.textContent = email || '';
 
   // Update dashboard greeting
   const dashTitle = document.querySelector('#page-dashboard .page-title');
   if (dashTitle) dashTitle.innerHTML = `Welcome back, ${name.split(' ')[0]}!`;
 
-  // Update dashboard subtitle with team info
-  const dashSub = document.getElementById('dashboard-subtitle');
-  if (dashSub) {
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-    dashSub.textContent = `Here's your coaching dashboard for ${today}.`;
-  }
-
-  // Update settings page
-  const settingsAvatar = document.getElementById('settings-avatar');
-  if (settingsAvatar) settingsAvatar.textContent = initials;
-  const settingsNameDisplay = document.querySelector('#page-settings .card-body div[style*="font-size:16px"]');
-  if (settingsNameDisplay) settingsNameDisplay.textContent = name;
-
-  // Update settings form fields
-  const settingsName = document.getElementById('settings-name');
-  const settingsEmail = document.getElementById('settings-email');
-  if (settingsName && (!settingsName.value || settingsName.value === 'Coach Wilson')) settingsName.value = name;
-  if (settingsEmail && (!settingsEmail.value || settingsEmail.value === 'coach.wilson@harkerhs.edu')) settingsEmail.value = email || '';
-
-  // Update settings subtitle (Head Coach · School)
-  const settingsSubtitle = document.querySelector('#page-settings .card-body div[style*="font-size:12px"]');
-  if (settingsSubtitle && currentUser) {
-    const school = currentUser.school || currentUser.team_name || '';
-    settingsSubtitle.textContent = school ? `Head Coach · ${school}` : 'Head Coach';
-  }
-
-  // Update settings school & team fields
-  if (currentUser) {
-    const settingsSchool = document.getElementById('settings-school');
-    const settingsTeam = document.getElementById('settings-team');
-    if (settingsSchool && (!settingsSchool.value || settingsSchool.value === 'Harker High School')) settingsSchool.value = currentUser.school || '';
-    if (settingsTeam && (!settingsTeam.value || settingsTeam.value === 'Harker Eagles')) settingsTeam.value = currentUser.team_name || '';
-  }
-
-  // Update plan badge
-  if (currentUser) {
-    const plan = currentUser.plan || 'free';
-    const planNameEl = document.querySelector('.plan-badge .plan-name');
-    if (planNameEl) planNameEl.textContent = (plan === 'elite' ? 'Elite' : plan === 'standard' ? 'Standard' : 'Free') + ' Plan';
-  }
-
   // Update tip sender fields
   const tipSenderInputs = document.querySelectorAll('input[value="Coach Wilson"]');
   tipSenderInputs.forEach(input => { input.value = name; });
+
+  // Update any placeholder tip sender references
   const tipSenderPlaceholders = document.querySelectorAll('input[placeholder="Coach Wilson"]');
   tipSenderPlaceholders.forEach(input => { input.placeholder = name; });
 }
@@ -2565,183 +2528,6 @@ document.addEventListener('genai-loading', (e) => {
     if (btn) { btn.disabled = true; btn.innerHTML = IC.clock; }
   }
 });
-
-// ===== DASHBOARD STATS (from real backend) =====
-async function loadDashboardStats() {
-  try {
-    const res = await fetchWithAuth(`${BACKEND_URL}/api/dashboard/stats`);
-    if (!res.ok) return;
-    const data = await res.json();
-    const cards = document.querySelectorAll('#page-dashboard .stats-grid .stat-card');
-    if (cards.length >= 4) {
-      cards[0].querySelector('.stat-value').textContent = data.games_analyzed || 0;
-      cards[0].querySelector('.stat-label').textContent = 'Games Analyzed';
-      cards[0].querySelector('.stat-change').textContent = `${data.video_count || 0} videos, ${data.stat_sheet_count || 0} stat sheets`;
-      cards[0].querySelector('.stat-change').className = 'stat-change';
-      cards[1].querySelector('.stat-value').textContent = data.player_count || 0;
-      cards[1].querySelector('.stat-label').textContent = 'Team Players';
-      cards[1].querySelector('.stat-change').textContent = 'Joined via team code';
-      cards[1].querySelector('.stat-change').className = 'stat-change';
-      cards[2].querySelector('.stat-value').textContent = data.challenges_created || 0;
-      cards[2].querySelector('.stat-label').textContent = 'Challenges';
-      cards[2].querySelector('.stat-change').textContent = 'Created for your team';
-      cards[2].querySelector('.stat-change').className = 'stat-change';
-      cards[3].querySelector('.stat-value').textContent = (data.video_count || 0) + (data.stat_sheet_count || 0);
-      cards[3].querySelector('.stat-label').textContent = 'Total Uploads';
-      cards[3].querySelector('.stat-change').textContent = 'Films & stat sheets';
-      cards[3].querySelector('.stat-change').className = 'stat-change';
-    }
-  } catch {}
-}
-
-// ===== PLAYER STATS PAGE (dynamic from backend) =====
-async function loadPlayerStatsPage() {
-  const rosterContainer = document.getElementById('player-roster-list');
-  if (!rosterContainer) return;
-  try {
-    const res = await fetchWithAuth(`${BACKEND_URL}/api/team/players`);
-    if (!res.ok) return;
-    const data = await res.json();
-    const players = data.players || data || [];
-    if (players.length === 0) {
-      rosterContainer.innerHTML = '<div class="empty-state" style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px"><p>No players have joined your team yet. Share your team code to get started.</p></div>';
-      return;
-    }
-    rosterContainer.innerHTML = players.map(p => {
-      const initials = (p.name || 'P').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-      return `<div class="player-row" onclick="switchPlayer('${(p.name || 'Player').replace(/'/g, "\\'")}')">
-        <div class="player-avatar">${initials}</div>
-        <div class="player-info">
-          <div class="player-name">${p.name || 'Player'}</div>
-          <div class="player-position">${p.email || ''}</div>
-        </div>
-      </div>`;
-    }).join('');
-  } catch {}
-}
-
-// ===== AI ANALYSIS PAGE (dynamic from backend) =====
-async function loadAIAnalysisData() {
-  try {
-    const res = await fetchWithAuth(`${BACKEND_URL}/api/clips`);
-    if (!res.ok) return;
-    const clips = await res.json();
-    const completedGames = clips.filter(c => c.status === 'complete' && c.type !== 'stat_sheet');
-    const statSheets = clips.filter(c => c.type === 'stat_sheet');
-
-    // Aggregate stats from analysis results
-    let totalPts = 0, totalReb = 0, totalAst = 0, totalTo = 0;
-    let gamesWithStats = 0;
-    for (const g of completedGames) {
-      if (g.analysis_results) {
-        try {
-          const ar = typeof g.analysis_results === 'string' ? JSON.parse(g.analysis_results) : g.analysis_results;
-          if (ar.score) {
-            const scoreParts = String(ar.score).split('-').map(s => parseInt(s.trim()));
-            if (scoreParts[0]) totalPts += scoreParts[0];
-          }
-          if (ar.reb) totalReb += Number(ar.reb) || 0;
-          if (ar.ast) totalAst += Number(ar.ast) || 0;
-          if (ar.to) totalTo += Number(ar.to) || 0;
-          gamesWithStats++;
-        } catch {}
-      }
-    }
-    const n = gamesWithStats || 1;
-    const noData = gamesWithStats === 0;
-
-    // Update all stat cards (2 rows: 4 + 4)
-    const statCards = document.querySelectorAll('#page-ai-analysis .stats-grid .stat-card');
-    if (statCards.length >= 4) {
-      statCards[0].querySelector('.stat-value').textContent = noData ? '--' : (totalPts / n).toFixed(1);
-      statCards[0].querySelector('.stat-label').textContent = 'Avg Points';
-      statCards[0].querySelector('.stat-change').textContent = `${completedGames.length} game${completedGames.length !== 1 ? 's' : ''} analyzed`;
-      statCards[0].querySelector('.stat-change').className = 'stat-change';
-
-      statCards[1].querySelector('.stat-value').textContent = noData ? '--' : statSheets.length;
-      statCards[1].querySelector('.stat-label').textContent = 'Stat Sheets';
-      statCards[1].querySelector('.stat-change').textContent = noData ? 'Upload games to see data' : 'Uploaded';
-      statCards[1].querySelector('.stat-change').className = 'stat-change';
-
-      statCards[2].querySelector('.stat-value').textContent = noData ? '--' : (totalTo / n).toFixed(1);
-      statCards[2].querySelector('.stat-label').textContent = 'Turnovers/Game';
-      statCards[2].querySelector('.stat-change').textContent = noData ? 'No data yet' : `Avg across ${gamesWithStats} games`;
-      statCards[2].querySelector('.stat-change').className = 'stat-change';
-
-      statCards[3].querySelector('.stat-value').textContent = noData ? '--' : (totalAst / n).toFixed(1);
-      statCards[3].querySelector('.stat-label').textContent = 'Assists/Game';
-      statCards[3].querySelector('.stat-change').textContent = noData ? 'No data yet' : `Avg across ${gamesWithStats} games`;
-      statCards[3].querySelector('.stat-change').className = 'stat-change';
-    }
-    if (statCards.length >= 8) {
-      statCards[4].querySelector('.stat-value').textContent = noData ? '--' : (totalReb / n).toFixed(1);
-      statCards[4].querySelector('.stat-label').textContent = 'Rebounds/Game';
-      statCards[4].querySelector('.stat-change').textContent = noData ? 'No data yet' : `Avg across ${gamesWithStats} games`;
-      statCards[4].querySelector('.stat-change').className = 'stat-change';
-
-      statCards[5].querySelector('.stat-value').textContent = clips.length;
-      statCards[5].querySelector('.stat-label').textContent = 'Total Clips';
-      statCards[5].querySelector('.stat-change').textContent = 'In your library';
-      statCards[5].querySelector('.stat-change').className = 'stat-change';
-
-      statCards[6].querySelector('.stat-value').textContent = noData ? '--' : '\u2014';
-      statCards[6].querySelector('.stat-label').textContent = 'Steals/Game';
-      statCards[6].querySelector('.stat-change').textContent = noData ? 'No data yet' : 'From analysis';
-      statCards[6].querySelector('.stat-change').className = 'stat-change';
-
-      statCards[7].querySelector('.stat-value').textContent = completedGames.length;
-      statCards[7].querySelector('.stat-label').textContent = 'AI Analyses';
-      statCards[7].querySelector('.stat-change').textContent = noData ? 'No analyses yet' : 'Completed';
-      statCards[7].querySelector('.stat-change').className = 'stat-change';
-    }
-
-    // Update the "In-Game AI Detections" section title
-    // Update detections timeline
-    const timelineContainer = document.getElementById('ai-detections-timeline');
-    if (timelineContainer && completedGames.length > 0) {
-      const latest = completedGames[0];
-      let moments = [];
-      if (latest.analysis_results) {
-        try {
-          const ar = typeof latest.analysis_results === 'string' ? JSON.parse(latest.analysis_results) : latest.analysis_results;
-          moments = ar.moments || [];
-        } catch {}
-      }
-      if (moments.length > 0) {
-        timelineContainer.innerHTML = moments.map(m => `<div class="timeline-item">
-          <div class="timeline-dot ${m.type || 'info'}"></div>
-          <div class="timeline-time">${m.time || ''}</div>
-          <div class="timeline-content"><h4>${m.text || ''}</h4></div>
-        </div>`).join('');
-      } else {
-        timelineContainer.innerHTML = '<div class="empty-state" style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px"><p>No AI detections found for the latest game. Upload a video for detailed analysis.</p></div>';
-      }
-      // Update title
-      const detectionsCard = timelineContainer.closest('.card');
-      if (detectionsCard) {
-        const h3 = detectionsCard.querySelector('.card-header h3');
-        if (h3) h3.innerHTML = `<span class="inline-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> AI Detections \u2014 ${latest.title || latest.file_name || 'Latest Game'}`;
-      }
-    }
-  } catch {}
-}
-
-// ===== SEND TIPS - ATTACH CLIP DROPDOWN =====
-async function loadTipClipsDropdown() {
-  const attachSelect = document.getElementById('tip-attach-clip');
-  if (!attachSelect) return;
-  try {
-    const res = await fetchWithAuth(`${BACKEND_URL}/api/clips`);
-    if (!res.ok) return;
-    const clips = await res.json();
-    attachSelect.innerHTML = '<option value="">No clip attached</option>';
-    clips.forEach(clip => {
-      const title = clip.title || clip.file_name || 'Untitled';
-      const date = clip.created_at ? new Date(clip.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-      attachSelect.innerHTML += `<option value="${clip.id}">${title}${date ? ' \u2014 ' + date : ''}</option>`;
-    });
-  } catch {}
-}
 
 // ===== DASHBOARD RECENT GAMES (from real backend) =====
 async function loadDashboardRecentGames() {
