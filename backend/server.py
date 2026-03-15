@@ -90,7 +90,12 @@ def require_coach(f):
 # ===== FRONTEND SERVING =====
 
 @app.route('/')
-def serve_index():
+def serve_landing():
+    """Serve the landing page."""
+    return send_from_directory(FRONTEND_DIR, 'index.html')
+
+@app.route('/app')
+def serve_app():
     """Serve the coach dashboard."""
     return send_from_directory(FRONTEND_DIR, 'fullwebsite.html')
 @app.route('/analyze/basketball', methods=['POST'])
