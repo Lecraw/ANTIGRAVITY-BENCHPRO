@@ -3447,10 +3447,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load saved settings (theme, toggles, profile) — apply theme immediately
   loadSettingsUI();
 
-  // Handle hash-based auth tab switching from landing page (#login or #signup)
-  if (window.location.hash === '#signup') showAuthTab('signup');
-  else if (window.location.hash === '#login') showAuthTab('login');
-
   // Handle redirects with token (?token= from OAuth)
   const urlParams = new URLSearchParams(window.location.search);
   const urlToken = urlParams.get('token');
