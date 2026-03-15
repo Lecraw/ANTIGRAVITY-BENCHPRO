@@ -1202,6 +1202,87 @@ def serve_static(path):
     return jsonify({'error': 'Not found'}), 404
 
 
+# ===== AI CHAT PROXY (keeps API key server-side) =====
+
+@app.route('/api/ai/chat', methods=['POST'])
+@limiter.limit(RATE_LIMIT)
+def ai_chat():
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user = models.get_user_by_token(token) if token else None
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+    data = request.get_json(silent=True) or {}
+    question = (data.get('question') or '').strip()
+    if not question:
+        return jsonify({'error': 'Question is required'}), 400
+    context = data.get('context', {})
+
+    from .ai_coach import client as anthropic_client
+    if not anthropic_client:
+        return jsonify({'error': 'AI service not configured (missing API key)'}), 503
+
+    system_prompt = """You are BenchPro AI, an elite basketball analytics assistant for high school basketball coaches.
+You provide data-driven, actionable coaching insights. Your analysis should be:
+- Specific and backed by the data provided
+- Practical for high school level coaching
+- Focused on player development and team strategy
+- Written in a clear, concise coaching style
+Keep responses focused and under 300 words unless asked for more detail."""
+
+    user_msg = question
+    if context:
+        user_msg = f"Context about my team data: {context}\n\nMy question: {question}"
+
+    try:
+        response = anthropic_client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=1024,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_msg}]
+        )
+        text = ''.join(b.text for b in response.content if b.type == 'text')
+        return jsonify({'success': True, 'text': text})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ===== DASHBOARD STATS =====
+
+@app.route('/api/dashboard/stats', methods=['GET'])
+def dashboard_stats():
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user = models.get_user_by_token(token) if token else None
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+    uid = user['id']
+    conn = models.get_db()
+    try:
+        games_count = conn.execute('SELECT COUNT(*) FROM games WHERE user_id=?', (uid,)).fetchone()[0]
+        stat_sheets_count = conn.execute('SELECT COUNT(*) FROM stat_sheet_analyses WHERE user_id=?', (uid,)).fetchone()[0]
+        total_analyses = games_count + stat_sheets_count
+
+        # Count players in coach's team
+        team_code = user['team_code'] or ''
+        player_count = 0
+        if team_code:
+            player_count = conn.execute("SELECT COUNT(*) FROM users WHERE team_code=? AND user_type='player'", (team_code,)).fetchone()[0]
+
+        # Count challenges created
+        challenges_count = 0
+        if team_code:
+            challenges_count = conn.execute("SELECT COUNT(*) FROM challenges WHERE team_code=?", (team_code,)).fetchone()[0]
+
+        return jsonify({
+            'games_analyzed': total_analyses,
+            'player_count': player_count,
+            'challenges_created': challenges_count,
+            'video_count': games_count,
+            'stat_sheet_count': stat_sheets_count,
+        })
+    finally:
+        conn.close()
+
+
 # ===== MAIN =====
 
 if __name__ == '__main__':
